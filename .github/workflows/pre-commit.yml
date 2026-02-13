@@ -1,0 +1,29 @@
+name: pre-commit
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  pre-commit:
+    runs-on: ubuntu-latest
+    env:
+      PRE_COMMIT_HOME: '/tmp/pre-commit'
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - uses: actions/cache@v5
+        with:
+          path: ${{ env.PRE_COMMIT_HOME }}
+          key: ${{ runner.os }}-${{ hashFiles('.pre-commit-config.yaml') }}
+      - name: Install pre-commit
+        run: pip install pre-commit
+      - name: Run pre-commit
+        run: pre-commit run --all-files --show-diff-on-failure
