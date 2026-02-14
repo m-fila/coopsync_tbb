@@ -17,10 +17,10 @@ Cooperative synchronization primitives for TBB resumable tasks
 
 | Accelerators and libraries | Status |
 | -------------------------- | ------ |
-| CUDA                       | ❌     |
+| CUDA                       | ✔️     |
 | HIP                        | ❌     |
 | SYCL                       | ❌     |
 | ONNX                       | ❌     |
-| Trition                    | ❌     |
+| Triton                     | ❌     |
 
 ✔️: supported, ❌: not supported
