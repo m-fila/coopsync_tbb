@@ -21,6 +21,6 @@ TEST(CUDAWaitFor, BasicTest) {
     ASSERT_EQ(cudaEventQuery(event), cudaSuccess);
     ASSERT_EQ(cudaStreamSynchronize(stream), cudaSuccess);
     // Clean up
-    cudaEventDestroy(event);
-    cudaStreamDestroy(stream);
+    ASSERT_EQ(cudaEventDestroy(event), cudaSuccess);
+    ASSERT_EQ(cudaStreamDestroy(stream), cudaSuccess);
 }
