@@ -20,15 +20,20 @@ class latch {
     /// @brief Constructs a latch with the specified initial count. The count
     /// must be non-negative.
     /// @param expected The initial count for the latch.
-    latch(std::ptrdiff_t expected);
+    explicit latch(std::ptrdiff_t expected);
+
     /// @brief Latch is not copy-constructible.
     latch(const latch&) = delete;
+
     /// @brief Latch is not copy-assignable.
     latch& operator=(const latch&) = delete;
+
     /// @brief Latch is not move-constructible.
     latch(latch&&) = delete;
+
     /// @brief Latch is not move-assignable.
     latch& operator=(latch&&) = delete;
+
     /// @brief Destructor.
     /// @note The destructor must not be called while there are still tasks
     /// waiting on the latch.
@@ -102,6 +107,13 @@ inline void latch::wait() {
     // Slow path
     auto node = detail::intrusive_list<tbb::task::suspend_point>::node{};
     m_waiters_mutex.lock();
+
+    // Re-check while holding the lock to avoid racing with count_down()
+    if (try_wait()) {
+        m_waiters_mutex.unlock();
+        return;
+    }
+
     // Guaranteed that the suspend lambda will be executed on the same
     // thread so capturing locked mutex is fine.
     tbb::task::suspend([this, &node](tbb::task::suspend_point sp) {
