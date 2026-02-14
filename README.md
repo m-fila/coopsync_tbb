@@ -18,7 +18,7 @@ Cooperative synchronization primitives for TBB resumable tasks
 | Accelerators and libraries | Status |
 | -------------------------- | ------ |
 | CUDA                       | ✔️     |
-| HIP                        | ❌     |
+| HIP                        | ✔️     |
 | SYCL                       | ❌     |
 | ONNX                       | ❌     |
 | Triton                     | ❌     |
