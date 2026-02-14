@@ -9,8 +9,8 @@ namespace detail {
 /// @brief CUDA callback to resume a suspended TBB task.
 /// @param tag Pointer to the suspend point of the task to resume.
 ///
-static inline void resumption_callback(void *tag) {
-    tbb::task::resume(*static_cast<tbb::task::suspend_point *>(tag));
+static inline void resumption_callback(void* tag) {
+    tbb::task::resume(*static_cast<tbb::task::suspend_point*>(tag));
 }
 }  // namespace detail
 
@@ -24,14 +24,17 @@ static inline void resumption_callback(void *tag) {
 static inline cudaError_t wait_for(cudaStream_t stream) {
     tbb::task::suspend_point suspend_point;
     cudaError_t err;
-    tbb::task::suspend([stream, &err, &suspend_point](auto tag) {
-        suspend_point = tag;
-        err = cudaLaunchHostFunc(stream, detail::resumption_callback,
-                                 &suspend_point);
-        if (err != cudaSuccess) {
-            detail::resumption_callback(&suspend_point);
-        }
-    });
+    tbb::task::suspend(
+        [stream, &err, &suspend_point](tbb::task::suspend_point tag) {
+            suspend_point = tag;
+            // Note: cudaStreamAddCallback is pending for deprecation, using
+            // cudaLaunchHostFunc instead
+            err = cudaLaunchHostFunc(stream, detail::resumption_callback,
+                                     &suspend_point);
+            if (err != cudaSuccess) {
+                detail::resumption_callback(&suspend_point);
+            }
+        });
     return err;
 }
 
