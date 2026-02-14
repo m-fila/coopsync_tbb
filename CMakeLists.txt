@@ -66,6 +66,7 @@ add_library(
   include/coopsync_tbb/coopsync_tbb.hpp
   include/coopsync_tbb/detail/intrusive_list.hpp
   include/coopsync_tbb/latch.hpp
+  include/coopsync_tbb/mutex.hpp
   include/coopsync_tbb/cuda/wait_for.hpp
   include/coopsync_tbb/hip/wait_for.hpp)
 add_library(CoopSync_TBB::CoopSync_TBB ALIAS CoopSync_TBB)
