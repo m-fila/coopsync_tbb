@@ -107,6 +107,13 @@ inline void latch::wait() {
     // Slow path
     auto node = detail::intrusive_list<tbb::task::suspend_point>::node{};
     m_waiters_mutex.lock();
+
+    // Re-check while holding the lock to avoid racing with count_down()
+    if (try_wait()) {
+        m_waiters_mutex.unlock();
+        return;
+    }
+
     // Guaranteed that the suspend lambda will be executed on the same
     // thread so capturing locked mutex is fine.
     tbb::task::suspend([this, &node](tbb::task::suspend_point sp) {
