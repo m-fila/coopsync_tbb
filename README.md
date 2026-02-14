@@ -9,7 +9,7 @@ Cooperative synchronization primitives for TBB resumable tasks
 | `barrier`            | ❌     |
 | `condition_variable` | ❌     |
 | `future`             | ❌     |
-| `latch`              | ❌     |
+| `latch`              | ✔️     |
 | `mutex`              | ❌     |
 | `semaphore`          | ❌     |
 
