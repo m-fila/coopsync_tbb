@@ -63,8 +63,8 @@ class latch {
 
     private:
     std::atomic<std::ptrdiff_t> m_counter;
-    tbb::spin_mutex m_mutex;
-    detail::intrusive_list<tbb::task::suspend_point> m_queue;
+    tbb::spin_mutex m_waiters_mutex;
+    detail::intrusive_list<tbb::task::suspend_point> m_waiters;
 };
 
 inline latch::latch(std::ptrdiff_t expected) : m_counter(expected) {
@@ -87,8 +87,8 @@ inline void latch::arrive_and_wait(std::ptrdiff_t update) {
 inline void latch::count_down(std::ptrdiff_t update) {
     assert(update >= 0);
     if (m_counter.fetch_sub(update, std::memory_order_acq_rel) == update) {
-        tbb::spin_mutex::scoped_lock lock(m_mutex);
-        while (auto* item = m_queue.pop_front()) {
+        tbb::spin_mutex::scoped_lock lock(m_waiters_mutex);
+        while (auto* item = m_waiters.pop_front()) {
             tbb::task::resume(item->value);
         }
     }
@@ -101,13 +101,13 @@ inline void latch::wait() {
     }
     // Slow path
     auto node = detail::intrusive_list<tbb::task::suspend_point>::node{};
-    m_mutex.lock();
+    m_waiters_mutex.lock();
     // Guaranteed that the suspend lambda will be executed on the same
     // thread so capturing locked mutex is fine.
     tbb::task::suspend([this, &node](tbb::task::suspend_point sp) {
         node.value = sp;
-        m_queue.push_back(node);
-        m_mutex.unlock();
+        m_waiters.push_back(node);
+        m_waiters_mutex.unlock();
     });
 }
 
