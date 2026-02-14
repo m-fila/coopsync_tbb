@@ -1,0 +1,57 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 25,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "downstream",
+      "displayName": "Downstream (consume installed CoopSync_TBB)",
+      "description": "Configure this consumer project against the repo's ../../install prefix.",
+      "binaryDir": "../../build/downstream",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "CMAKE_PREFIX_PATH": "../../install"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "downstream",
+      "displayName": "Build downstream",
+      "configurePreset": "downstream"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "downstream",
+      "displayName": "Test downstream",
+      "configurePreset": "downstream",
+      "output": {
+        "outputOnFailure": true
+      }
+    }
+  ],
+  "workflowPresets": [
+    {
+      "name": "downstream",
+      "displayName": "Downstream workflow (configure, build, test)",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "downstream"
+        },
+        {
+          "type": "build",
+          "name": "downstream"
+        },
+        {
+          "type": "test",
+          "name": "downstream"
+        }
+      ]
+    }
+  ]
+}
