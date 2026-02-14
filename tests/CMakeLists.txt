@@ -1,5 +1,16 @@
 include(GoogleTest)
 
+add_executable(
+  coopsync_tbb_test
+  # details
+  intrusive_list_test.cpp
+  # main classes
+  latch_test.cpp)
+
+target_link_libraries(coopsync_tbb_test PRIVATE GTest::gtest_main CoopSync_TBB)
+
+gtest_discover_tests(coopsync_tbb_test)
+
 # CUDA
 
 find_package(CUDAToolkit QUIET)
