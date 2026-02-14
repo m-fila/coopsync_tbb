@@ -1,5 +1,7 @@
 # CoopSync for TBB
 
+[![](https://img.shields.io/badge/docs-dev-blue.svg)](https://m-fila.github.io/coopsync_tbb/)
+
 Cooperative synchronization primitives for TBB resumable tasks
 
 ## Status
