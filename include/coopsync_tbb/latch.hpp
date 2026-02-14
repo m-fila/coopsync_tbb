@@ -43,12 +43,6 @@ class latch {
     /// @return true if the latch has reached zero, false otherwise.
     bool try_wait() const noexcept;
 
-    /// @brief Decrements the latch counter by the specified update and suspends
-    /// until the counter reaches zero. The update must be non-negative and less
-    /// than or equal to the current counter value.
-    /// @param update The value to decrement the counter by.
-    void arrive_and_wait(std::ptrdiff_t update = 1);
-
     /// @brief Decrements the latch counter by the specified update. The update
     /// must be non-negative and less than or equal to the current counter
     /// value. If the counter reaches zero, all suspended tasks are resumed.
@@ -61,30 +55,36 @@ class latch {
     /// @note The suspended task must be resumed before the latch is destroyed.
     void wait();
 
+    /// @brief Decrements the latch counter by the specified update and suspends
+    /// until the counter reaches zero. The update must be non-negative and less
+    /// than or equal to the current counter value.
+    /// @param update The value to decrement the counter by.
+    void arrive_and_wait(std::ptrdiff_t update = 1);
+
     private:
     std::atomic<std::ptrdiff_t> m_counter;
     tbb::spin_mutex m_mutex;
     detail::intrusive_list<tbb::task::suspend_point> m_queue;
 };
 
-latch::latch(std::ptrdiff_t expected) : m_counter(expected) {
+inline latch::latch(std::ptrdiff_t expected) : m_counter(expected) {
     assert(expected >= 0);
 }
 
-constexpr std::ptrdiff_t latch::max() noexcept {
+inline constexpr std::ptrdiff_t latch::max() noexcept {
     return std::numeric_limits<std::ptrdiff_t>::max();
 }
 
-bool latch::try_wait() const noexcept {
+inline bool latch::try_wait() const noexcept {
     return m_counter.load(std::memory_order_acquire) == 0;
 }
 
-void latch::arrive_and_wait(std::ptrdiff_t update) {
+inline void latch::arrive_and_wait(std::ptrdiff_t update) {
     count_down(update);
     wait();
 }
 
-void latch::count_down(std::ptrdiff_t update) {
+inline void latch::count_down(std::ptrdiff_t update) {
     assert(update >= 0);
     if (m_counter.fetch_sub(update, std::memory_order_acq_rel) == update) {
         tbb::spin_mutex::scoped_lock lock(m_mutex);
@@ -94,7 +94,7 @@ void latch::count_down(std::ptrdiff_t update) {
     }
 }
 
-void latch::wait() {
+inline void latch::wait() {
     // Fast path
     if (try_wait()) {
         return;
