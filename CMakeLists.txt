@@ -73,3 +73,9 @@ if(BUILD_TESTING AND COOPSYNC_TBB_BUILD_TESTING)
   enable_testing()
   add_subdirectory(tests)
 endif()
+
+# Docs
+
+if(COOPSYNC_TBB_BUILD_DOCS)
+  add_subdirectory(docs)
+endif()
