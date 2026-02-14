@@ -5,7 +5,7 @@ add_executable(
   # details
   intrusive_list_test.cpp
   # main classes
-  latch_test.cpp)
+  latch_test.cpp mutex_test.cpp)
 
 target_link_libraries(coopsync_tbb_test PRIVATE GTest::gtest_main CoopSync_TBB)
 
