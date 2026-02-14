@@ -11,6 +11,10 @@ option(COOPSYNC_TBB_USE_SYSTEM_LIBS "Use system libraries be default" FALSE)
 option(COOPSYNC_TBB_BUILD_TESTING "Build the tests of CoopSync_TBB" TRUE)
 option(COOPSYNC_TBB_BUILD_DOCS "Build the documentation of CoopSync_TBB" OFF)
 
+# Common config
+
+include(GNUInstallDirs)
+
 # Set up TBB.
 
 option(COOPSYNC_TBB_SETUP_TBB "Set up the TBB target(s) explicitly" TRUE)
@@ -60,20 +64,24 @@ endif()
 
 # Library
 
-add_library(
+add_library(CoopSync_TBB INTERFACE)
+
+target_sources(
   CoopSync_TBB
-  INTERFACE
-  include/coopsync_tbb/coopsync_tbb.hpp
-  include/coopsync_tbb/detail/intrusive_list.hpp
-  include/coopsync_tbb/latch.hpp
-  include/coopsync_tbb/mutex.hpp
-  include/coopsync_tbb/scoped_lock.hpp
-  include/coopsync_tbb/cuda/wait_for.hpp
-  include/coopsync_tbb/hip/wait_for.hpp)
+  INTERFACE FILE_SET
+            HEADERS
+            BASE_DIRS
+            include/
+            FILES
+            include/coopsync_tbb/coopsync_tbb.hpp
+            include/coopsync_tbb/detail/intrusive_list.hpp
+            include/coopsync_tbb/latch.hpp
+            include/coopsync_tbb/mutex.hpp
+            include/coopsync_tbb/scoped_lock.hpp
+            include/coopsync_tbb/cuda/wait_for.hpp
+            include/coopsync_tbb/hip/wait_for.hpp)
+
 add_library(CoopSync_TBB::CoopSync_TBB ALIAS CoopSync_TBB)
-target_include_directories(
-  CoopSync_TBB INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/>
-                         $<INSTALL_INTERFACE:include/>)
 target_link_libraries(CoopSync_TBB INTERFACE TBB::tbb)
 
 # Tests
@@ -88,3 +96,25 @@ endif()
 if(COOPSYNC_TBB_BUILD_DOCS)
   add_subdirectory(docs)
 endif()
+
+# Install
+
+install(
+  TARGETS CoopSync_TBB
+  EXPORT CoopSync_TBBTargets
+  FILE_SET HEADERS)
+
+install(
+  EXPORT CoopSync_TBBTargets
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/CoopSync_TBB
+  NAMESPACE CoopSync_TBB::)
+
+include(CMakePackageConfigHelpers)
+
+write_basic_package_version_file(
+  ${CMAKE_CURRENT_BINARY_DIR}/CoopSync_TBBConfigVersion.cmake
+  COMPATIBILITY ExactVersion)
+
+install(FILES cmake/CoopSync_TBBConfig.cmake
+              ${CMAKE_CURRENT_BINARY_DIR}/CoopSync_TBBConfigVersion.cmake
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/CoopSync_TBB)
