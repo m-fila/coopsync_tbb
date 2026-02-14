@@ -20,15 +20,20 @@ class latch {
     /// @brief Constructs a latch with the specified initial count. The count
     /// must be non-negative.
     /// @param expected The initial count for the latch.
-    latch(std::ptrdiff_t expected);
+    explicit latch(std::ptrdiff_t expected);
+
     /// @brief Latch is not copy-constructible.
     latch(const latch&) = delete;
+
     /// @brief Latch is not copy-assignable.
     latch& operator=(const latch&) = delete;
+
     /// @brief Latch is not move-constructible.
     latch(latch&&) = delete;
+
     /// @brief Latch is not move-assignable.
     latch& operator=(latch&&) = delete;
+
     /// @brief Destructor.
     /// @note The destructor must not be called while there are still tasks
     /// waiting on the latch.
