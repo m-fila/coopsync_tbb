@@ -7,6 +7,7 @@ add_executable(
   intrusive_list_test.cpp
   unique_scoped_lock_test.cpp
   # main classes
+  barrier_test.cpp
   latch_test.cpp
   mutex_test.cpp
   semaphore_test.cpp)
