@@ -119,7 +119,7 @@ inline void mutex::lock() {
 
 inline void mutex::unlock() {
     tbb::spin_mutex::scoped_lock lock(m_waiters_mutex);
-    if (auto* waiter = m_waiters.pop_front()) {
+    if (const auto* waiter = m_waiters.pop_front()) {
         // Direct handoff: keep the mutex locked and resume exactly one waiter.
         tbb::task::resume(waiter->value);
         return;
