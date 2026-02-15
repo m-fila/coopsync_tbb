@@ -54,8 +54,9 @@ class mutex {
     void unlock();
 
     private:
+    using waiter_t = tbb::task::suspend_point;
     std::atomic<bool> m_locked = false;
-    detail::intrusive_list<tbb::task::suspend_point> m_waiters;
+    detail::intrusive_list<waiter_t> m_waiters;
     tbb::spin_mutex m_waiters_mutex;
 };
 
@@ -96,7 +97,7 @@ inline void mutex::lock() {
         return;
     }
     // Slow path
-    auto node = detail::intrusive_list<tbb::task::suspend_point>::node{};
+    auto node = detail::intrusive_list<waiter_t>::node{};
     m_waiters_mutex.lock();
 
     // Re-check while holding the lock to avoid racing with unlock()

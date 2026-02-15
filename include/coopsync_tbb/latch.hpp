@@ -70,9 +70,10 @@ class latch {
     void arrive_and_wait(std::ptrdiff_t update = 1);
 
     private:
+    using waiter_t = tbb::task::suspend_point;
     std::atomic<std::ptrdiff_t> m_counter;
     tbb::spin_mutex m_waiters_mutex;
-    detail::intrusive_list<tbb::task::suspend_point> m_waiters;
+    detail::intrusive_list<waiter_t> m_waiters;
 };
 
 inline latch::latch(std::ptrdiff_t expected) : m_counter(expected) {
@@ -108,7 +109,7 @@ inline void latch::wait() {
         return;
     }
     // Slow path
-    auto node = detail::intrusive_list<tbb::task::suspend_point>::node{};
+    auto node = detail::intrusive_list<waiter_t>::node{};
     m_waiters_mutex.lock();
 
     // Re-check while holding the lock to avoid racing with count_down()
