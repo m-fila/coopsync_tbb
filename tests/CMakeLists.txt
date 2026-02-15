@@ -2,6 +2,7 @@ include(GoogleTest)
 
 add_executable(
   coopsync_tbb_test
+  mutex_traits.hpp
   # details
   intrusive_list_test.cpp
   # main classes

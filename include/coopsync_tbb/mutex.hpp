@@ -21,12 +21,12 @@ class mutex {
     /// @brief Constructs a new mutex. The mutex is initially unlocked.
     mutex() = default;
 
-    /// @brief Mutex is not copy-constructible.
+    /// @brief The mutex is not copy-constructible.
     mutex(const mutex&) = delete;
 
-    /// @brief Mutex is not copy-assignable.
+    /// @brief The mutex is not copy-assignable.
     mutex& operator=(const mutex&) = delete;
-    /// @brief Mutex is not move-constructible.
+    /// @brief The mutex is not move-constructible.
 
     mutex(mutex&&) = delete;
 
@@ -52,6 +52,13 @@ class mutex {
     /// @brief Releases the mutex. If there are tasks suspended on the mutex,
     /// exactly one of them is resumed and acquires the mutex.
     void unlock();
+
+    /// @brief The mutex is not a reader-writer (shared) mutex.
+    static inline constexpr bool is_rw_mutex = false;
+    /// @brief The mutex is not recursive.
+    static inline constexpr bool is_recursive_mutex = false;
+    /// @brief The mutex does not provide any fairness guarantees.
+    static inline constexpr bool is_fair_mutex = false;
 
     private:
     using waiter_t = tbb::task::suspend_point;
