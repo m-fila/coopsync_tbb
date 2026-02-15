@@ -20,7 +20,7 @@ Cooperative synchronization primitives for TBB resumable tasks
 | `mutex`              | ✔️     |
 | `recursive_mutex`    | ❌     |
 | `shared_mutex`       | ❌     |
-| `semaphore`          | ❌     |
+| `semaphore`          | ✔️     |
 
 ✔️: supported, ❌: not supported
 
