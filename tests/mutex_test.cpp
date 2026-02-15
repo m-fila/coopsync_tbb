@@ -3,6 +3,14 @@
 #include <gtest/gtest.h>
 #include <oneapi/tbb/parallel_for.h>
 
+#include "mutex_traits.hpp"
+
+TEST(Mutex, Traits) {
+    ASSERT_TRUE(coopsync_tbb::has_is_rw_mutex_v<coopsync_tbb::mutex>);
+    ASSERT_TRUE(coopsync_tbb::has_is_fair_mutex_v<coopsync_tbb::mutex>);
+    ASSERT_TRUE(coopsync_tbb::has_is_recursive_mutex_v<coopsync_tbb::mutex>);
+}
+
 TEST(Mutex, NoContentionTryLock) {
     auto m = coopsync_tbb::mutex{};
     ASSERT_TRUE(m.try_lock());
