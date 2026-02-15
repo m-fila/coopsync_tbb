@@ -96,7 +96,9 @@ inline void latch::arrive_and_wait(std::ptrdiff_t update) {
 
 inline void latch::count_down(std::ptrdiff_t update) {
     assert(update >= 0);
-    if (m_counter.fetch_sub(update, std::memory_order_acq_rel) == update) {
+    auto prev = m_counter.fetch_sub(update, std::memory_order_acq_rel);
+    assert(prev >= update);
+    if (prev == update) {
         tbb::spin_mutex::scoped_lock lock(m_waiters_mutex);
         while (const auto* waiter = m_waiters.pop_front()) {
             tbb::task::resume(waiter->value);
