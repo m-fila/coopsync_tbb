@@ -78,6 +78,7 @@ class latch {
 
 inline latch::latch(std::ptrdiff_t expected) : m_counter(expected) {
     assert(expected >= 0);
+    assert(expected <= max());
 }
 
 inline constexpr std::ptrdiff_t latch::max() noexcept {
