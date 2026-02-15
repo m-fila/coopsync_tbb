@@ -14,7 +14,8 @@ namespace coopsync_tbb {
 /// The mutex is non-recursive and provides no fairness guarantees.
 // @note This mutex does not satisfy the standard named requirements
 // (BasicLockable, Lockable, Mutex) because it never blocks the calling
-// thread, even though it exposes the same interface.
+// thread, even though it exposes the same interface. Concurrent invocations of
+// the member functions. except for destructor, are safe.
 class mutex {
     public:
     /// @brief Constructs a new mutex. The mutex is initially unlocked.
@@ -34,7 +35,8 @@ class mutex {
 
     /// @brief Destroys the mutex.
     /// @note The destructor must not be called while the mutex is still locked
-    /// or while there are tasks suspended on it.
+    /// or while there are tasks suspended on it. The destructor does not notify
+    /// or resume any waiting tasks.
     ~mutex() = default;
 
     /// @brief Attempts to acquire the mutex without suspending.
@@ -52,8 +54,9 @@ class mutex {
     void unlock();
 
     private:
+    using waiter_t = tbb::task::suspend_point;
     std::atomic<bool> m_locked = false;
-    detail::intrusive_list<tbb::task::suspend_point> m_waiters;
+    detail::intrusive_list<waiter_t> m_waiters;
     tbb::spin_mutex m_waiters_mutex;
 };
 
@@ -94,7 +97,7 @@ inline void mutex::lock() {
         return;
     }
     // Slow path
-    auto node = detail::intrusive_list<tbb::task::suspend_point>::node{};
+    auto node = detail::intrusive_list<waiter_t>::node{};
     m_waiters_mutex.lock();
 
     // Re-check while holding the lock to avoid racing with unlock()
@@ -116,7 +119,7 @@ inline void mutex::lock() {
 
 inline void mutex::unlock() {
     tbb::spin_mutex::scoped_lock lock(m_waiters_mutex);
-    if (auto* waiter = m_waiters.pop_front()) {
+    if (const auto* waiter = m_waiters.pop_front()) {
         // Direct handoff: keep the mutex locked and resume exactly one waiter.
         tbb::task::resume(waiter->value);
         return;

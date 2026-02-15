@@ -13,13 +13,15 @@
 namespace coopsync_tbb {
 /// @brief A latch is a down-ward counter that allows tasks to wait until the
 /// counter reaches zero. The latch is not reusable, i.e., once the counter
-/// reaches zero, it cannot be incremented again.
+/// reaches zero, it cannot be incremented again. Concurrent invocations of the
+/// member functions. except for destructor, are safe.
 ///
 class latch {
     public:
     /// @brief Constructs a latch with the specified initial count. The count
     /// must be non-negative.
-    /// @param expected The initial count for the latch.
+    /// @param expected The initial count for the latch. Must be non-negative
+    /// and not greater than max().
     explicit latch(std::ptrdiff_t expected);
 
     /// @brief Latch is not copy-constructible.
@@ -34,9 +36,10 @@ class latch {
     /// @brief Latch is not move-assignable.
     latch& operator=(latch&&) = delete;
 
-    /// @brief Destructor.
+    /// @brief Destroys the latch.
     /// @note The destructor must not be called while there are still tasks
-    /// waiting on the latch.
+    /// waiting on the latch. The destructor does not notify or resume any
+    /// waiting tasks.
     ~latch() = default;
 
     /// @brief Returns the maximum value for the latch counter.
@@ -48,10 +51,10 @@ class latch {
     /// @return true if the latch has reached zero, false otherwise.
     bool try_wait() const noexcept;
 
-    /// @brief Decrements the latch counter by the specified update. The update
-    /// must be non-negative and less than or equal to the current counter
-    /// value. If the counter reaches zero, all suspended tasks are resumed.
-    /// @param update The value to decrement the counter by.
+    /// @brief Decrements the latch counter by the specified update. If the
+    /// counter reaches zero, all suspended tasks are resumed.
+    /// @param update The value to decrement the counter by. Must be
+    /// non-negative and less than or equal to the current counter value.
     void count_down(std::ptrdiff_t update = 1);
 
     /// @brief Suspends the calling task until the latch counter reaches zero.
@@ -67,13 +70,15 @@ class latch {
     void arrive_and_wait(std::ptrdiff_t update = 1);
 
     private:
+    using waiter_t = tbb::task::suspend_point;
     std::atomic<std::ptrdiff_t> m_counter;
     tbb::spin_mutex m_waiters_mutex;
-    detail::intrusive_list<tbb::task::suspend_point> m_waiters;
+    detail::intrusive_list<waiter_t> m_waiters;
 };
 
 inline latch::latch(std::ptrdiff_t expected) : m_counter(expected) {
     assert(expected >= 0);
+    assert(expected <= max());
 }
 
 inline constexpr std::ptrdiff_t latch::max() noexcept {
@@ -93,8 +98,8 @@ inline void latch::count_down(std::ptrdiff_t update) {
     assert(update >= 0);
     if (m_counter.fetch_sub(update, std::memory_order_acq_rel) == update) {
         tbb::spin_mutex::scoped_lock lock(m_waiters_mutex);
-        while (auto* item = m_waiters.pop_front()) {
-            tbb::task::resume(item->value);
+        while (const auto* waiter = m_waiters.pop_front()) {
+            tbb::task::resume(waiter->value);
         }
     }
 }
@@ -105,7 +110,7 @@ inline void latch::wait() {
         return;
     }
     // Slow path
-    auto node = detail::intrusive_list<tbb::task::suspend_point>::node{};
+    auto node = detail::intrusive_list<waiter_t>::node{};
     m_waiters_mutex.lock();
 
     // Re-check while holding the lock to avoid racing with count_down()
