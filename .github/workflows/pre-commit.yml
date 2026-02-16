@@ -23,7 +23,11 @@ jobs:
         with:
           path: ${{ env.PRE_COMMIT_HOME }}
           key: ${{ runner.os }}-${{ hashFiles('.pre-commit-config.yaml') }}
-      - name: Install pre-commit
-        run: pip install pre-commit
+      - name: Install dependencies
+        run: |
+          sudo apt-get update && sudo apt-get install -y cppcheck clang-tidy cmake
+          pip install pre-commit
       - name: Run pre-commit
-        run: pre-commit run --all-files --show-diff-on-failure
+        run: |
+          cmake -S . -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+          pre-commit run --all-files --show-diff-on-failure
