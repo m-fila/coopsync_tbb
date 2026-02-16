@@ -20,7 +20,7 @@ struct context {
 ///
 static inline void resumption_callback(hipStream_t, hipError_t err,
                                        void* data) {
-    detail::context* ctx = static_cast<detail::context*>(data);
+    auto* ctx = static_cast<detail::context*>(data);
     ctx->err = err;
     tbb::task::resume(ctx->suspend_point);
 }
@@ -35,7 +35,7 @@ static inline void resumption_callback(hipStream_t, hipError_t err,
 /// immediately.
 ///
 static inline hipError_t wait_for(hipStream_t stream) {
-    detail::context ctx;
+    auto ctx = detail::context{};
     tbb::task::suspend([stream, &ctx](tbb::task::suspend_point tag) {
         ctx.suspend_point = tag;
         // Note: hipLaunchHostFunc is beta, using hipStreamAddCallback for now

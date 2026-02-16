@@ -8,12 +8,13 @@
 TEST(HIPWaitFor, BasicTest) {
     ASSERT_EQ(hipSetDevice(0), hipSuccess);
     // Create a HIP stream and event
-    hipStream_t stream;
+    auto stream = hipStream_t{};
     ASSERT_EQ(hipStreamCreate(&stream), hipSuccess);
-    hipEvent_t event;
+    auto event = hipEvent_t{};
     ASSERT_EQ(hipEventCreate(&event), hipSuccess);
     // Spin for some time and record event
-    launch_nanospin(1'000'000, stream);
+    const auto ns = 1'000'000;
+    launch_nanospin(ns, stream);
     ASSERT_EQ(hipGetLastError(), hipSuccess);
     ASSERT_EQ(hipEventRecord(event, stream), hipSuccess);
     // Wait for the event to complete

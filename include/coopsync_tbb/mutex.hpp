@@ -108,13 +108,13 @@ inline void mutex::lock() {
 
 inline void mutex::unlock() {
     assert(m_locked.load(std::memory_order_acquire));
-    tbb::spin_mutex::scoped_lock lock(m_waiters_mutex);
+    tbb::spin_mutex::scoped_lock lock_(m_waiters_mutex);
     if (const auto* waiter = m_waiters.pop_front()) {
         // Direct handoff: keep the mutex locked and resume exactly one waiter.
         tbb::task::resume(waiter->value);
         return;
     }
-    m_locked.store(0, std::memory_order_release);
+    m_locked.store(false, std::memory_order_release);
 }
 
 }  // namespace coopsync_tbb
