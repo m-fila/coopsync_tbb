@@ -7,17 +7,22 @@
 #include <cassert>
 
 #include "coopsync_tbb/detail/intrusive_list.hpp"
+#include "coopsync_tbb/scoped_lock.hpp"
 
 namespace coopsync_tbb {
 
 /// @brief A mutex that can be used to synchronize access to shared resources.
 /// The mutex is non-recursive and provides no fairness guarantees.
-// @note This mutex does not satisfy the standard named requirements
-// (BasicLockable, Lockable, Mutex) because it never blocks the calling
-// thread, even though it exposes the same interface. Concurrent invocations of
-// the member functions. except for destructor, are safe.
+/// @note This mutex does not satisfy the standard named requirements
+/// (BasicLockable, Lockable, Mutex) because it never blocks the calling
+/// thread, even though it exposes the same interface. Concurrent invocations of
+/// the member functions. except for destructor, are safe.
 class mutex {
     public:
+
+    /// @brief Associated RAII wrapper type for this mutex.
+    using scoped_lock = coopsync_tbb::scoped_lock<mutex>;
+
     /// @brief Constructs a new mutex. The mutex is initially unlocked.
     mutex() = default;
 
@@ -67,29 +72,6 @@ class mutex {
     tbb::spin_mutex m_waiters_mutex;
 };
 
-/// @brief A scoped_lock is a RAII wrapper for mutex that acquires the mutex on
-/// construction and releases it on destruction.
-class scoped_lock {
-    public:
-    /// @brief Constructs a scoped_lock and acquires the given mutex.
-    /// @param m The mutex to acquire.
-    explicit scoped_lock(mutex& m);
-    /// @brief Destroys the scoped_lock and releases the mutex.
-    ~scoped_lock();
-
-    /// @brief scoped_lock is not copy-constructible.
-    scoped_lock(const scoped_lock&) = delete;
-    /// @brief scoped_lock is not copy-assignable.
-    scoped_lock& operator=(const scoped_lock&) = delete;
-    /// @brief scoped_lock is not move-constructible.
-    scoped_lock(scoped_lock&&) = delete;
-    /// @brief scoped_lock is not move-assignable.
-    scoped_lock& operator=(scoped_lock&&) = delete;
-
-    private:
-    mutex& m_mutex;
-};
-
 inline bool mutex::try_lock() noexcept {
     bool expected = false;
     const bool desired = true;
@@ -133,14 +115,6 @@ inline void mutex::unlock() {
         return;
     }
     m_locked.store(0, std::memory_order_release);
-}
-
-inline scoped_lock::scoped_lock(mutex& m) : m_mutex(m) {
-    m_mutex.lock();
-}
-
-inline scoped_lock::~scoped_lock() {
-    m_mutex.unlock();
 }
 
 }  // namespace coopsync_tbb
