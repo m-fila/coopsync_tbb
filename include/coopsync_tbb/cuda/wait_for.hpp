@@ -1,5 +1,6 @@
 #pragma once
 #include <cuda_runtime_api.h>
+#include <driver_types.h>
 #include <oneapi/tbb/task.h>
 
 /// @brief CUDA integration.
@@ -22,8 +23,8 @@ static inline void resumption_callback(void* tag) {
 /// immediately.
 ///
 static inline cudaError_t wait_for(cudaStream_t stream) {
-    tbb::task::suspend_point suspend_point;
-    cudaError_t err;
+    auto suspend_point = tbb::task::suspend_point{};
+    auto err = cudaSuccess;
     tbb::task::suspend(
         [stream, &err, &suspend_point](tbb::task::suspend_point tag) {
             suspend_point = tag;

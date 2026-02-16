@@ -8,12 +8,13 @@
 TEST(CUDAWaitFor, BasicTest) {
     ASSERT_EQ(cudaSetDevice(0), cudaSuccess);
     // Create a CUDA stream and event
-    cudaStream_t stream;
+    auto stream = cudaStream_t{};
     ASSERT_EQ(cudaStreamCreate(&stream), cudaSuccess);
-    cudaEvent_t event;
+    auto event = cudaEvent_t{};
     ASSERT_EQ(cudaEventCreate(&event), cudaSuccess);
     // Spin for some time and record event
-    launch_nanospin(1'000'000, stream);
+    const auto ns = 1'000'000;
+    launch_nanospin(ns, stream);
     ASSERT_EQ(cudaGetLastError(), cudaSuccess);
     ASSERT_EQ(cudaEventRecord(event, stream), cudaSuccess);
     // Wait for the event to complete

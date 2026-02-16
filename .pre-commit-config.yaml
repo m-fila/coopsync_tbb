@@ -13,3 +13,17 @@ repos:
       - id: end-of-file-fixer
       - id: check-yaml
       - id: check-json
+  - repo: local
+    hooks:
+      - id: cppcheck
+        name: cppcheck
+        entry: cppcheck --project=build/compile_commands.json --enable=all --cppcheck-build-dir=build --suppressions-list=cppcheck.suppressions -i "build/_deps/*" --error-exitcode=1 --check-level=exhaustive
+        types: [c++]
+        language: system
+        pass_filenames: false
+      - id: clang-tidy
+        name: clang-tidy
+        entry: run-clang-tidy -p build/ -header-filter='.*'
+        types: [c++]
+        language: system
+        exclude: (build|downstream)
