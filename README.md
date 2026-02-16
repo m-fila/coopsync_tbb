@@ -7,11 +7,15 @@ Cooperative synchronization primitives for TBB resumable tasks
 | Primitive            | Status |
 | -------------------- | ------ |
 | `barrier`            | ❌     |
+| `buffered_channel`   | ❌     |
+| `unbuffered_channel` | ❌     |
 | `condition_variable` | ❌     |
 | `future`             | ❌     |
+| `packaged_task`      | ❌     |
 | `latch`              | ✔️     |
 | `mutex`              | ✔️     |
 | `recursive_mutex`    | ❌     |
+| `shared_mutex`       | ❌     |
 | `semaphore`          | ❌     |
 
 ✔️: supported, ❌: not supported
