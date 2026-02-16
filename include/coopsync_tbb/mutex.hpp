@@ -19,7 +19,6 @@ namespace coopsync_tbb {
 /// the member functions. except for destructor, are safe.
 class mutex {
     public:
-
     /// @brief Associated RAII wrapper type for this mutex.
     using scoped_lock = coopsync_tbb::scoped_lock<mutex>;
 

@@ -37,7 +37,7 @@ TEST(Mutex, MutualExclusionParallelIncrement) {
     const auto n = 20000;
 
     tbb::parallel_for(0, n, [&](int) {
-        auto lock=coopsync_tbb::mutex::scoped_lock(m);
+        auto lock = coopsync_tbb::mutex::scoped_lock(m);
         ++counter;
     });
 
