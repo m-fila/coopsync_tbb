@@ -5,7 +5,7 @@
 // A few type traits checking presence of static members as in TBB.
 // No constrains and concepts for compatibility with pre C++20.
 
-namespace coopsync_tbb {
+namespace coopsync_tbb::traits {
 
 // void_t for C++11
 template <typename...>
@@ -47,4 +47,15 @@ template <typename T>
 inline constexpr bool has_is_recursive_mutex_v =
     has_is_recursive_mutex<T>::value;
 
-}  // namespace coopsync_tbb
+// scoped_lock typedef
+
+template <typename T, typename = void>
+struct has_scoped_lock : std::false_type {};
+
+template <typename T>
+struct has_scoped_lock<T, void_t<typename T::scoped_lock>> : std::true_type {};
+
+template <typename T>
+inline constexpr bool has_scoped_lock_v = has_scoped_lock<T>::value;
+
+}  // namespace coopsync_tbb::traits
