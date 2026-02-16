@@ -23,7 +23,7 @@ repos:
         pass_filenames: false
       - id: clang-tidy
         name: clang-tidy
-        entry: run-clang-tidy -p build/
+        entry: run-clang-tidy -p build/ -header-filter='.*'
         types: [c++]
         language: system
         exclude: (build|downstream)
