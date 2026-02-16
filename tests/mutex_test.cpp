@@ -6,9 +6,11 @@
 #include "mutex_traits.hpp"
 
 TEST(Mutex, Traits) {
-    ASSERT_TRUE(coopsync_tbb::has_is_rw_mutex_v<coopsync_tbb::mutex>);
-    ASSERT_TRUE(coopsync_tbb::has_is_fair_mutex_v<coopsync_tbb::mutex>);
-    ASSERT_TRUE(coopsync_tbb::has_is_recursive_mutex_v<coopsync_tbb::mutex>);
+    ASSERT_TRUE(coopsync_tbb::traits::has_is_rw_mutex_v<coopsync_tbb::mutex>);
+    ASSERT_TRUE(coopsync_tbb::traits::has_is_fair_mutex_v<coopsync_tbb::mutex>);
+    ASSERT_TRUE(
+        coopsync_tbb::traits::has_is_recursive_mutex_v<coopsync_tbb::mutex>);
+    ASSERT_TRUE(coopsync_tbb::traits::has_scoped_lock_v<coopsync_tbb::mutex>);
 }
 
 TEST(Mutex, NoContentionTryLock) {
@@ -35,7 +37,7 @@ TEST(Mutex, MutualExclusionParallelIncrement) {
     const auto n = 20000;
 
     tbb::parallel_for(0, n, [&](int) {
-        coopsync_tbb::scoped_lock lock(m);
+        auto lock=coopsync_tbb::mutex::scoped_lock(m);
         ++counter;
     });
 
