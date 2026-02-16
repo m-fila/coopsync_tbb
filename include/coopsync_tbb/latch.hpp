@@ -128,6 +128,9 @@ inline void latch::wait() {
         m_waiters.push_back(node);
         m_waiters_mutex.unlock();
     });
+
+    // Post resumption, the latch counter has reached zero.
+    assert(m_counter.load(std::memory_order_acquire) == 0);
 }
 
 }  // namespace coopsync_tbb
