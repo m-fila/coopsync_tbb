@@ -1,6 +1,6 @@
 #include "coopsync_tbb/cuda/wait_for.hpp"
 
-#include <cuda_runtime_api.h>
+#include <cuda_runtime_api.h>  // NOLINT(clang-diagnostic-error)
 #include <gtest/gtest.h>
 
 #include "nanospin.hpp"

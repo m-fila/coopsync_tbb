@@ -1,5 +1,5 @@
 #pragma once
-#include <hip/hip_runtime_api.h>
+#include <hip/hip_runtime_api.h>  // NOLINT(clang-diagnostic-error)
 #include <oneapi/tbb/task.h>
 
 /// @brief HIP integration.
