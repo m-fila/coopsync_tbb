@@ -88,6 +88,7 @@ target_sources(
             include/coopsync_tbb/latch.hpp
             include/coopsync_tbb/mutex.hpp
             include/coopsync_tbb/shared_mutex.hpp
+            include/coopsync_tbb/recursive_mutex.hpp
             include/coopsync_tbb/semaphore.hpp
             include/coopsync_tbb/cuda/wait_for.hpp
             include/coopsync_tbb/hip/wait_for.hpp)

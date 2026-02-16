@@ -14,6 +14,7 @@ add_executable(
   latch_test.cpp
   mutex_test.cpp
   shared_mutex_test.cpp
+  recursive_mutex_test.cpp
   semaphore_test.cpp)
 
 target_link_libraries(coopsync_tbb_test PRIVATE GTest::gtest_main CoopSync_TBB)

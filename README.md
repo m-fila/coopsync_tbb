@@ -18,11 +18,11 @@ Cooperative synchronization primitives for TBB resumable tasks
 | `packaged_task`      | ✔️     |
 | `latch`              | ✔️     |
 | `mutex`              | ✔️     |
-| `recursive_mutex`    | ❌     |
+| `recursive_mutex`    | 🚧     |
 | `shared_mutex`       | ✔️     |
 | `semaphore`          | ✔️     |
 
-✔️: supported, ❌: not supported
+✔️: supported, ❌: not implemented, 🚧: limited support
 
 | Accelerators and libraries | Status |
 | -------------------------- | ------ |
@@ -32,7 +32,7 @@ Cooperative synchronization primitives for TBB resumable tasks
 | ONNX                       | ❌     |
 | Triton                     | ❌     |
 
-✔️: supported, ❌: not supported
+✔️: supported, ❌: not implemented
 
 ## Disclaimer
 
