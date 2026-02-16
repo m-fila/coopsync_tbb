@@ -1,5 +1,5 @@
 #pragma once
-#include <cuda_runtime_api.h>  // NOLINT(clang-diagnostic-error)
+#include <cuda_runtime_api.h>
 #include <driver_types.h>
 #include <oneapi/tbb/task.h>
 
