@@ -2,3 +2,5 @@ missingIncludeSystem:*
 checkersReport:*
 unusedFunction:*
 unmatchedSuppression:*
+
+unreadVariable:tests/scoped_lock_test.cpp
