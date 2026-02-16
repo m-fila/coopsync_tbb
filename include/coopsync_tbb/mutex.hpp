@@ -102,7 +102,8 @@ inline void mutex::lock() {
         m_waiters_mutex.unlock();
     });
 
-    // Post resumption, the was given the ownership of the mutex so just return.
+    // Post resumption, the ownership was transferred to the resumed task.
+    assert(m_locked.load(std::memory_order_acquire));
 }
 
 inline void mutex::unlock() {
