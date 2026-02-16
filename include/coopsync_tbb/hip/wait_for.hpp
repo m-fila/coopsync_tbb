@@ -9,8 +9,8 @@ namespace detail {
 
 /// @brief Context for HIP callback to resume a suspended TBB task.
 struct context {
-    tbb::task::suspend_point suspend_point;
-    hipError_t err;
+    tbb::task::suspend_point suspend_point{};
+    hipError_t err{};
 };
 
 /// @brief HIP callback to resume a suspended TBB task.
