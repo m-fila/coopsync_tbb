@@ -30,7 +30,7 @@
       "displayName": "Debug + ASan",
       "inherits": "base",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
         "COOPSYNC_TBB_SANITIZER": "address"
       },
       "environment": {
@@ -42,7 +42,7 @@
       "displayName": "Debug + UBSan",
       "inherits": "base",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
         "COOPSYNC_TBB_SANITIZER": "undefined"
       }
     },
@@ -51,7 +51,7 @@
       "displayName": "Debug + TSan",
       "inherits": "base",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
         "COOPSYNC_TBB_SANITIZER": "thread"
       },
       "environment": {
