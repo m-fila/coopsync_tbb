@@ -32,6 +32,9 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "COOPSYNC_TBB_SANITIZER": "address"
+      },
+      "environment": {
+        "ASAN_OPTIONS": "protect_shadow_gap=0"
       }
     },
     {
@@ -50,21 +53,27 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "COOPSYNC_TBB_SANITIZER": "thread"
+      },
+      "environment": {
+        "TSAN_OPTIONS": "suppressions=${sourceDir}/tsan.suppressions"
       }
     }
   ],
   "buildPresets": [
     {
       "name": "asan",
-      "configurePreset": "asan"
+      "configurePreset": "asan",
+      "jobs": 0
     },
     {
       "name": "ubsan",
-      "configurePreset": "ubsan"
+      "configurePreset": "ubsan",
+      "jobs": 0
     },
     {
       "name": "tsan",
-      "configurePreset": "tsan"
+      "configurePreset": "tsan",
+      "jobs": 0
     }
   ],
   "testPresets": [
