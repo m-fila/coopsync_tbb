@@ -8,7 +8,8 @@ add_executable(
   # main classes
   latch_test.cpp
   mutex_test.cpp
-  scoped_lock_test.cpp)
+  scoped_lock_test.cpp
+  semaphore_test.cpp)
 
 target_link_libraries(coopsync_tbb_test PRIVATE GTest::gtest_main CoopSync_TBB)
 
