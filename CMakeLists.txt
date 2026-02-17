@@ -11,12 +11,7 @@ option(COOPSYNC_TBB_USE_SYSTEM_LIBS "Use system libraries be default" FALSE)
 option(COOPSYNC_TBB_BUILD_TESTING "Build the tests of CoopSync_TBB" TRUE)
 option(COOPSYNC_TBB_BUILD_DOCS "Build the documentation of CoopSync_TBB" OFF)
 
-# Sanitizers (used mainly in CI via CMake presets)
-
-set(COOPSYNC_TBB_SANITIZER
-  "none"
-  CACHE STRING "Enable one sanitizer: none;address;undefined;thread")
-set_property(CACHE COOPSYNC_TBB_SANITIZER PROPERTY STRINGS none address undefined thread)
+include(cmake/Sanitizers.cmake) # COOPSYNC_TBB_SANITIZER option
 
 # Common config
 
@@ -73,37 +68,7 @@ endif()
 
 add_library(CoopSync_TBB INTERFACE)
 
-if(NOT COOPSYNC_TBB_SANITIZER STREQUAL "none")
-  if(NOT CMAKE_CXX_COMPILER_ID MATCHES "^(Clang|GNU)$")
-    message(
-      FATAL_ERROR
-        "COOPSYNC_TBB_SANITIZER requires Clang or GCC (got '${CMAKE_CXX_COMPILER_ID}')."
-    )
-  endif()
-
-  if(COOPSYNC_TBB_SANITIZER STREQUAL "address")
-    set(_coopsync_tbb_sanitize_flag "address")
-  elseif(COOPSYNC_TBB_SANITIZER STREQUAL "undefined")
-    set(_coopsync_tbb_sanitize_flag "undefined")
-  elseif(COOPSYNC_TBB_SANITIZER STREQUAL "thread")
-    set(_coopsync_tbb_sanitize_flag "thread")
-  else()
-    message(
-      FATAL_ERROR
-        "Invalid COOPSYNC_TBB_SANITIZER='${COOPSYNC_TBB_SANITIZER}'. Use one of: none, address, undefined, thread."
-    )
-  endif()
-
-  target_compile_options(CoopSync_TBB INTERFACE -fsanitize=${_coopsync_tbb_sanitize_flag}
-                                            -fno-omit-frame-pointer)
-  target_link_options(CoopSync_TBB INTERFACE -fsanitize=${_coopsync_tbb_sanitize_flag})
-
-  if(COOPSYNC_TBB_SANITIZER STREQUAL "undefined")
-    target_compile_options(CoopSync_TBB INTERFACE -fno-sanitize-recover=all)
-  endif()
-
-  unset(_coopsync_tbb_sanitize_flag)
-endif()
+coopsync_tbb_apply_sanitizer(CoopSync_TBB)
 
 target_sources(
   CoopSync_TBB
