@@ -82,6 +82,7 @@ class counting_semaphore {
 
     private:
     using waiter_t = tbb::task::suspend_point;
+
     std::atomic<std::ptrdiff_t> m_counter;
     tbb::spin_mutex m_waiters_mutex;
     detail::intrusive_list<waiter_t> m_waiters;

@@ -19,14 +19,16 @@ TEST(Semaphore, NoContentionTryAcquireRelease) {
     }
 
     {
-        auto sem = coopsync_tbb::counting_semaphore<5>(1);
+        const auto lmax = 5;
+        auto sem = coopsync_tbb::counting_semaphore<lmax>(1);
         ASSERT_TRUE(sem.try_acquire());
         ASSERT_FALSE(sem.try_acquire());
         sem.release();
         ASSERT_TRUE(sem.try_acquire());
     }
     {
-        auto sem = coopsync_tbb::counting_semaphore<5>(0);
+        const auto lmax = 5;
+        auto sem = coopsync_tbb::counting_semaphore<lmax>(0);
         ASSERT_FALSE(sem.try_acquire());
         sem.release();
         ASSERT_TRUE(sem.try_acquire());
@@ -34,7 +36,8 @@ TEST(Semaphore, NoContentionTryAcquireRelease) {
 }
 
 TEST(Semaphore, ReleaseAccumulatesPermits) {
-    auto sem = coopsync_tbb::counting_semaphore<5>(0);
+    const auto lmax = 5;
+    auto sem = coopsync_tbb::counting_semaphore<lmax>(0);
     sem.release(3);
     ASSERT_TRUE(sem.try_acquire());
     ASSERT_TRUE(sem.try_acquire());
@@ -43,8 +46,10 @@ TEST(Semaphore, ReleaseAccumulatesPermits) {
 }
 
 TEST(Semaphore, ContentionAquire) {
-    auto sem = coopsync_tbb::counting_semaphore<5>(5);
-    tbb::parallel_for(0, 5, [&](int) { sem.acquire(); });
+    const auto lmax = 5;
+    const auto permits = 5;
+    auto sem = coopsync_tbb::counting_semaphore<lmax>(permits);
+    tbb::parallel_for(0, permits, [&](int) { sem.acquire(); });
 }
 
 TEST(Semaphore, ContentionAcquireRelease) {
@@ -60,7 +65,8 @@ TEST(Semaphore, ContentionAcquireRelease) {
 }
 
 TEST(Semaphore, ContentionAcquireReleaseManyPermits) {
-    auto sem = coopsync_tbb::counting_semaphore(1'000);
+    const auto starting_permits = 1'000;
+    auto sem = coopsync_tbb::counting_semaphore(starting_permits);
     auto counter = 0;
     const auto n = 20'000;
     tbb::parallel_for(0, n, [&](int i) {
