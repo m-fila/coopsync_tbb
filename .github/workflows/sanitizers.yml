@@ -7,6 +7,10 @@ on:
   pull_request:
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   sanitizers:
     name: Sanitizers (${{ matrix.preset }})
@@ -24,7 +28,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake clang libtbb-dev
+          sudo apt-get install -y cmake clang
 
       - name: Configure, build, test
         env:
