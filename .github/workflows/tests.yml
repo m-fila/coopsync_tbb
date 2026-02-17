@@ -1,0 +1,51 @@
+name: tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  build-and-test:
+    name: Build + Test (${{ matrix.preset }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        preset:
+          - gcc-relwithdebinfo
+          - clang-relwithdebinfo
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install dependencies
+
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake gcc g++ clang
+
+      - name: Configure, build, test
+        run: cmake --workflow --preset ${{ matrix.preset }}
+
+  sanitizers:
+    name: Sanitizers (${{ matrix.preset }})
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    strategy:
+      fail-fast: false
+      matrix:
+        preset:
+          - clang-asan
+          - clang-ubsan
+          - clang-tsan
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake clang
+
+      - name: Configure, build, test
+        run: cmake --workflow --preset ${{ matrix.preset }}
