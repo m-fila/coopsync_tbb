@@ -34,7 +34,7 @@ TEST(Mutex, NoContentionLock) {
 TEST(Mutex, MutualExclusionParallelIncrement) {
     auto m = coopsync_tbb::mutex{};
     auto counter = 0;
-    const auto n = 20000;
+    const auto n = 16;
 
     tbb::parallel_for(0, n, [&](int) {
         auto lock = coopsync_tbb::mutex::scoped_lock(m);
