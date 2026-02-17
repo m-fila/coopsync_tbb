@@ -8,44 +8,40 @@ on:
 
 jobs:
   build-and-test:
-    name: Build + Test (${{ matrix.preset }})
+    name: Build + Test (${{ matrix.compiler }}, ${{ matrix.build_type }})
     runs-on: ubuntu-latest
+    env:
+      CC: ${{ matrix.compiler }}
+      CXX: ${{ matrix.compiler == 'gcc' && 'g++' || 'clang++' }}
     strategy:
       fail-fast: false
       matrix:
-        preset:
-          - gcc-relwithdebinfo
-          - clang-relwithdebinfo
+        compiler: [gcc, clang]
+        build_type: [Release, Debug]
     steps:
       - uses: actions/checkout@v6
 
       - name: Install dependencies
-
         run: |
           sudo apt-get update
           sudo apt-get install -y cmake gcc g++ clang
 
-      - name: Configure, build, test
-        run: cmake --workflow --preset ${{ matrix.preset }}
-
-  sanitizers:
-    name: Sanitizers (${{ matrix.preset }})
-    runs-on: ubuntu-latest
-    needs: build-and-test
-    strategy:
-      fail-fast: false
-      matrix:
-        preset:
-          - clang-asan
-          - clang-ubsan
-          - clang-tsan
-    steps:
-      - uses: actions/checkout@v6
-
-      - name: Install dependencies
+      - name: Configure
         run: |
-          sudo apt-get update
-          sudo apt-get install -y cmake clang
+          cmake -S . -B build \
+            -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+            -DBUILD_TESTING=ON
 
-      - name: Configure, build, test
-        run: cmake --workflow --preset ${{ matrix.preset }}
+      - name: Build
+        run: cmake --build build
+
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
+
+      - name: Install to ./install
+        run: cmake --install build --prefix install
+
+      - name: Downstream configure, build, test
+        if: matrix.build_type == 'Release'
+        working-directory: cmake/downstream
+        run: cmake --workflow --preset downstream

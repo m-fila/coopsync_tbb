@@ -12,7 +12,7 @@
       "description": "Configure this consumer project against the repo's ../../install prefix.",
       "binaryDir": "../../build/downstream",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_PREFIX_PATH": "../../install"
       }
     }

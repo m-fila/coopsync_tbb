@@ -1,0 +1,33 @@
+name: sanitizers
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  sanitizers:
+    name: Sanitizers (${{ matrix.preset }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        preset:
+          - asan
+          - ubsan
+          - tsan
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake clang libtbb-dev
+
+      - name: Configure, build, test
+        env:
+          CC: clang
+          CXX: clang++
+        run: cmake --workflow --preset ${{ matrix.preset }}

@@ -9,9 +9,9 @@
     {
       "name": "base",
       "hidden": true,
-      "generator": "Unix Makefiles",
-      "binaryDir": "${sourceDir}/build/${presetName}",
+      "binaryDir": "${sourceDir}/build",
       "cacheVariables": {
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/install",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
         "BUILD_TESTING": "ON",
         "COOPSYNC_TBB_BUILD_TESTING": "ON",
@@ -20,155 +20,71 @@
       }
     },
     {
-      "name": "gcc-relwithdebinfo",
-      "displayName": "GCC RelWithDebInfo",
+      "name": "default",
+      "displayName": "Default",
       "inherits": "base",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
-        "CMAKE_C_COMPILER": "gcc",
-        "CMAKE_CXX_COMPILER": "g++"
-      }
+      "cacheVariables": {}
     },
     {
-      "name": "clang-relwithdebinfo",
-      "displayName": "Clang RelWithDebInfo",
-      "inherits": "base",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
-        "CMAKE_C_COMPILER": "clang",
-        "CMAKE_CXX_COMPILER": "clang++"
-      }
-    },
-    {
-      "name": "gcc-debug",
-      "displayName": "GCC Debug",
+      "name": "asan",
+      "displayName": "Debug + ASan",
       "inherits": "base",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "CMAKE_C_COMPILER": "gcc",
-        "CMAKE_CXX_COMPILER": "g++"
-      }
-    },
-    {
-      "name": "clang-debug",
-      "displayName": "Clang Debug",
-      "inherits": "base",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug",
-        "CMAKE_C_COMPILER": "clang",
-        "CMAKE_CXX_COMPILER": "clang++"
-      }
-    },
-    {
-      "name": "clang-asan",
-      "displayName": "Clang Debug + ASan",
-      "inherits": "base",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug",
-        "CMAKE_C_COMPILER": "clang",
-        "CMAKE_CXX_COMPILER": "clang++",
         "COOPSYNC_TBB_SANITIZER": "address"
       }
     },
     {
-      "name": "clang-ubsan",
-      "displayName": "Clang Debug + UBSan",
+      "name": "ubsan",
+      "displayName": "Debug + UBSan",
       "inherits": "base",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "CMAKE_C_COMPILER": "clang",
-        "CMAKE_CXX_COMPILER": "clang++",
         "COOPSYNC_TBB_SANITIZER": "undefined"
       }
     },
     {
-      "name": "clang-tsan",
-      "displayName": "Clang Debug + TSan",
+      "name": "tsan",
+      "displayName": "Debug + TSan",
       "inherits": "base",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "CMAKE_C_COMPILER": "clang",
-        "CMAKE_CXX_COMPILER": "clang++",
         "COOPSYNC_TBB_SANITIZER": "thread"
       }
     }
   ],
   "buildPresets": [
     {
-      "name": "gcc-relwithdebinfo",
-      "configurePreset": "gcc-relwithdebinfo"
+      "name": "asan",
+      "configurePreset": "asan"
     },
     {
-      "name": "clang-relwithdebinfo",
-      "configurePreset": "clang-relwithdebinfo"
+      "name": "ubsan",
+      "configurePreset": "ubsan"
     },
     {
-      "name": "gcc-debug",
-      "configurePreset": "gcc-debug"
-    },
-    {
-      "name": "clang-debug",
-      "configurePreset": "clang-debug"
-    },
-    {
-      "name": "clang-asan",
-      "configurePreset": "clang-asan"
-    },
-    {
-      "name": "clang-ubsan",
-      "configurePreset": "clang-ubsan"
-    },
-    {
-      "name": "clang-tsan",
-      "configurePreset": "clang-tsan"
+      "name": "tsan",
+      "configurePreset": "tsan"
     }
   ],
   "testPresets": [
     {
-      "name": "gcc-relwithdebinfo",
-      "configurePreset": "gcc-relwithdebinfo",
+      "name": "asan",
+      "configurePreset": "asan",
       "output": {
         "outputOnFailure": true
       }
     },
     {
-      "name": "clang-relwithdebinfo",
-      "configurePreset": "clang-relwithdebinfo",
+      "name": "ubsan",
+      "configurePreset": "ubsan",
       "output": {
         "outputOnFailure": true
       }
     },
     {
-      "name": "gcc-debug",
-      "configurePreset": "gcc-debug",
-      "output": {
-        "outputOnFailure": true
-      }
-    },
-    {
-      "name": "clang-debug",
-      "configurePreset": "clang-debug",
-      "output": {
-        "outputOnFailure": true
-      }
-    },
-    {
-      "name": "clang-asan",
-      "configurePreset": "clang-asan",
-      "output": {
-        "outputOnFailure": true
-      }
-    },
-    {
-      "name": "clang-ubsan",
-      "configurePreset": "clang-ubsan",
-      "output": {
-        "outputOnFailure": true
-      }
-    },
-    {
-      "name": "clang-tsan",
-      "configurePreset": "clang-tsan",
+      "name": "tsan",
+      "configurePreset": "tsan",
       "output": {
         "outputOnFailure": true
       }
@@ -176,128 +92,56 @@
   ],
   "workflowPresets": [
     {
-      "name": "gcc-relwithdebinfo",
-      "displayName": "Workflow (GCC RelWithDebInfo)",
+      "name": "asan",
+      "displayName": "Workflow (ASan)",
       "steps": [
         {
           "type": "configure",
-          "name": "gcc-relwithdebinfo"
+          "name": "asan"
         },
         {
           "type": "build",
-          "name": "gcc-relwithdebinfo"
+          "name": "asan"
         },
         {
           "type": "test",
-          "name": "gcc-relwithdebinfo"
+          "name": "asan"
         }
       ]
     },
     {
-      "name": "clang-relwithdebinfo",
-      "displayName": "Workflow (Clang RelWithDebInfo)",
+      "name": "ubsan",
+      "displayName": "Workflow (UBSan)",
       "steps": [
         {
           "type": "configure",
-          "name": "clang-relwithdebinfo"
+          "name": "ubsan"
         },
         {
           "type": "build",
-          "name": "clang-relwithdebinfo"
+          "name": "ubsan"
         },
         {
           "type": "test",
-          "name": "clang-relwithdebinfo"
+          "name": "ubsan"
         }
       ]
     },
     {
-      "name": "gcc-debug",
-      "displayName": "Workflow (GCC Debug)",
+      "name": "tsan",
+      "displayName": "Workflow (TSan)",
       "steps": [
         {
           "type": "configure",
-          "name": "gcc-debug"
+          "name": "tsan"
         },
         {
           "type": "build",
-          "name": "gcc-debug"
+          "name": "tsan"
         },
         {
           "type": "test",
-          "name": "gcc-debug"
-        }
-      ]
-    },
-    {
-      "name": "clang-debug",
-      "displayName": "Workflow (Clang Debug)",
-      "steps": [
-        {
-          "type": "configure",
-          "name": "clang-debug"
-        },
-        {
-          "type": "build",
-          "name": "clang-debug"
-        },
-        {
-          "type": "test",
-          "name": "clang-debug"
-        }
-      ]
-    },
-    {
-      "name": "clang-asan",
-      "displayName": "Workflow (Clang ASan)",
-      "steps": [
-        {
-          "type": "configure",
-          "name": "clang-asan"
-        },
-        {
-          "type": "build",
-          "name": "clang-asan"
-        },
-        {
-          "type": "test",
-          "name": "clang-asan"
-        }
-      ]
-    },
-    {
-      "name": "clang-ubsan",
-      "displayName": "Workflow (Clang UBSan)",
-      "steps": [
-        {
-          "type": "configure",
-          "name": "clang-ubsan"
-        },
-        {
-          "type": "build",
-          "name": "clang-ubsan"
-        },
-        {
-          "type": "test",
-          "name": "clang-ubsan"
-        }
-      ]
-    },
-    {
-      "name": "clang-tsan",
-      "displayName": "Workflow (Clang TSan)",
-      "steps": [
-        {
-          "type": "configure",
-          "name": "clang-tsan"
-        },
-        {
-          "type": "build",
-          "name": "clang-tsan"
-        },
-        {
-          "type": "test",
-          "name": "clang-tsan"
+          "name": "tsan"
         }
       ]
     }
