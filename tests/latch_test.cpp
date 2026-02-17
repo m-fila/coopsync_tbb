@@ -2,7 +2,6 @@
 
 #include <gtest/gtest.h>
 #include <oneapi/tbb/parallel_for.h>
-#include <oneapi/tbb/task_arena.h>
 #include <oneapi/tbb/task_group.h>
 
 TEST(Latch, TryWait) {
@@ -33,14 +32,15 @@ TEST(Latch, NoContentionWait) {
 }
 
 TEST(Latch, ContentionWait) {
-    auto arena = tbb::task_arena();
-    auto group = tbb::task_group();
     const auto max = 1;
     auto latch = coopsync_tbb::latch(max);
-    arena.execute([&] { group.run([&] { latch.wait(); }); });
-    arena.execute([&] { group.run([&] { latch.wait(); }); });
-    arena.execute([&] { group.run([&] { latch.wait(); }); });
-    arena.execute([&] { group.run([&] { latch.count_down(); }); });
-    group.wait();
+    tbb::parallel_for(0, 4, [&](int i) {
+        if (i == 2) {  // only one of the tasks
+            latch.count_down();
+        } else {
+            latch.wait();
+        }
+    });
+
     ASSERT_TRUE(latch.try_wait());
 }

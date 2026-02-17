@@ -1,0 +1,158 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 25,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "binaryDir": "${sourceDir}/build",
+      "cacheVariables": {
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/install",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "BUILD_TESTING": "ON",
+        "COOPSYNC_TBB_BUILD_TESTING": "ON",
+        "COOPSYNC_TBB_BUILD_DOCS": "OFF",
+        "COOPSYNC_TBB_SANITIZER": "none"
+      }
+    },
+    {
+      "name": "default",
+      "displayName": "Default",
+      "inherits": "base",
+      "cacheVariables": {}
+    },
+    {
+      "name": "asan",
+      "displayName": "Debug + ASan",
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "COOPSYNC_TBB_SANITIZER": "address"
+      },
+      "environment": {
+        "ASAN_OPTIONS": "protect_shadow_gap=0"
+      }
+    },
+    {
+      "name": "ubsan",
+      "displayName": "Debug + UBSan",
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "COOPSYNC_TBB_SANITIZER": "undefined"
+      }
+    },
+    {
+      "name": "tsan",
+      "displayName": "Debug + TSan",
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "COOPSYNC_TBB_SANITIZER": "thread"
+      },
+      "environment": {
+        "TSAN_OPTIONS": "suppressions=${sourceDir}/tsan.suppressions"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "asan",
+      "configurePreset": "asan",
+      "jobs": 0
+    },
+    {
+      "name": "ubsan",
+      "configurePreset": "ubsan",
+      "jobs": 0
+    },
+    {
+      "name": "tsan",
+      "configurePreset": "tsan",
+      "jobs": 0
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "asan",
+      "configurePreset": "asan",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "ubsan",
+      "configurePreset": "ubsan",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "tsan",
+      "configurePreset": "tsan",
+      "output": {
+        "outputOnFailure": true
+      }
+    }
+  ],
+  "workflowPresets": [
+    {
+      "name": "asan",
+      "displayName": "Workflow (ASan)",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "asan"
+        },
+        {
+          "type": "build",
+          "name": "asan"
+        },
+        {
+          "type": "test",
+          "name": "asan"
+        }
+      ]
+    },
+    {
+      "name": "ubsan",
+      "displayName": "Workflow (UBSan)",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "ubsan"
+        },
+        {
+          "type": "build",
+          "name": "ubsan"
+        },
+        {
+          "type": "test",
+          "name": "ubsan"
+        }
+      ]
+    },
+    {
+      "name": "tsan",
+      "displayName": "Workflow (TSan)",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "tsan"
+        },
+        {
+          "type": "build",
+          "name": "tsan"
+        },
+        {
+          "type": "test",
+          "name": "tsan"
+        }
+      ]
+    }
+  ]
+}

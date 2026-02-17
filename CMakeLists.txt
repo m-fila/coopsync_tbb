@@ -11,6 +11,8 @@ option(COOPSYNC_TBB_USE_SYSTEM_LIBS "Use system libraries be default" FALSE)
 option(COOPSYNC_TBB_BUILD_TESTING "Build the tests of CoopSync_TBB" TRUE)
 option(COOPSYNC_TBB_BUILD_DOCS "Build the documentation of CoopSync_TBB" OFF)
 
+include(cmake/Sanitizers.cmake) # COOPSYNC_TBB_SANITIZER option
+
 # Common config
 
 include(GNUInstallDirs)
@@ -65,6 +67,8 @@ endif()
 # Library
 
 add_library(CoopSync_TBB INTERFACE)
+
+coopsync_tbb_apply_sanitizer(CoopSync_TBB)
 
 target_sources(
   CoopSync_TBB
