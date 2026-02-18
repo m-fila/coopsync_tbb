@@ -31,6 +31,9 @@ TEST(UniqueScopedLock, MutexMock) {
         ASSERT_EQ(m.get_unlock_count(), 0);
         ASSERT_EQ(m.get_try_lock_count(), 0);
     }
+    ASSERT_EQ(m.get_lock_count(), 0);
+    ASSERT_EQ(m.get_unlock_count(), 0);
+    ASSERT_EQ(m.get_try_lock_count(), 0);
 
     {
         auto lock = coopsync_tbb::detail::unique_scoped_lock(m);
