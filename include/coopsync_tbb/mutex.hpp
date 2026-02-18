@@ -49,7 +49,7 @@ class mutex {
 
     /// @brief Attempts to acquire the mutex without suspending.
     /// @return true if the mutex was successfully acquired, false otherwise.
-    COOPSYNC_TOOLS_NODISCARD bool try_lock() noexcept;
+    COOPSYNC_TBB_NODISCARD bool try_lock() noexcept;
 
     /// @brief Acquires the mutex, suspending the calling task if necessary
     /// until the mutex becomes available.

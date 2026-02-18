@@ -45,12 +45,12 @@ class latch {
 
     /// @brief Returns the maximum value for the latch counter.
     /// @return The maximum value for the latch counter.
-    COOPSYNC_TOOLS_NODISCARD static constexpr std::ptrdiff_t max() noexcept;
+    COOPSYNC_TBB_NODISCARD static constexpr std::ptrdiff_t max() noexcept;
 
     /// @brief Checks if the latch has reached zero without suspending the
     /// calling task.
     /// @return true if the latch has reached zero, false otherwise.
-    COOPSYNC_TOOLS_NODISCARD bool try_wait() const noexcept;
+    COOPSYNC_TBB_NODISCARD bool try_wait() const noexcept;
 
     /// @brief Decrements the latch counter by the specified update. If the
     /// counter reaches zero, all suspended tasks are resumed.

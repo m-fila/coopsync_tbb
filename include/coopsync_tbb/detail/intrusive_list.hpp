@@ -85,7 +85,7 @@ class intrusive_list {
 
     /// @brief Checks if the list is empty.
     /// @return true if the list is empty, false otherwise.
-    COOPSYNC_TOOLS_NODISCARD bool empty() const noexcept {
+    COOPSYNC_TBB_NODISCARD bool empty() const noexcept {
         assert_invariants();
         return m_head == nullptr;
     }

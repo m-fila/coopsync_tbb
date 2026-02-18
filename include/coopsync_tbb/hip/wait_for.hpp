@@ -4,15 +4,15 @@
 
 #ifdef __has_cpp_attribute
 #if __has_cpp_attribute(nodiscard)
-#define COOPSYNC_TOOLS_HIP_NODISCARD [[nodiscard]]
+#define COOPSYNC_TBB_HIP_NODISCARD [[nodiscard]]
 #endif
 #else
 #if __cplusplus > 201603L
-#define COOPSYNC_TOOLS_HIP_NODISCARD [[nodiscard]]
+#define COOPSYNC_TBB_HIP_NODISCARD [[nodiscard]]
 #endif
 #endif
-#ifndef COOPSYNC_TOOLS_HIP_NODISCARD
-#define COOPSYNC_TOOLS_HIP_NODISCARD
+#ifndef COOPSYNC_TBB_HIP_NODISCARD
+#define COOPSYNC_TBB_HIP_NODISCARD
 #endif
 
 /// @brief HIP integration.
@@ -47,7 +47,7 @@ static inline void resumption_callback(hipStream_t, hipError_t err,
 /// @note In case of error during callback setup, the task is resumed
 /// immediately.
 ///
-COOPSYNC_TOOLS_HIP_NODISCARD static inline hipError_t wait_for(
+COOPSYNC_TBB_HIP_NODISCARD static inline hipError_t wait_for(
     hipStream_t stream) {
     auto ctx = detail::context{};
     tbb::task::suspend([stream, &ctx](tbb::task::suspend_point tag) {
@@ -64,4 +64,4 @@ COOPSYNC_TOOLS_HIP_NODISCARD static inline hipError_t wait_for(
 
 }  // namespace coopsync_tbb::hip
 
-#undef COOPSYNC_TOOLS_HIP_NODISCARD
+#undef COOPSYNC_TBB_HIP_NODISCARD
