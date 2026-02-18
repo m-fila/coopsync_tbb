@@ -132,18 +132,40 @@ struct shared_state {
 template <typename T>
 class promise;
 
+/// @brief Future.
+/// @tparam T The type of the value that will be stored in the shared state.
 template <typename T>
 class future {
     public:
+    /// @brief Constructs a new future. After construction the future is
+    /// not valid.
     future() noexcept = default;
+
+    /// @brief The future is not copy-constructible.
     future(const future&) = delete;
+
+    /// @brief The future is not copy-assignable.
     future& operator=(const future&) = delete;
-    future(future&&) noexcept = default;
-    future& operator=(future&&) noexcept = default;
+
+    /// @brief The future is move-constructible, after construction left
+    /// not valid.
+    future(future&& other) noexcept = default;
+
+    /// @brief The future is move-assignable.
+    /// @param other The future to move from, after assignment left not valid.
+    future& operator=(future&& other) noexcept = default;
+    /// @brief Destroys the future releasing any shared state. If current object
+    /// hold the last reference to its shared state it is destroyed. Otherwise,
+    /// the current object only gives up its reference to the shared state.
     ~future() = default;
 
+    /// @brief Tests whether the future is valid and refers to a shared state.
+    /// @return true if the future is valid, false otherwise.
     bool valid() const noexcept { return static_cast<bool>(m_state); }
 
+    /// @brief Suspends the current task until the shared state is ready. If the
+    /// shared state is ready this function returns immediately.
+    /// @throws future_error if the future is not valid.
     void wait() const {
         if (!m_state) {
             throw future_error(std::future_errc::no_state);
@@ -151,6 +173,13 @@ class future {
         m_state->wait();
     }
 
+    /// @brief Retrieves the value stored in the shared state. If the shared
+    /// state is ready, this function returns immediately. Otherwise, the tasks
+    /// is suspended until the state becomes ready. After retrieval the future
+    /// is left in not valid state.
+    /// @return The value stored in the shared state.
+    /// @throws future_error if the future is not valid or if the shared state
+    /// contains an exception.
     T get() {
         if (!m_state) {
             throw future_error(std::future_errc::no_state);
@@ -186,21 +215,42 @@ class future {
     std::shared_ptr<detail::future::shared_state<T>> m_state;
 };
 
+/// @brief Promise.
+/// @tparam T The type of the value that will be stored in the shared state.
 template <typename T>
 class promise {
     public:
+    /// @brief Constructs a new promise. After construction the promise with an
+    /// empty shared state.
     promise() : m_state(std::make_shared<detail::future::shared_state<T>>()) {}
-    promise(const promise&) = delete;
-    promise& operator=(const promise&) = delete;
-    promise(promise&&) noexcept = default;
-    promise& operator=(promise&&) noexcept = default;
 
+    /// @brief The promise is not copy-constructible.
+    promise(const promise&) = delete;
+
+    /// @brief The promise is not copy-assignable
+    promise& operator=(const promise&) = delete;
+
+    /// @brief The promise is move-constructible.
+    /// @param other The promise to move from, after construction left with no
+    /// shared state.
+    promise(promise&& other) noexcept = default;
+
+    /// @brief The promise is move-assignable.
+    /// @param other The promise to move from, after assignment left with no
+    /// shared state.
+    promise& operator=(promise&& other) noexcept = default;
+
+    /// @brief Destroys the promise. If its shared state was ready, the state is
+    /// released. Otherwise, stores an future_error exception with
+    /// std::future_errc::broken_promise error code in the shared state.
     ~promise() {
         if (m_state) {
             m_state->break_promise();
         }
     }
 
+    /// @brief Exchanges the shared states between two promises.
+    /// @param other The promise to exchange shared state with.
     void swap(promise& other) noexcept { m_state.swap(other.m_state); }
 
     COOPSYNC_TBB_NODISCARD future<T> get_future() {
@@ -216,6 +266,15 @@ class promise {
         return future<T>(m_state);
     }
 
+    /// @brief Stores a value into the shared state and makes the shared state
+    /// ready.
+    /// @param v The value to store in the shared state.
+    /// @throws future_error with std::future_errc::no_state error code if the
+    /// promise is not valid.
+    /// @throws future_error with std::future_errc::promise_already_satisfied
+    /// error code if the shared state already stores a value or an exception.
+    /// @throws an exception thrown by the constructor used to copy the value
+    /// into the shared state.
     void set_value(const T& v) {
         if (!m_state) {
             throw future_error(std::future_errc::no_state);
@@ -223,6 +282,15 @@ class promise {
         m_state->set_value(v);
     }
 
+    /// @brief Stores a value into the shared state and makes the shared state
+    /// ready.
+    /// @param v The value to store in the shared state.
+    /// @throws future_error with std::future_errc::no_state error code if the
+    /// promise is not valid.
+    /// @throws future_error with std::future_errc::promise_already_satisfied
+    /// error code if the shared state already stores a value or an exception.
+    /// @throws an exception thrown by the constructor used to move the value
+    /// into the shared state.
     void set_value(T&& v) {
         if (!m_state) {
             throw future_error(std::future_errc::no_state);
@@ -230,6 +298,11 @@ class promise {
         m_state->set_value(std::move(v));
     }
 
+    /// @brief Stores an exception into the shared state and makes the shared
+    /// state ready.
+    /// @param p The exception to store in the shared state.
+    /// @throws future_error with std::future_errc::no_state error code if the
+    /// promise is not valid.
     void set_exception(std::exception_ptr p) {
         if (!m_state) {
             throw future_error(std::future_errc::no_state);
