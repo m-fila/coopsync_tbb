@@ -7,7 +7,7 @@
 #include <cassert>
 
 #include "coopsync_tbb/detail/intrusive_list.hpp"
-#include "coopsync_tbb/scoped_lock.hpp"
+#include "coopsync_tbb/detail/unique_scoped_lock.hpp"
 
 namespace coopsync_tbb {
 
@@ -20,7 +20,7 @@ namespace coopsync_tbb {
 class mutex {
     public:
     /// @brief Associated RAII wrapper type for this mutex.
-    using scoped_lock = coopsync_tbb::scoped_lock<mutex>;
+    using scoped_lock = coopsync_tbb::detail::unique_scoped_lock<mutex>;
 
     /// @brief Constructs a new mutex. The mutex is initially unlocked.
     mutex() = default;
