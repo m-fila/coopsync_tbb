@@ -9,6 +9,7 @@
 #include <limits>
 
 #include "coopsync_tbb/detail/intrusive_list.hpp"
+#include "coopsync_tbb/detail/macros.hpp"
 
 namespace coopsync_tbb {
 
@@ -72,13 +73,13 @@ class counting_semaphore {
     /// @brief Attempts to acquire the semaphore without suspending.
     /// @return true if the semaphore was successfully acquired, false
     /// otherwise.
-    bool try_acquire();
+    COOPSYNC_TOOLS_NODISCARD bool try_acquire();
 
     /// @brief Returns the maximum value for the counter of the
     /// counting_semaphore.
     /// @return The maximum value for the counting_semaphore, bigger than or
     /// equal to the @ref LeastMaxValue.
-    constexpr static std::ptrdiff_t max() noexcept;
+    COOPSYNC_TOOLS_NODISCARD constexpr static std::ptrdiff_t max() noexcept;
 
     private:
     using waiter_t = tbb::task::suspend_point;

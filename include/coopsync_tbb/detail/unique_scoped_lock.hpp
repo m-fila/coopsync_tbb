@@ -1,6 +1,9 @@
 #pragma once
 
 #include <system_error>
+
+#include "coopsync_tbb/detail/macros.hpp"
+
 namespace coopsync_tbb::detail {
 
 template <typename Mutex>
@@ -8,7 +11,7 @@ template <typename Mutex>
 /// mutex on construction and releases it on destruction.
 /// @tparam Mutex The type of the mutex to be locked. Must meet the *Lockable*
 /// requirements.
-class unique_scoped_lock {
+class COOPSYNC_TOOLS_NODISCARD unique_scoped_lock {
     public:
     /// @brief Constructs a unique_scoped_lock without acquiring a mutex.
     unique_scoped_lock();
@@ -40,7 +43,7 @@ class unique_scoped_lock {
     /// @param m Mutex to acquire.
     /// @return true if the mutex was successfully acquired, false otherwise.
     /// @throws std::system_error if another mutex is already acquired.
-    bool try_acquire(Mutex& m);
+    COOPSYNC_TOOLS_NODISCARD bool try_acquire(Mutex& m);
 
     /// @brief Releases the mutex. Does nothing if no mutex was previously
     /// acquired.

@@ -2,6 +2,8 @@
 
 #include <cassert>
 
+#include "coopsync_tbb/detail/macros.hpp"
+
 namespace coopsync_tbb::detail {
 /// @brief A simple intrusive singly-linked list implementation. The list does
 /// not own the nodes, so it is the caller's responsibility to ensure that the
@@ -83,7 +85,7 @@ class intrusive_list {
 
     /// @brief Checks if the list is empty.
     /// @return true if the list is empty, false otherwise.
-    [[nodiscard]] bool empty() const noexcept {
+    COOPSYNC_TOOLS_NODISCARD bool empty() const noexcept {
         assert_invariants();
         return m_head == nullptr;
     }

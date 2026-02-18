@@ -7,6 +7,7 @@
 #include <cassert>
 
 #include "coopsync_tbb/detail/intrusive_list.hpp"
+#include "coopsync_tbb/detail/macros.hpp"
 #include "coopsync_tbb/detail/unique_scoped_lock.hpp"
 
 namespace coopsync_tbb {
@@ -48,7 +49,7 @@ class mutex {
 
     /// @brief Attempts to acquire the mutex without suspending.
     /// @return true if the mutex was successfully acquired, false otherwise.
-    bool try_lock() noexcept;
+    COOPSYNC_TOOLS_NODISCARD bool try_lock() noexcept;
 
     /// @brief Acquires the mutex, suspending the calling task if necessary
     /// until the mutex becomes available.
