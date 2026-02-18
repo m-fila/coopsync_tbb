@@ -2,8 +2,6 @@
 
 #include <gtest/gtest.h>
 #include <oneapi/tbb/parallel_for.h>
-#include <oneapi/tbb/task_arena.h>
-#include <oneapi/tbb/task_group.h>
 
 #include <atomic>
 
@@ -53,21 +51,15 @@ TEST(Barrier, NoContentionArriveAndWaitWithCompletion) {
 
 TEST(Barrier, ContentionArriveAndWait) {
     auto barrier = coopsync_tbb::barrier(4);
-    auto arena = tbb::task_arena{};
-    auto group = tbb::task_group{};
     auto results = std::array{false, false, false, false};
-    for (int i = 0; i < 4; ++i) {
-        arena.execute([&, i] {
-            group.run([&, i] {
-                results[i] = true;
-                barrier.arrive_and_wait();
-                for (auto r : results) {
-                    EXPECT_TRUE(r);
-                }
-            });
-        });
-    }
-    group.wait();
+
+    tbb::parallel_for(std::size_t{0}, results.size(), [&](std::size_t i) {
+        results.at(i) = true;
+        barrier.arrive_and_wait();
+        for (auto r : results) {
+            EXPECT_TRUE(r);
+        }
+    });
     for (auto r : results) {
         EXPECT_TRUE(r);
     }
@@ -83,35 +75,25 @@ TEST(Barrier, ContentionArriveAndWaitWithCompletion) {
     auto completions = std::atomic<int>(0);
     auto barrier =
         coopsync_tbb::barrier(arrivals_per_phase, [&] { ++completions; });
-    tbb::task_arena arena;
-    arena.execute([&] {
-        tbb::parallel_for(0, arrivals_per_phase, [&](int) {
-            for (int i = 0; i < iterations * multiplier / arrivals_per_phase;
-                 ++i) {
-                barrier.arrive_and_wait();
-            }
-        });
+    tbb::parallel_for(0, arrivals_per_phase, [&](int) {
+        for (int i = 0; i < iterations * multiplier / arrivals_per_phase; ++i) {
+            barrier.arrive_and_wait();
+        }
     });
     EXPECT_EQ(completions, expected_completions);
 }
 
 TEST(Barrier, ContentionArriveThenDrop) {
     auto completions = std::atomic<int>(0);
-
     auto barrier = coopsync_tbb::barrier(3, [&] { ++completions; });
-    auto arena = tbb::task_arena{};
-    auto group = tbb::task_group{};
-    for (int i = 0; i < 5; ++i) {
-        arena.execute([&, i] {
-            group.run([&, i] {
-                if (i == 0)
-                    (barrier.arrive_and_drop());
-                else {
-                    barrier.arrive_and_wait();
-                }
-            });
-        });
-    }
-    group.wait();
+    const auto iterations = 5;
+    tbb::parallel_for(0, iterations, [&](int i) {
+        if (i == 0) {
+            barrier.arrive_and_drop();
+        } else {
+            barrier.arrive_and_wait();
+        }
+    });
+    // 5 iterations, 1 drop, 4 waits, 2 completions
     EXPECT_EQ(completions, 2);
 }
