@@ -15,6 +15,7 @@
 #include <utility>
 
 #include "coopsync_tbb/detail/intrusive_list.hpp"
+#include "coopsync_tbb/detail/macros.hpp"
 
 namespace coopsync_tbb {
 
@@ -202,7 +203,7 @@ class promise {
 
     void swap(promise& other) noexcept { m_state.swap(other.m_state); }
 
-    future<T> get_future() {
+    COOPSYNC_TBB_NODISCARD future<T> get_future() {
         if (!m_state) {
             throw future_error(std::future_errc::no_state);
         }
