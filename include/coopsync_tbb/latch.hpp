@@ -45,7 +45,7 @@ class latch {
 
     /// @brief Returns the maximum value for the latch counter.
     /// @return The maximum value for the latch counter.
-    COOPSYNC_TBB_NODISCARD static constexpr std::ptrdiff_t max() noexcept;
+    static constexpr std::ptrdiff_t max() noexcept;
 
     /// @brief Checks if the latch has reached zero without suspending the
     /// calling task.

@@ -79,7 +79,7 @@ class counting_semaphore {
     /// counting_semaphore.
     /// @return The maximum value for the counting_semaphore, bigger than or
     /// equal to the @ref LeastMaxValue.
-    COOPSYNC_TBB_NODISCARD constexpr static std::ptrdiff_t max() noexcept;
+    constexpr static std::ptrdiff_t max() noexcept;
 
     private:
     using waiter_t = tbb::task::suspend_point;
