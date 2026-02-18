@@ -4,25 +4,27 @@
 #include <oneapi/tbb/parallel_for.h>
 
 #include <atomic>
-#include <memory>
 #include <stdexcept>
 
-TEST(Future, GetReturnsValue) {
-    auto p = std::make_shared<coopsync_tbb::promise<int>>();
-    auto f = p->get_future();
-    auto fptr = std::make_shared<coopsync_tbb::future<int>>(std::move(f));
+TEST(Future, NoStateThrows) {
 
-    std::atomic<int> result{-1};
+    auto f = coopsync_tbb::future<int>{};
+    EXPECT_FALSE(f.valid());
+    EXPECT_THROW((void)f.get(), coopsync_tbb::future_error);
+    EXPECT_THROW(f.wait(), coopsync_tbb::future_error);
+}
 
-    tbb::parallel_for(0, 2, [&](int i) {
-        if (i == 0) {
-            result.store(fptr->get(), std::memory_order_relaxed);
-        } else {
-            p->set_value(123);
-        }
-    });
+TEST(Future, FutureAlreadyRetrievedThrows) {
+    auto p = coopsync_tbb::promise<int>{};
+    auto f1 = p.get_future();
+    EXPECT_THROW((void)p.get_future(), coopsync_tbb::future_error);
+}
 
-    ASSERT_EQ(result.load(std::memory_order_relaxed), 123);
+TEST(Future, PromiseAlreadySatisfiedThrows) {
+    auto p = coopsync_tbb::promise<int>{};
+    auto f = p.get_future();
+    p.set_value(-1);
+    EXPECT_THROW(p.set_value(1), coopsync_tbb::future_error);
 }
 
 TEST(Future, BrokenPromiseThrows) {
@@ -43,4 +45,58 @@ TEST(Future, ExceptionPropagates) {
     p.set_exception(std::make_exception_ptr(std::runtime_error("boom")));
 
     EXPECT_THROW((void)f.get(), std::runtime_error);
+}
+
+TEST(Future, GetReturnsValue) {
+    auto p = coopsync_tbb::promise<int>();
+    auto f = p.get_future();
+
+    auto result = std::atomic<int>{-1};
+    const auto expected = 123;
+
+    tbb::parallel_for(0, 2, [&](int i) {
+        if (i == 0) {
+            result.store(f.get(), std::memory_order_relaxed);
+        } else {
+            p.set_value(expected);
+        }
+    });
+
+    ASSERT_EQ(result.load(std::memory_order_relaxed), expected);
+}
+
+TEST(FutureVoid, GetUnblocksAfterSetValue) {
+    auto p = coopsync_tbb::promise<void>();
+    auto f = p.get_future();
+
+    std::atomic<bool> done{false};
+
+    tbb::parallel_for(0, 2, [&](int i) {
+        if (i == 0) {
+            f.get();
+            done.store(true, std::memory_order_relaxed);
+        } else {
+            p.set_value();
+        }
+    });
+
+    ASSERT_TRUE(done.load(std::memory_order_relaxed));
+}
+
+TEST(FutureRef, GetReturnsReference) {
+    auto p = coopsync_tbb::promise<int&>();
+    auto f = p.get_future();
+
+    auto x = -1;
+    const auto expected = 42;
+    tbb::parallel_for(0, 2, [&](int i) {
+        if (i == 0) {
+            int& r = f.get();
+            r = expected;
+        } else {
+            p.set_value(x);
+        }
+    });
+
+    ASSERT_EQ(x, expected);
 }
