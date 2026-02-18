@@ -1,7 +1,19 @@
 #pragma once
 #include <cuda_runtime_api.h>
-#include <driver_types.h>
 #include <oneapi/tbb/task.h>
+
+#ifdef __has_cpp_attribute
+#if __has_cpp_attribute(nodiscard)
+#define COOPSYNC_TOOLS_CUDA_NODISCARD [[nodiscard]]
+#endif
+#else
+#if __cplusplus > 201603L
+#define COOPSYNC_TOOLS_CUDA_NODISCARD [[nodiscard]]
+#endif
+#endif
+#ifndef COOPSYNC_TOOLS_CUDA_NODISCARD
+#define COOPSYNC_TOOLS_CUDA_NODISCARD
+#endif
 
 /// @brief CUDA integration.
 namespace coopsync_tbb::cuda {
@@ -22,7 +34,8 @@ static inline void resumption_callback(void* tag) {
 /// @note In case of error during callback setup, the task is resumed
 /// immediately.
 ///
-static inline cudaError_t wait_for(cudaStream_t stream) {
+COOPSYNC_TOOLS_CUDA_NODISCARD static inline cudaError_t wait_for(
+    cudaStream_t stream) {
     auto suspend_point = tbb::task::suspend_point{};
     auto err = cudaSuccess;
     tbb::task::suspend(
@@ -40,3 +53,5 @@ static inline cudaError_t wait_for(cudaStream_t stream) {
 }
 
 }  // namespace coopsync_tbb::cuda
+
+#undef COOPSYNC_TOOLS_CUDA_NODISCARD

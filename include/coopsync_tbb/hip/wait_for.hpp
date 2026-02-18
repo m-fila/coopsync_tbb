@@ -2,6 +2,19 @@
 #include <hip/hip_runtime_api.h>
 #include <oneapi/tbb/task.h>
 
+#ifdef __has_cpp_attribute
+#if __has_cpp_attribute(nodiscard)
+#define COOPSYNC_TOOLS_HIP_NODISCARD [[nodiscard]]
+#endif
+#else
+#if __cplusplus > 201603L
+#define COOPSYNC_TOOLS_HIP_NODISCARD [[nodiscard]]
+#endif
+#endif
+#ifndef COOPSYNC_TOOLS_HIP_NODISCARD
+#define COOPSYNC_TOOLS_HIP_NODISCARD
+#endif
+
 /// @brief HIP integration.
 namespace coopsync_tbb::hip {
 
@@ -34,7 +47,8 @@ static inline void resumption_callback(hipStream_t, hipError_t err,
 /// @note In case of error during callback setup, the task is resumed
 /// immediately.
 ///
-static inline hipError_t wait_for(hipStream_t stream) {
+COOPSYNC_TOOLS_HIP_NODISCARD static inline hipError_t wait_for(
+    hipStream_t stream) {
     auto ctx = detail::context{};
     tbb::task::suspend([stream, &ctx](tbb::task::suspend_point tag) {
         ctx.suspend_point = tag;
@@ -49,3 +63,5 @@ static inline hipError_t wait_for(hipStream_t stream) {
 }
 
 }  // namespace coopsync_tbb::hip
+
+#undef COOPSYNC_TOOLS_HIP_NODISCARD

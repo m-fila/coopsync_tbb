@@ -58,7 +58,7 @@ TEST(UniqueScopedLock, MutexMock) {
         ASSERT_EQ(m.get_lock_count(), 2);
         ASSERT_EQ(m.get_unlock_count(), 1);
         ASSERT_EQ(m.get_try_lock_count(), 0);
-        EXPECT_THROW(lock.try_acquire(m), std::system_error);
+        ASSERT_THROW((void)lock.try_acquire(m), std::system_error);
         ASSERT_EQ(m.get_lock_count(), 2);
         ASSERT_EQ(m.get_unlock_count(), 1);
         ASSERT_EQ(m.get_try_lock_count(), 0);
@@ -66,7 +66,7 @@ TEST(UniqueScopedLock, MutexMock) {
         ASSERT_EQ(m.get_lock_count(), 2);
         ASSERT_EQ(m.get_unlock_count(), 2);
         ASSERT_EQ(m.get_try_lock_count(), 0);
-        lock.try_acquire(m);
+        (void)lock.try_acquire(m);
         ASSERT_EQ(m.get_lock_count(), 2);
         ASSERT_EQ(m.get_unlock_count(), 2);
         ASSERT_EQ(m.get_try_lock_count(), 1);

@@ -79,6 +79,7 @@ target_sources(
             FILES
             include/coopsync_tbb/coopsync_tbb.hpp
             include/coopsync_tbb/detail/intrusive_list.hpp
+            include/coopsync_tbb/detail/macros.hpp
             include/coopsync_tbb/detail/unique_scoped_lock.hpp
             include/coopsync_tbb/latch.hpp
             include/coopsync_tbb/mutex.hpp

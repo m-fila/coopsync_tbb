@@ -9,6 +9,7 @@
 #include <limits>
 
 #include "coopsync_tbb/detail/intrusive_list.hpp"
+#include "coopsync_tbb/detail/macros.hpp"
 
 namespace coopsync_tbb {
 /// @brief A latch is a down-ward counter that allows tasks to wait until the
@@ -44,12 +45,12 @@ class latch {
 
     /// @brief Returns the maximum value for the latch counter.
     /// @return The maximum value for the latch counter.
-    static constexpr std::ptrdiff_t max() noexcept;
+    COOPSYNC_TOOLS_NODISCARD static constexpr std::ptrdiff_t max() noexcept;
 
     /// @brief Checks if the latch has reached zero without suspending the
     /// calling task.
     /// @return true if the latch has reached zero, false otherwise.
-    bool try_wait() const noexcept;
+    COOPSYNC_TOOLS_NODISCARD bool try_wait() const noexcept;
 
     /// @brief Decrements the latch counter by the specified update. If the
     /// counter reaches zero, all suspended tasks are resumed.
