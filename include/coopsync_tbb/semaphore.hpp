@@ -180,7 +180,7 @@ class counting_semaphore<1> {
     /// @brief Attempts to acquire the semaphore without suspending.
     /// @return true if the semaphore was successfully acquired, false
     /// otherwise.
-    bool try_acquire();
+    COOPSYNC_TBB_NODISCARD bool try_acquire();
 
     /// @brief Returns the maximum value for the counter of the binary
     /// semaphore.
