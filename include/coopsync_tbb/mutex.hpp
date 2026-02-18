@@ -7,20 +7,23 @@
 #include <cassert>
 
 #include "coopsync_tbb/detail/intrusive_list.hpp"
-#include "coopsync_tbb/scoped_lock.hpp"
+#include "coopsync_tbb/detail/unique_scoped_lock.hpp"
 
 namespace coopsync_tbb {
 
 /// @brief A mutex that can be used to synchronize access to shared resources.
-/// The mutex is non-recursive and provides no fairness guarantees.
-/// @note This mutex does not satisfy the standard named requirements
-/// (BasicLockable, Lockable, Mutex) because it never blocks the calling
-/// thread, even though it exposes the same interface. Concurrent invocations of
-/// the member functions. except for destructor, are safe.
+/// The mutex is non-recursive and provides no fairness guarantees. An attempt
+/// to acquire a mutex that is already in acquired state suspends the calling
+/// task until the mutex can be acquired.
+/// @note This mutex does satisfy the standard named requirements for
+/// BasicLockable and Lockable but does not meet the requirements for Mutex
+/// because it never blocks the calling thread, even though it exposes the same
+/// interface. Concurrent invocations of the member functions. except for
+/// destructor, are safe.
 class mutex {
     public:
     /// @brief Associated RAII wrapper type for this mutex.
-    using scoped_lock = coopsync_tbb::scoped_lock<mutex>;
+    using scoped_lock = coopsync_tbb::detail::unique_scoped_lock<mutex>;
 
     /// @brief Constructs a new mutex. The mutex is initially unlocked.
     mutex() = default;

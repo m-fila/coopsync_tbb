@@ -5,10 +5,10 @@ add_executable(
   mutex_traits.hpp
   # details
   intrusive_list_test.cpp
+  unique_scoped_lock_test.cpp
   # main classes
   latch_test.cpp
   mutex_test.cpp
-  scoped_lock_test.cpp
   semaphore_test.cpp)
 
 target_link_libraries(coopsync_tbb_test PRIVATE GTest::gtest_main CoopSync_TBB)
