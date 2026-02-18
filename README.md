@@ -10,7 +10,7 @@ Cooperative synchronization primitives for TBB resumable tasks
 
 | Primitive            | Status |
 | -------------------- | ------ |
-| `barrier`            | ❌     |
+| `barrier`            | ✔️     |
 | `buffered_channel`   | ❌     |
 | `unbuffered_channel` | ❌     |
 | `condition_variable` | ❌     |
