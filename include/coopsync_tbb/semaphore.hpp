@@ -6,12 +6,62 @@
 #include <atomic>
 #include <cassert>
 #include <cstddef>
+#include <cstdint>
 #include <limits>
+#include <type_traits>
 
 #include "coopsync_tbb/detail/intrusive_list.hpp"
 #include "coopsync_tbb/detail/macros.hpp"
 
 namespace coopsync_tbb {
+
+namespace detail {
+
+/// @brief A type trait that deduces the smallest signed integer type that can
+/// hold a given positive value N. The type is defined as
+/// int_max_value_t<N>::type.
+/// @tparam N The value for which to deduce the integer type. Must be positive.
+template <std::ptrdiff_t N>
+class int_max_value_t {
+    static_assert(N > 0, "N must be positive");
+
+    private:
+    static const bool fits8 =
+        N <= static_cast<std::ptrdiff_t>(
+                 std::numeric_limits<std::int_least8_t>::max());
+
+    static const bool fits16 =
+        N <= static_cast<std::ptrdiff_t>(
+                 std::numeric_limits<std::int_least16_t>::max());
+
+    static const bool fits32 =
+        N <= static_cast<std::ptrdiff_t>(
+                 std::numeric_limits<std::int_least32_t>::max());
+
+    static const bool fits64 =
+        N <= static_cast<std::ptrdiff_t>(
+                 std::numeric_limits<std::int_least64_t>::max());
+
+    public:
+    // clang-format off
+    using type =
+    typename std::conditional<
+        fits8,
+        std::int_least8_t,
+    typename std::conditional<
+        fits16,
+        std::int_least16_t,
+    typename std::conditional<
+        fits32,
+        std::int_least32_t,
+    typename std::conditional<
+        fits64,
+        std::int_least64_t,
+        std::ptrdiff_t
+    >::type>::type>::type>::type;
+    // clang-format on
+};
+}  // namespace detail
 
 /// @brief A counting semaphore that allows tasks to synchronize based on a
 /// counter. The semaphore is initialized with a non-negative count, and tasks
@@ -82,9 +132,10 @@ class counting_semaphore {
     constexpr static std::ptrdiff_t max() noexcept;
 
     private:
+    using storage_t = typename detail::int_max_value_t<LeastMaxValue>::type;
     using waiter_t = tbb::task::suspend_point;
 
-    std::atomic<std::ptrdiff_t> m_counter;
+    std::atomic<storage_t> m_counter;
     tbb::spin_mutex m_waiters_mutex;
     detail::intrusive_list<waiter_t> m_waiters;
 };
@@ -102,7 +153,7 @@ inline counting_semaphore<LeastMaxValue>::counting_semaphore(
 template <std::ptrdiff_t LeastMaxValue>
 inline constexpr std::ptrdiff_t
 counting_semaphore<LeastMaxValue>::max() noexcept {
-    return LeastMaxValue;
+    return static_cast<std::ptrdiff_t>(std::numeric_limits<storage_t>::max());
 }
 
 template <std::ptrdiff_t LeastMaxValue>
