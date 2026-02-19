@@ -21,9 +21,11 @@
     },
     {
       "name": "default",
-      "displayName": "Default",
+      "displayName": "default",
       "inherits": "base",
-      "cacheVariables": {}
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+      }
     },
     {
       "name": "asan",
@@ -61,6 +63,11 @@
   ],
   "buildPresets": [
     {
+      "name": "default",
+      "configurePreset": "default",
+      "jobs": 0
+    },
+    {
       "name": "asan",
       "configurePreset": "asan",
       "jobs": 0
@@ -77,6 +84,13 @@
     }
   ],
   "testPresets": [
+    {
+      "name": "default",
+      "configurePreset": "default",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
     {
       "name": "asan",
       "configurePreset": "asan",
@@ -100,6 +114,24 @@
     }
   ],
   "workflowPresets": [
+    {
+      "name": "default",
+      "displayName": "Workflow (Default)",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "default"
+        },
+        {
+          "type": "build",
+          "name": "default"
+        },
+        {
+          "type": "test",
+          "name": "default"
+        }
+      ]
+    },
     {
       "name": "asan",
       "displayName": "Workflow (ASan)",
