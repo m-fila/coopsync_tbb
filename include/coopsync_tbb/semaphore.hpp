@@ -16,6 +16,11 @@
 namespace coopsync_tbb {
 
 namespace detail {
+
+/// @brief A type trait that deduces the smallest signed integer type that can
+/// hold a given positive value N. The type is defined as
+/// int_max_value_t<N>::type.
+/// @tparam N The value for which to deduce the integer type. Must be positive.
 template <std::ptrdiff_t N>
 class int_max_value_t {
     static_assert(N > 0, "N must be positive");
@@ -39,7 +44,8 @@ class int_max_value_t {
 
     public:
     // clang-format off
-    typedef typename std::conditional<
+    using type = 
+    typename std::conditional<
         fits8,
         std::int_least8_t,
     typename std::conditional<
@@ -52,7 +58,7 @@ class int_max_value_t {
         fits64,
         std::int_least64_t,
         std::ptrdiff_t
-    >::type>::type>::type>::type type;
+    >::type>::type>::type>::type;
     // clang-format on
 };
 }  // namespace detail
