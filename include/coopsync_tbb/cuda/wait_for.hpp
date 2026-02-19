@@ -2,18 +2,20 @@
 #include <cuda_runtime_api.h>
 #include <oneapi/tbb/task.h>
 
-#ifdef __has_cpp_attribute
-#if __has_cpp_attribute(nodiscard)
-#define COOPSYNC_TBB_CUDA_NODISCARD [[nodiscard]]
-#endif
-#else
-#if __cplusplus > 201603L
-#define COOPSYNC_TBB_CUDA_NODISCARD [[nodiscard]]
-#endif
-#endif
+// clang-format off
 #ifndef COOPSYNC_TBB_CUDA_NODISCARD
-#define COOPSYNC_TBB_CUDA_NODISCARD
+  #if defined(__has_cpp_attribute)
+    #if __has_cpp_attribute(nodiscard)
+      #define COOPSYNC_TBB_CUDA_NODISCARD [[nodiscard]]
+    #endif
+  #elif defined(__cplusplus) && __cplusplus >= 201703L
+    #define COOPSYNC_TBB_CUDA_NODISCARD [[nodiscard]]
+  #endif
+  #ifndef COOPSYNC_TBB_CUDA_NODISCARD
+    #define COOPSYNC_TBB_CUDA_NODISCARD
+  #endif
 #endif
+// clang-format on
 
 /// @brief CUDA integration.
 namespace coopsync_tbb::cuda {
