@@ -207,7 +207,8 @@ class future_base {
     void reset() noexcept { m_state.reset(); }
 
     /// @brief Releases the shared state pointer and leaves this object invalid.
-    COOPSYNC_TBB_NODISCARD std::shared_ptr<shared_state<T>> release_state() noexcept {
+    COOPSYNC_TBB_NODISCARD std::shared_ptr<shared_state<T>>
+    release_state() noexcept {
         return std::exchange(m_state, std::shared_ptr<shared_state<T>>{});
     }
 
