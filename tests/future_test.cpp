@@ -4,6 +4,7 @@
 #include <oneapi/tbb/parallel_for.h>
 
 #include <atomic>
+#include <cstddef>
 #include <stdexcept>
 
 TEST(Future, NoStateThrows) {
@@ -99,4 +100,71 @@ TEST(FutureRef, GetReturnsReference) {
     });
 
     ASSERT_EQ(x, expected);
+}
+
+TEST(SharedFuture, ShareInvalidatesFutureAndAllowsMultipleGets) {
+    auto p = coopsync_tbb::promise<int>();
+    auto f = p.get_future();
+    auto sf = f.share();
+
+    ASSERT_FALSE(f.valid());
+    ASSERT_TRUE(sf.valid());
+
+    auto sf2 = sf;
+
+    std::atomic<int> r1{-1};
+    std::atomic<int> r2{-1};
+    const auto expected = 123;
+
+    tbb::parallel_for(0, 3, [&](int i) {
+        if (i == 0) {
+            r1.store(sf.get(), std::memory_order_relaxed);
+        } else if (i == 1) {
+            r2.store(sf2.get(), std::memory_order_relaxed);
+        } else {
+            p.set_value(expected);
+        }
+    });
+
+    ASSERT_EQ(r1.load(std::memory_order_relaxed), expected);
+    ASSERT_EQ(r2.load(std::memory_order_relaxed), expected);
+}
+
+TEST(SharedFutureVoid, MultipleGetsDoNotConsume) {
+    auto p = coopsync_tbb::promise<void>();
+    auto f = p.get_future();
+    auto sf = f.share();
+    auto sf2 = sf;
+
+    std::atomic<int> done{0};
+    tbb::parallel_for(0, 3, [&](int i) {
+        if (i == 0) {
+            sf.get();
+            done.fetch_add(1, std::memory_order_relaxed);
+        } else if (i == 1) {
+            sf2.get();
+            done.fetch_add(1, std::memory_order_relaxed);
+        } else {
+            p.set_value();
+        }
+    });
+
+    ASSERT_EQ(done.load(std::memory_order_relaxed), 2);
+}
+
+TEST(SharedFutureRef, GetReturnsSameReference) {
+    auto p = coopsync_tbb::promise<int&>();
+    auto f = p.get_future();
+    auto sf = f.share();
+    auto shared_futures = std::array{sf, sf, sf, sf};
+    int x = 0;
+
+    tbb::parallel_for(size_t{0}, shared_futures.size() + 1, [&](size_t i) {
+        if (shared_futures.size() == i) {
+            p.set_value(x);
+        } else {
+            auto& r = shared_futures.at(i).get();
+            EXPECT_EQ(&r, &x);
+        }
+    });
 }
