@@ -339,18 +339,15 @@ class future : private detail::future::future_base<T> {
     }
 
     /// @brief Suspends the current task until the shared state is ready.
-    ///
     /// If the shared state is ready this function returns immediately.
     /// @throws future_error with \c std::future_errc::no_state if the future is
     /// not valid.
     void wait() const { detail::future::future_base<T>::wait(); }
 
     /// @brief Retrieves the value stored in the shared state.
-    ///
     /// If the shared state is ready, this function returns immediately.
     /// Otherwise, the task is suspended until the state becomes ready.
     /// After retrieval the future is left in not valid state.
-    ///
     /// @return The value stored in the shared state.
     /// @throws future_error if the future is not valid, if the promise was
     /// broken, or if the value was already retrieved.
@@ -420,9 +417,9 @@ class future<void> : private detail::future::future_base<void> {
     void wait() const { detail::future::future_base<void>::wait(); }
 
     /// @brief Waits for readiness and consumes the shared state.
-    ///
-    /// After this call the future is left in not valid state.
-    ///
+    /// If the shared state is ready, this function returns immediately.
+    /// Otherwise, the task is suspended until the state becomes ready. After
+    /// this call the future is left in not valid state.
     /// @throws future_error if the future is not valid, if the promise was
     /// broken, or if the value was already retrieved.
     /// @throws Any exception stored in the shared state.
@@ -489,11 +486,9 @@ class future<T&> : private detail::future::future_base<T&> {
     void wait() const { detail::future::future_base<T&>::wait(); }
 
     /// @brief Retrieves the reference stored in the shared state.
-    ///
     /// If the shared state is ready, this function returns immediately.
     /// Otherwise, the task is suspended until the state becomes ready.
     /// After retrieval the future is left in not valid state.
-    ///
     /// @return Reference stored in the shared state.
     /// @throws future_error if the future is not valid, if the promise was
     /// broken, or if the value was already retrieved.
@@ -557,10 +552,11 @@ class shared_future : private detail::future::future_base<T> {
     /// @throws future_error with \c std::future_errc::no_state if not valid.
     void wait() const { detail::future::future_base<T>::wait(); }
 
-    /// @brief Retrieves the stored value.
-    ///
-    /// This function may be called multiple times.
-    ///
+    /// @brief Obtains a reference to the value stored in the shared state.
+    /// If the shared state is ready, this function returns immediately.
+    /// Otherwise, the task is suspended until the state becomes ready.
+    /// This function can be called multiple times without invalidating the
+    /// shared state.
     /// @return A const reference to the stored value.
     /// @throws future_error if not valid or if the promise is broken.
     /// @throws Any exception stored in the shared state.
@@ -584,20 +580,56 @@ class shared_future : private detail::future::future_base<T> {
 template <>
 class shared_future<void> : private detail::future::future_base<void> {
     public:
+    /// @brief Constructs the shared_future in a not valid state.
     shared_future() noexcept = default;
-    shared_future(const shared_future&) noexcept = default;
-    shared_future& operator=(const shared_future&) noexcept = default;
-    shared_future(shared_future&&) noexcept = default;
-    shared_future& operator=(shared_future&&) noexcept = default;
+
+    /// @brief Copy-constructs the shared_future, after copying both objects
+    /// refer to the same shared state.
+    /// @param other The shared_future to copy from.
+    shared_future(const shared_future& other) noexcept = default;
+
+    /// @brief Copy-assigns the shared_future, after assignment both objects
+    /// refer to the same shared state.
+    /// @param other The shared_future to copy from.
+    shared_future& operator=(const shared_future& other) noexcept = default;
+
+    /// @brief Move-constructs the shared_future, after moving the current
+    /// object refers to the shared state of the moved-from object and the
+    /// moved-from object is left in not valid state.
+    /// @param other The shared_future to move from.
+    shared_future(shared_future&& other) noexcept = default;
+
+    /// @brief Move-assigns the shared_future, after moving the current object
+    /// refers to the shared state of the moved-from object and the moved-from
+    /// object is left in not valid state.
+    /// @param other The shared_future to move from.
+    shared_future& operator=(shared_future&& other) noexcept = default;
+
+    /// @brief Destroys the shared_future. If it was the last shared_future
+    /// referring to the shared state, the shared state is released.
     ~shared_future() = default;
 
+    /// @brief Tests whether the shared_future is valid and refers to a shared
+    /// state.
+    /// @return true if the shared_future is valid, false otherwise.
     bool valid() const noexcept {
         return detail::future::future_base<void>::valid();
     }
 
+    /// @brief Suspends the current task until the shared state is ready.
+    /// If the shared state is ready this function returns immediately.
+    /// @throws future_error with \c std::future_errc::no_state if the future is
+    /// not valid.
     void wait() const { detail::future::future_base<void>::wait(); }
 
     /// @brief Waits for readiness and checks for exception/broken promise.
+    /// If the shared state is ready, this function returns immediately.
+    /// Otherwise, the task is suspended until the state becomes ready. This
+    /// function can be called multiple times without invalidating the shared
+    /// state.
+    /// @throws future_error if the future is not valid or if the promise was
+    /// broken.
+    /// @throws Any exception stored in the shared state.
     void get() const {
         this->ensure_valid();
         this->m_state->wait();
@@ -616,22 +648,57 @@ class shared_future<void> : private detail::future::future_base<void> {
 template <typename T>
 class shared_future<T&> : private detail::future::future_base<T&> {
     public:
+    /// @brief Constructs the shared_future in a not valid state.
     shared_future() noexcept = default;
-    shared_future(const shared_future&) noexcept = default;
-    shared_future& operator=(const shared_future&) noexcept = default;
-    shared_future(shared_future&&) noexcept = default;
-    shared_future& operator=(shared_future&&) noexcept = default;
+
+    /// @brief Copy-constructs the shared_future, after copying both objects
+    /// refer to the same shared state.
+    /// @param other The shared_future to copy from.
+    shared_future(const shared_future& other) noexcept = default;
+
+    /// @brief Copy-assigns the shared_future, after assignment both objects
+    /// refer to the same shared state.
+    /// @param other The shared_future to copy from.
+    shared_future& operator=(const shared_future& other) noexcept = default;
+
+    /// @brief Move-constructs the shared_future, after moving the current
+    /// object refers to the shared state of the moved-from object and the
+    /// moved-from object is left in not valid state.
+    /// @param other The shared_future to move from.
+    shared_future(shared_future&& other) noexcept = default;
+
+    /// @brief Move-assigns the shared_future, after moving the current object
+    /// refers to the shared state of the moved-from object and the moved-from
+    /// object is left in not valid state.
+    /// @param other The shared_future to move from.
+    shared_future& operator=(shared_future&& other) noexcept = default;
+
+    /// @brief Destroys the shared_future. If it was the last shared_future
+    /// referring to the shared state, the shared state is released.
     ~shared_future() = default;
 
+    /// @brief Tests whether the shared_future is valid and refers to a shared
+    /// state.
+    /// @return true if the shared_future is valid, false otherwise.
     bool valid() const noexcept {
         return detail::future::future_base<T&>::valid();
     }
 
+    /// @brief Suspends the current task until the shared state is ready.
+    /// If the shared state is ready this function returns immediately.
+    /// @throws future_error with \c std::future_errc::no_state if the future is
+    /// not valid.
     void wait() const { detail::future::future_base<T&>::wait(); }
 
-    /// @brief Retrieves the stored reference.
-    ///
-    /// This function may be called multiple times.
+    /// @brief Obtains a reference stored in the shared state.
+    /// If the shared state is ready, this function returns immediately.
+    /// Otherwise, the task is suspended until the state becomes ready.
+    /// This function can be called multiple times without invalidating the
+    /// shared state.
+    /// @return A reference stored in the shared state.
+    /// @throws future_error if the future is not valid or if the promise was
+    /// broken.
+    /// @throws Any exception stored in the shared state.
     T& get() const {
         this->ensure_valid();
         this->m_state->wait();
