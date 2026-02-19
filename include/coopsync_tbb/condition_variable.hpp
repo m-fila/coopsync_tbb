@@ -9,6 +9,9 @@
 
 namespace coopsync_tbb {
 
+/// @brief Condition variable used to synchronize tasks. The tasks can be
+/// suspended on this condition variable and then later notify to resume if
+/// given condition is met.
 class condition_variable {
     public:
     /// @brief Constructs a new condition variable.
@@ -30,7 +33,7 @@ class condition_variable {
     /// @note The destructor must not be called while there are still tasks
     /// waiting on the condition variable. The destructor does not notify or
     /// resume any waiting tasks.
-    ~condition_variable() = default;
+    ~condition_variable();
 
     /// @brief Resumes one task suspended waiting on this condition variable, if
     /// there is any.
@@ -41,6 +44,9 @@ class condition_variable {
 
     /// @brief Suspends the calling task until it is notified.
     /// @tparam Lock A lock type providing lock() and unlock().
+    /// @param lock The lock to be released while waiting and reacquired after
+    /// resumption. The lock must be in an locked state before calling this
+    /// function.
     template <typename Lock>
     void wait(Lock& lock);
 
@@ -49,7 +55,8 @@ class condition_variable {
     /// @tparam Pred Callable returning bool. Must be invocable without
     /// arguments.
     /// @param lock The lock to be released while waiting and reacquired after
-    /// resumption.
+    /// resumption. The lock must be in an locked state before calling this
+    /// function.
     /// @param pred The predicate to be evaluated after each resumption, if it
     /// returns false the task is suspended again.
     /// @throws any exception thrown by pred().
@@ -62,6 +69,10 @@ class condition_variable {
     tbb::spin_mutex m_waiters_mutex;
     detail::intrusive_list<waiter_t> m_waiters;
 };
+
+inline condition_variable::~condition_variable() {
+    assert(m_waiters.empty());
+}
 
 inline void condition_variable::notify_one() noexcept {
     tbb::spin_mutex::scoped_lock lock(m_waiters_mutex);

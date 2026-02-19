@@ -8,7 +8,7 @@
 
 #include "coopsync_tbb/mutex.hpp"
 
-TEST(ConditionVariable, NotifyOneWakesWaiter) {
+TEST(ConditionVariable, NotifyOne) {
     auto m = coopsync_tbb::mutex{};
     auto cv = coopsync_tbb::condition_variable{};
 
@@ -33,7 +33,7 @@ TEST(ConditionVariable, NotifyOneWakesWaiter) {
     ASSERT_EQ(result.load(std::memory_order_relaxed), expected);
 }
 
-TEST(ConditionVariable, NotifyAllWakesAllWaiters) {
+TEST(ConditionVariable, NotifyAll) {
     auto m = coopsync_tbb::mutex{};
     auto cv = coopsync_tbb::condition_variable{};
 
