@@ -3,6 +3,24 @@
 #include <gtest/gtest.h>
 #include <oneapi/tbb/parallel_for.h>
 
+TEST(Semaphore, StorageWidth) {
+    // given a value we deduce a type large enough to hold it, and that type's
+    // max value is indeed large enough.
+    EXPECT_GE(
+        std::numeric_limits<
+            typename coopsync_tbb::detail::int_max_value_t<1>::type>::max(),
+        1);
+    EXPECT_GE(
+        std::numeric_limits<
+            typename coopsync_tbb::detail::int_max_value_t<1000>::type>::max(),
+        1000);
+
+    EXPECT_GE(
+        std::numeric_limits<typename coopsync_tbb::detail::int_max_value_t<
+            1000000000>::type>::max(),
+        1000000000);
+}
+
 TEST(Semaphore, NoContentionTryAcquireRelease) {
     {
         auto sem = coopsync_tbb::binary_semaphore(1);
