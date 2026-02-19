@@ -44,7 +44,7 @@ class int_max_value_t {
 
     public:
     // clang-format off
-    using type = 
+    using type =
     typename std::conditional<
         fits8,
         std::int_least8_t,
