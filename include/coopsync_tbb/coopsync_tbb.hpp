@@ -1,6 +1,7 @@
 #pragma once
 
 #include "coopsync_tbb/barrier.hpp"
+#include "coopsync_tbb/condition_variable.hpp"
 #include "coopsync_tbb/latch.hpp"
 #include "coopsync_tbb/mutex.hpp"
 #include "coopsync_tbb/semaphore.hpp"

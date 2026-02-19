@@ -8,6 +8,7 @@ add_executable(
   unique_scoped_lock_test.cpp
   # main classes
   barrier_test.cpp
+  condition_variable_test.cpp
   latch_test.cpp
   mutex_test.cpp
   semaphore_test.cpp)
