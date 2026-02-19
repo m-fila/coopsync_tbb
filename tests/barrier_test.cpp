@@ -83,17 +83,21 @@ TEST(Barrier, ContentionArriveAndWaitWithCompletion) {
     EXPECT_EQ(completions, expected_completions);
 }
 
-TEST(Barrier, ContentionArriveThenDrop) {
-    auto completions = std::atomic<int>(0);
+TEST(Barrier, ArriveAndDrop) {
+    auto completions = 0;
     auto barrier = coopsync_tbb::barrier(3, [&] { ++completions; });
-    const auto iterations = 5;
-    tbb::parallel_for(0, iterations, [&](int i) {
-        if (i == 0) {
-            barrier.arrive_and_drop();
-        } else {
-            barrier.arrive_and_wait();
-        }
+    tbb::parallel_for(0, 3, [&](int i) {
+        barrier.arrive_and_wait();
+        EXPECT_EQ(completions, 1);
     });
-    // 5 iterations, 1 drop, 4 waits, 2 completions
-    EXPECT_EQ(completions, 2);
+    barrier.arrive_and_drop();
+    tbb::parallel_for(0, 2, [&](int i) {
+        barrier.arrive_and_wait();
+        EXPECT_EQ(completions, 2);
+    });
+    barrier.arrive_and_drop();
+    tbb::parallel_for(0, 1, [&](int i) {
+        barrier.arrive_and_wait();
+        EXPECT_EQ(completions, 3);
+    });
 }
