@@ -13,7 +13,7 @@ Cooperative synchronization primitives for TBB resumable tasks
 | `barrier`            | ✔️     |
 | `buffered_channel`   | ❌     |
 | `unbuffered_channel` | ❌     |
-| `condition_variable` | ❌     |
+| `condition_variable` | ✔️     |
 | `future`             | ❌     |
 | `packaged_task`      | ❌     |
 | `latch`              | ✔️     |
