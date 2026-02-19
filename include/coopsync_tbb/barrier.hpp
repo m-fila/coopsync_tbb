@@ -7,6 +7,7 @@
 #include <cassert>
 #include <cstddef>
 #include <limits>
+#include <utility>
 
 #include "coopsync_tbb/detail/intrusive_list.hpp"
 #include "coopsync_tbb/detail/macros.hpp"
@@ -203,7 +204,7 @@ inline void barrier<CompletionFunction>::arrive_and_drop() {
     const auto prev =
         m_initial_expected.fetch_sub(1, std::memory_order_acq_rel);
     assert(prev > 0);
-    (void)arrive(1);
+    std::ignore = arrive(1);
 }
 
 }  // namespace coopsync_tbb
