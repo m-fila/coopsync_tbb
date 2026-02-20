@@ -99,6 +99,7 @@ inline void mutex::lock() {
             // Re-check while holding the lock to avoid racing with unlock()
             tbb::spin_mutex::scoped_lock lock_(m_waiters_mutex);
             if (!try_lock()) {
+                node.value = sp;
                 m_waiters.push_back(node);
                 return;
             }
