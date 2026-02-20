@@ -117,22 +117,24 @@ inline void latch::wait() {
     if (try_wait()) {
         return;
     }
+
     // Slow path
     auto node = detail::intrusive_list<waiter_t>::node{};
-    m_waiters_mutex.lock();
-
-    // Re-check while holding the lock to avoid racing with count_down()
-    if (try_wait()) {
-        m_waiters_mutex.unlock();
-        return;
-    }
-
-    // Guaranteed that the suspend lambda will be executed on the same
-    // thread so capturing locked mutex is fine.
+    // node must remain valid until the task is
+    // resumed. It's a local variable on a stack of suspended task which is
+    // preserved during suspension so it isn't an issue.
     tbb::task::suspend([this, &node](tbb::task::suspend_point sp) {
-        node.value = sp;
-        m_waiters.push_back(node);
-        m_waiters_mutex.unlock();
+        {
+            // Re-check while holding the lock to avoid racing with count_down()
+            tbb::spin_mutex::scoped_lock lock(m_waiters_mutex);
+            if (!try_wait()) {
+                node.value = sp;
+                m_waiters.push_back(node);
+                return;
+            }
+        }
+        // Resume immediately in case re-check succeeded
+        tbb::task::resume(sp);
     });
 
     // Post resumption, the latch counter has reached zero.
