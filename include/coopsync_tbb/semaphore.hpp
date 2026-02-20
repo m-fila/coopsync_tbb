@@ -300,10 +300,13 @@ inline void counting_semaphore<1>::release(std::ptrdiff_t update) {
 
     assert(m_available.load(std::memory_order_acquire) == false);
 
-    auto lock = tbb::spin_mutex::scoped_lock(m_waiters_mutex);
-
+    typename detail::intrusive_list<waiter_t>::node* waiter{};
+    {
+        auto lock = tbb::spin_mutex::scoped_lock(m_waiters_mutex);
+        waiter = m_waiters.pop_front();
+    }
     // Direct handoff: resume a waiter if there is any.
-    if (const auto* waiter = m_waiters.pop_front()) {
+    if (waiter) {
         m_available.store(false, std::memory_order_relaxed);
         tbb::task::resume(waiter->value);
         return;
