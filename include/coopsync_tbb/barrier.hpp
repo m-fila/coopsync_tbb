@@ -183,20 +183,21 @@ inline void barrier<CompletionFunction>::wait(arrival_token arrival) {
 
     // Slow path
     typename detail::intrusive_list<waiter_t>::node node{};
-    m_waiters_mutex.lock();
+    // node must remain valid until the task is resumed. It's a local variable
+    // on a stack of suspended task which is preserved during suspension.
+    tbb::task::suspend([this, &node, &arrival](tbb::task::suspend_point sp) {
+        {
+            // Re-check while holding the lock to avoid racing with arrive().
+            tbb::spin_mutex::scoped_lock lock(m_waiters_mutex);
+            if (m_phase.load(std::memory_order_acquire) == arrival.m_phase) {
+                node.value = sp;
+                m_waiters.push_back(node);
+                return;
+            }
+        }
 
-    // Re-check while holding the lock to avoid racing with arrive()
-    if (m_phase.load(std::memory_order_acquire) != arrival.m_phase) {
-        m_waiters_mutex.unlock();
-        return;
-    }
-
-    // Guaranteed that the suspend lambda will be executed on the same thread
-    // so capturing locked mutex is fine.
-    tbb::task::suspend([this, &node](tbb::task::suspend_point sp) {
-        node.value = sp;
-        m_waiters.push_back(node);
-        m_waiters_mutex.unlock();
+        // Resume immediately in case re-check succeeded.
+        tbb::task::resume(sp);
     });
 }
 
