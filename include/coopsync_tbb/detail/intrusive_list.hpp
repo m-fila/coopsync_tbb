@@ -21,6 +21,9 @@ class intrusive_list {
         node *next = nullptr;
     };
 
+    /// @brief The type of the values stored in the list nodes.
+    using value_type = T;
+
     /// @brief Constructs an empty intrusive list.
     intrusive_list() noexcept = default;
 
