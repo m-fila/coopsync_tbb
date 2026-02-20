@@ -184,7 +184,8 @@ inline void barrier<CompletionFunction>::wait(arrival_token arrival) {
     // Slow path
     typename detail::intrusive_list<waiter_t>::node node{};
     // node must remain valid until the task is resumed. It's a local variable
-    // on a stack of suspended task which is preserved during suspension.
+    // on a stack of suspended task which is preserved during suspension so it
+    // isn't an issue.
     tbb::task::suspend([this, &node, &arrival](tbb::task::suspend_point sp) {
         {
             // Re-check while holding the lock to avoid racing with arrive().

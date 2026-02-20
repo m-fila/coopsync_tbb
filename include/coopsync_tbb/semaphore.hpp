@@ -179,7 +179,8 @@ inline void counting_semaphore<LeastMaxValue>::acquire() {
     // Slow path
     auto node = detail::intrusive_list<waiter_t>::node{};
     // node must remain valid until the task is resumed. It's a local variable
-    // on a stack of suspended task which is preserved during suspension.
+    // on a stack of suspended task which is preserved during suspension so it
+    // isn't an issue.
     tbb::task::suspend([this, &node](tbb::task::suspend_point sp) {
         {
             // Re-check while holding the lock to avoid racing with release().

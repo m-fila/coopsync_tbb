@@ -106,9 +106,9 @@ template <typename Lock>
 inline void condition_variable::wait(Lock& lock) {
 
     auto node = typename detail::intrusive_list<waiter_t>::node{};
-    // node must remain valid until the task is
-    // resumed. It's a local variable on a stack of suspended task which is
-    // preserved during suspension so it isn't an issue.
+    // node must remain valid until the task is resumed. It's a local variable
+    // on a stack of suspended task which is preserved during suspension so it
+    // isn't an issue.
     tbb::task::suspend([this, &node, &lock](tbb::task::suspend_point sp) {
         node.value = sp;
         {
