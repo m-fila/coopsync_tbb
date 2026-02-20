@@ -175,22 +175,24 @@ inline void counting_semaphore<LeastMaxValue>::acquire() {
     if (try_acquire()) {
         return;
     }
+
     // Slow path
     auto node = detail::intrusive_list<waiter_t>::node{};
-    m_waiters_mutex.lock();
-
-    // Re-check under lock to avoid race with release()
-    if (try_acquire()) {
-        m_waiters_mutex.unlock();
-        return;
-    }
-
-    // Guaranteed that the suspend lambda will be executed on the same thread
-    // so capturing locked mutex is fine.
+    // node must remain valid until the task is resumed. It's a local variable
+    // on a stack of suspended task which is preserved during suspension.
     tbb::task::suspend([this, &node](tbb::task::suspend_point sp) {
-        node.value = sp;
-        m_waiters.push_back(node);
-        m_waiters_mutex.unlock();
+        {
+            // Re-check while holding the lock to avoid racing with release().
+            tbb::spin_mutex::scoped_lock lock(m_waiters_mutex);
+            if (!try_acquire()) {
+                node.value = sp;
+                m_waiters.push_back(node);
+                return;
+            }
+        }
+
+        // Resume immediately in case re-check succeeded.
+        tbb::task::resume(sp);
     });
 
     // Post resumption, release() has handed a permit to us.
