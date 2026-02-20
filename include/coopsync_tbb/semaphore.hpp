@@ -259,8 +259,10 @@ inline constexpr std::ptrdiff_t counting_semaphore<1>::max() noexcept {
 
 inline bool counting_semaphore<1>::try_acquire() {
     auto expected = true;
-    return m_available.compare_exchange_strong(
-        expected, false, std::memory_order_acquire, std::memory_order_relaxed);
+    const auto desired = false;
+    return m_available.compare_exchange_strong(expected, desired,
+                                               std::memory_order_acquire,
+                                               std::memory_order_relaxed);
 }
 
 inline void counting_semaphore<1>::acquire() {
@@ -271,20 +273,21 @@ inline void counting_semaphore<1>::acquire() {
 
     // Slow path
     auto node = detail::intrusive_list<waiter_t>::node{};
-    m_waiters_mutex.lock();
-
-    // Re-check under lock to avoid race with release().
-    if (try_acquire()) {
-        m_waiters_mutex.unlock();
-        return;
-    }
-
-    // Guaranteed that the suspend lambda will be executed on the same thread
-    // so capturing locked mutex is fine.
+    // node must remain valid until the task is
+    // resumed. It's a local variable on a stack of suspended task which is
+    // preserved during suspension so it isn't an issue.
     tbb::task::suspend([this, &node](tbb::task::suspend_point sp) {
-        node.value = sp;
-        m_waiters.push_back(node);
-        m_waiters_mutex.unlock();
+        {
+            // Re-check under lock to avoid race with release().
+            tbb::spin_mutex::scoped_lock lock_(m_waiters_mutex);
+            if (!try_acquire()) {
+                node.value = sp;
+                m_waiters.push_back(node);
+                return;
+            }
+        }
+        // Resume immediately in case re-check succeeded.
+        tbb::task::resume(sp);
     });
 
     // Post resumption, release() has handed a permit to us.
