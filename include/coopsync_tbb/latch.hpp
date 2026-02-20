@@ -100,8 +100,13 @@ inline void latch::count_down(std::ptrdiff_t update) {
     auto prev = m_counter.fetch_sub(update, std::memory_order_acq_rel);
     assert(prev >= update);
     if (prev == update) {
-        tbb::spin_mutex::scoped_lock lock(m_waiters_mutex);
-        while (const auto* waiter = m_waiters.pop_front()) {
+        auto waiters_to_resume = detail::intrusive_list<waiter_t>{};
+        {
+            tbb::spin_mutex::scoped_lock lock(m_waiters_mutex);
+            waiters_to_resume.swap(m_waiters);
+            assert(m_waiters.empty());
+        }
+        while (const auto* waiter = waiters_to_resume.pop_front()) {
             tbb::task::resume(waiter->value);
         }
     }

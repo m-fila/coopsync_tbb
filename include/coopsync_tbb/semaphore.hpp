@@ -203,22 +203,29 @@ inline void counting_semaphore<LeastMaxValue>::release(std::ptrdiff_t update) {
         return;
     }
 
-    tbb::spin_mutex::scoped_lock lock(m_waiters_mutex);
+    auto waiters_to_resume = detail::intrusive_list<waiter_t>{};
+    {
+        tbb::spin_mutex::scoped_lock lock(m_waiters_mutex);
 
-    // Direct handoff: resume as many waiters as we have permits for.
-    while (update > 0) {
-        const auto* waiter = m_waiters.pop_front();
-        if (!waiter) {
-            break;
+        // Direct handoff: resume as many waiters as we have permits for.
+        while (update > 0) {
+            auto* waiter = m_waiters.pop_front();
+            if (!waiter) {
+                break;
+            }
+            waiters_to_resume.push_back(*waiter);
+            --update;
         }
-        tbb::task::resume(waiter->value);
-        --update;
+
+        if (update > 0) {
+            const auto prev =
+                m_counter.fetch_add(update, std::memory_order_release);
+            assert(update <= max() - prev);
+        }
     }
 
-    if (update > 0) {
-        const auto prev =
-            m_counter.fetch_add(update, std::memory_order_release);
-        assert(update <= max() - prev);
+    while (const auto* waiter = waiters_to_resume.pop_front()) {
+        tbb::task::resume(waiter->value);
     }
 }
 

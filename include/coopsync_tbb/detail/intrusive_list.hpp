@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cassert>
+#include <utility>
 
 namespace coopsync_tbb::detail {
 /// @brief A simple intrusive singly-linked list implementation. The list does
@@ -19,6 +20,9 @@ class intrusive_list {
         T value;
         node *next = nullptr;
     };
+
+    /// @brief The type of the values stored in the list nodes.
+    using value_type = T;
 
     /// @brief Constructs an empty intrusive list.
     intrusive_list() noexcept = default;
@@ -88,6 +92,12 @@ class intrusive_list {
         return m_head == nullptr;
     }
 
+    void swap(intrusive_list &other) noexcept {
+        using std::swap;
+        swap(m_head, other.m_head);
+        swap(m_tail, other.m_tail);
+    }
+
     private:
     node *m_head = nullptr;  /// Pointer to the first node in the list, or
                              /// nullptr if the list is empty.
@@ -98,5 +108,10 @@ class intrusive_list {
         assert(!m_tail || m_tail->next == nullptr);
     }
 };
+
+template <typename T>
+void swap(intrusive_list<T> &lhs, intrusive_list<T> &rhs) noexcept {
+    lhs.swap(rhs);
+}
 
 }  // namespace coopsync_tbb::detail

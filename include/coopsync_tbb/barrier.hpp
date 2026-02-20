@@ -142,20 +142,26 @@ barrier<CompletionFunction>::arrive(std::ptrdiff_t update) {
         m_expected.fetch_sub(update, std::memory_order_acq_rel);
     assert(expected >= 0);
 
+    // Last arrival for this phase.
     if (expected == update) {
-        // Last arrival for this phase.
-        tbb::spin_mutex::scoped_lock lock(m_waiters_mutex);
 
         m_completion();
 
-        const auto next_expected =
-            m_initial_expected.load(std::memory_order_acquire);
-        m_expected.store(next_expected, std::memory_order_release);
+        auto waiters_to_resume = detail::intrusive_list<waiter_t>{};
+        {
+            tbb::spin_mutex::scoped_lock lock(m_waiters_mutex);
 
-        const auto next_phase = phase + 1;
-        m_phase.store(next_phase, std::memory_order_release);
+            const auto next_expected =
+                m_initial_expected.load(std::memory_order_acquire);
+            m_expected.store(next_expected, std::memory_order_release);
 
-        while (const auto* waiter = m_waiters.pop_front()) {
+            const auto next_phase = phase + 1;
+            m_phase.store(next_phase, std::memory_order_release);
+
+            waiters_to_resume.swap(m_waiters);
+            assert(m_waiters.empty());
+        }
+        while (const auto* waiter = waiters_to_resume.pop_front()) {
             tbb::task::resume(waiter->value);
         }
     }

@@ -93,9 +93,8 @@ inline void condition_variable::notify_all() {
 
     {
         tbb::spin_mutex::scoped_lock lock(m_waiters_mutex);
-        while (auto* waiter = m_waiters.pop_front()) {
-            waiters_to_resume.push_back(*waiter);
-        }
+        waiters_to_resume.swap(m_waiters);
+        assert(m_waiters.empty());
     }
 
     while (const auto* waiter = waiters_to_resume.pop_front()) {
