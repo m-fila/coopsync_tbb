@@ -88,22 +88,23 @@ inline void mutex::lock() {
     if (try_lock()) {
         return;
     }
+
     // Slow path
     auto node = detail::intrusive_list<waiter_t>::node{};
-    m_waiters_mutex.lock();
-
-    // Re-check while holding the lock to avoid racing with unlock()
-    if (try_lock()) {
-        m_waiters_mutex.unlock();
-        return;
-    }
-
-    // Guaranteed that the suspend lambda will be executed on the same thread
-    // so capturing locked mutex is fine.
+    // node must remain valid until the task is
+    // resumed. It's a local variable on a stack of suspended task which is
+    // preserved during suspension so it isn't an issue.
     tbb::task::suspend([this, &node](tbb::task::suspend_point sp) {
-        node.value = sp;
-        m_waiters.push_back(node);
-        m_waiters_mutex.unlock();
+        {
+            // Re-check while holding the lock to avoid racing with unlock()
+            tbb::spin_mutex::scoped_lock lock_(m_waiters_mutex);
+            if (!try_lock()) {
+                m_waiters.push_back(node);
+                return;
+            }
+        }
+        // Resume immediately in case re-check succeeded
+        tbb::task::resume(sp);
     });
 
     // Post resumption, the ownership was transferred to the resumed task.
@@ -112,12 +113,20 @@ inline void mutex::lock() {
 
 inline void mutex::unlock() {
     assert(m_locked.load(std::memory_order_acquire));
-    tbb::spin_mutex::scoped_lock lock_(m_waiters_mutex);
-    if (const auto* waiter = m_waiters.pop_front()) {
+
+    typename detail::intrusive_list<waiter_t>::node* waiter = nullptr;
+
+    {
+        tbb::spin_mutex::scoped_lock lock_(m_waiters_mutex);
+        waiter = m_waiters.pop_front();
+    }
+
+    if (waiter) {
         // Direct handoff: keep the mutex locked and resume exactly one waiter.
         tbb::task::resume(waiter->value);
         return;
     }
+    // No waiters, unlock the mutex.
     m_locked.store(false, std::memory_order_release);
 }
 
