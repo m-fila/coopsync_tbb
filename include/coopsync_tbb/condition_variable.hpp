@@ -37,10 +37,10 @@ class condition_variable {
 
     /// @brief Resumes one task suspended waiting on this condition variable, if
     /// there is any.
-    void notify_one() noexcept;
+    void notify_one();
 
     /// @brief Resumes all tasks suspended waiting on this condition variable.
-    void notify_all() noexcept;
+    void notify_all();
 
     /// @brief Suspends the calling task until it is notified.
     /// @tparam Lock A lock type providing lock() and unlock().
@@ -74,34 +74,49 @@ inline condition_variable::~condition_variable() {
     assert(m_waiters.empty());
 }
 
-inline void condition_variable::notify_one() noexcept {
-    tbb::spin_mutex::scoped_lock lock(m_waiters_mutex);
-    if (const auto* waiter = m_waiters.pop_front()) {
+inline void condition_variable::notify_one() {
+
+    typename detail::intrusive_list<waiter_t>::node* waiter = nullptr;
+    {
+        tbb::spin_mutex::scoped_lock lock(m_waiters_mutex);
+        waiter = m_waiters.pop_front();
+    }
+
+    if (waiter) {
         tbb::task::resume(waiter->value);
     }
 }
 
-inline void condition_variable::notify_all() noexcept {
-    tbb::spin_mutex::scoped_lock lock(m_waiters_mutex);
-    while (const auto* waiter = m_waiters.pop_front()) {
+inline void condition_variable::notify_all() {
+
+    auto waiters_to_resume = detail::intrusive_list<waiter_t>{};
+
+    {
+        tbb::spin_mutex::scoped_lock lock(m_waiters_mutex);
+        while (auto* waiter = m_waiters.pop_front()) {
+            waiters_to_resume.push_back(*waiter);
+        }
+    }
+
+    while (const auto* waiter = waiters_to_resume.pop_front()) {
         tbb::task::resume(waiter->value);
     }
 }
 
 template <typename Lock>
 inline void condition_variable::wait(Lock& lock) {
-    auto node = detail::intrusive_list<waiter_t>::node{};
 
-    m_waiters_mutex.lock();
-
-    // Guaranteed that the suspend lambda will be executed on the same thread,
-    // so capturing a locked mutex is fine.
+    auto node = typename detail::intrusive_list<waiter_t>::node{};
+    // node must remain valid until the task is
+    // resumed. It's a local variable on a stack of suspended task which is
+    // preserved during suspension so it isn't an issue.
     tbb::task::suspend([this, &node, &lock](tbb::task::suspend_point sp) {
         node.value = sp;
-        m_waiters.push_back(node);
-
+        {
+            tbb::spin_mutex::scoped_lock waiters_lock(m_waiters_mutex);
+            m_waiters.push_back(node);
+        }
         lock.unlock();
-        m_waiters_mutex.unlock();
     });
 
     // Post-resumption, reacquire the lock.
