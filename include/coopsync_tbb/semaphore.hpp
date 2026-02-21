@@ -1,8 +1,5 @@
 #pragma once
 
-#include <oneapi/tbb/spin_mutex.h>
-#include <oneapi/tbb/task.h>
-
 #include <atomic>
 #include <cassert>
 #include <cstddef>
@@ -10,8 +7,8 @@
 #include <limits>
 #include <type_traits>
 
-#include "coopsync_tbb/detail/intrusive_list.hpp"
 #include "coopsync_tbb/detail/macros.hpp"
+#include "coopsync_tbb/detail/wait_queue.hpp"
 
 namespace coopsync_tbb {
 
@@ -133,11 +130,9 @@ class counting_semaphore {
 
     private:
     using storage_t = typename detail::int_max_value_t<LeastMaxValue>::type;
-    using waiter_t = tbb::task::suspend_point;
 
     std::atomic<storage_t> m_counter;
-    tbb::spin_mutex m_waiters_mutex;
-    detail::intrusive_list<waiter_t> m_waiters;
+    detail::wait_queue m_waiters;
 };
 
 using binary_semaphore = counting_semaphore<1>;
@@ -171,32 +166,10 @@ inline bool counting_semaphore<LeastMaxValue>::try_acquire() {
 
 template <std::ptrdiff_t LeastMaxValue>
 inline void counting_semaphore<LeastMaxValue>::acquire() {
-    // Fast path
-    if (try_acquire()) {
-        return;
+    while (!try_acquire()) {
+        m_waiters.wait_if(
+            [this] { return m_counter.load(std::memory_order_acquire) == 0; });
     }
-
-    // Slow path
-    auto node = detail::intrusive_list<waiter_t>::node{};
-    // node must remain valid until the task is resumed. It's a local variable
-    // on a stack of suspended task which is preserved during suspension so it
-    // isn't an issue.
-    tbb::task::suspend([this, &node](tbb::task::suspend_point sp) {
-        {
-            // Re-check while holding the lock to avoid racing with release().
-            tbb::spin_mutex::scoped_lock lock(m_waiters_mutex);
-            if (!try_acquire()) {
-                node.value = sp;
-                m_waiters.push_back(node);
-                return;
-            }
-        }
-
-        // Resume immediately in case re-check succeeded.
-        tbb::task::resume(sp);
-    });
-
-    // Post resumption, release() has handed a permit to us.
 }
 
 template <std::ptrdiff_t LeastMaxValue>
@@ -206,30 +179,12 @@ inline void counting_semaphore<LeastMaxValue>::release(std::ptrdiff_t update) {
         return;
     }
 
-    auto waiters_to_resume = detail::intrusive_list<waiter_t>{};
-    {
-        tbb::spin_mutex::scoped_lock lock(m_waiters_mutex);
+    const auto prev = m_counter.fetch_add(static_cast<storage_t>(update),
+                                          std::memory_order_release);
+    assert(update <= max() - static_cast<std::ptrdiff_t>(prev));
 
-        // Direct handoff: resume as many waiters as we have permits for.
-        while (update > 0) {
-            auto* waiter = m_waiters.pop_front();
-            if (!waiter) {
-                break;
-            }
-            waiters_to_resume.push_back(*waiter);
-            --update;
-        }
-
-        if (update > 0) {
-            const auto prev =
-                m_counter.fetch_add(update, std::memory_order_release);
-            assert(update <= max() - prev);
-        }
-    }
-
-    while (const auto* waiter = waiters_to_resume.pop_front()) {
-        tbb::task::resume(waiter->value);
-    }
+    // Wake up to `update` waiters; any unused permits stay in m_counter.
+    m_waiters.resume_n(update);
 }
 
 }  // namespace coopsync_tbb

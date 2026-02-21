@@ -1,16 +1,13 @@
 #pragma once
 
-#include <oneapi/tbb/spin_mutex.h>
-#include <oneapi/tbb/task.h>
-
 #include <atomic>
 #include <cassert>
 #include <cstddef>
 #include <limits>
 #include <utility>
 
-#include "coopsync_tbb/detail/intrusive_list.hpp"
 #include "coopsync_tbb/detail/macros.hpp"
+#include "coopsync_tbb/detail/wait_queue.hpp"
 
 namespace coopsync_tbb {
 
@@ -96,14 +93,12 @@ class barrier {
     void arrive_and_drop();
 
     private:
-    using waiter_t = tbb::task::suspend_point;
     using token_base_t = unsigned char;
     CompletionFunction m_completion;
     std::atomic<std::ptrdiff_t> m_initial_expected;
     std::atomic<std::ptrdiff_t> m_expected;
     std::atomic<token_base_t> m_phase;
-    tbb::spin_mutex m_waiters_mutex;
-    detail::intrusive_list<waiter_t> m_waiters;
+    detail::wait_queue m_waiters;
 };
 
 /// @brief An opaque value representing task arrival at the barrier. It is used
@@ -147,23 +142,14 @@ barrier<CompletionFunction>::arrive(std::ptrdiff_t update) {
 
         m_completion();
 
-        auto waiters_to_resume = detail::intrusive_list<waiter_t>{};
-        {
-            tbb::spin_mutex::scoped_lock lock(m_waiters_mutex);
+        const auto next_expected =
+            m_initial_expected.load(std::memory_order_acquire);
+        m_expected.store(next_expected, std::memory_order_release);
 
-            const auto next_expected =
-                m_initial_expected.load(std::memory_order_acquire);
-            m_expected.store(next_expected, std::memory_order_release);
+        const auto next_phase = static_cast<token_base_t>(phase + 1);
+        m_phase.store(next_phase, std::memory_order_release);
 
-            const auto next_phase = phase + 1;
-            m_phase.store(next_phase, std::memory_order_release);
-
-            waiters_to_resume.swap(m_waiters);
-            assert(m_waiters.empty());
-        }
-        while (const auto* waiter = waiters_to_resume.pop_front()) {
-            tbb::task::resume(waiter->value);
-        }
+        m_waiters.resume_all();
     }
 
     return arrival_token(phase);
@@ -181,24 +167,9 @@ inline void barrier<CompletionFunction>::wait(arrival_token arrival) {
         assert(arrival.m_phase == current_phase);
     }
 
-    // Slow path
-    typename detail::intrusive_list<waiter_t>::node node{};
-    // node must remain valid until the task is resumed. It's a local variable
-    // on a stack of suspended task which is preserved during suspension so it
-    // isn't an issue.
-    tbb::task::suspend([this, &node, &arrival](tbb::task::suspend_point sp) {
-        {
-            // Re-check while holding the lock to avoid racing with arrive().
-            tbb::spin_mutex::scoped_lock lock(m_waiters_mutex);
-            if (m_phase.load(std::memory_order_acquire) == arrival.m_phase) {
-                node.value = sp;
-                m_waiters.push_back(node);
-                return;
-            }
-        }
-
-        // Resume immediately in case re-check succeeded.
-        tbb::task::resume(sp);
+    const auto arrival_phase = arrival.m_phase;
+    m_waiters.wait_if([this, arrival_phase]() {
+        return m_phase.load(std::memory_order_acquire) == arrival_phase;
     });
 }
 
