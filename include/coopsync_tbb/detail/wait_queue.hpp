@@ -100,7 +100,7 @@ inline std::ptrdiff_t wait_queue::resume_n(std::ptrdiff_t n) {
     auto waiters_to_resume = detail::intrusive_list<waiter_t>{};
     {
         tbb::spin_mutex::scoped_lock lock(m_waiters_mutex);
-        while (resumed <= n) {
+        while (resumed < n) {
             auto* waiter = m_waiters.pop_front();
             if (!waiter) {
                 break;
