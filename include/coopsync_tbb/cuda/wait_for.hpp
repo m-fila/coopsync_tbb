@@ -6,6 +6,7 @@
 #include <array>
 #include <atomic>
 #include <cstddef>
+#include <iterator>
 #include <type_traits>
 
 // clang-format off
@@ -38,6 +39,8 @@ static inline void resumption_callback(void* tag) {
 }
 
 struct wait_for_all_context {
+    explicit wait_for_all_context(size_t pending_streams = 0)
+        : pending(pending_streams) {}
     std::atomic<std::size_t> pending{0};
     tbb::task::suspend_point suspend_point{};
 };
@@ -113,12 +116,10 @@ wait_for_all(StreamTs... streams) {
     const std::array<cudaStream_t, sizeof...(StreamTs)> stream_array = {
         {streams...}};
 
-    auto state = detail::wait_for_all_context{};
+    auto state = detail::wait_for_all_context(N);
 
     tbb::task::suspend([&](tbb::task::suspend_point tag) {
         state.suspend_point = tag;
-        state.pending.store(N, std::memory_order_release);
-
         for (std::size_t i = 0; i < N; ++i) {
             const auto launch_err = cudaLaunchHostFunc(
                 stream_array.at(i), detail::wait_for_all_callback, &state);
@@ -137,6 +138,56 @@ wait_for_all(StreamTs... streams) {
     return errs;
 }
 
+/// @brief Suspends the current TBB task until all the work in all the provided
+/// CUDA streams completes.
+/// A CUDA host callback is enqueued into every stream. The calling task resumes
+/// once all callbacks that were successfully enqueued have executed.
+/// @param first Iterator to first CUDA stream.
+/// @param last Iterator past the last CUDA stream.
+/// @param out Output iterator receiving CUDA error codes in the same order.
+/// @return Advanced output iterator.
+template <typename InputIt, typename OutputIt>
+static inline OutputIt wait_for_all(InputIt first, InputIt last, OutputIt out) {
+    static_assert(
+        detail::is_cuda_stream<
+            typename std::iterator_traits<InputIt>::value_type>::value,
+        "wait_for_all(first,last,out) requires cudaStream_t values");
+    static_assert(
+        std::is_base_of<
+            std::forward_iterator_tag,
+            typename std::iterator_traits<InputIt>::iterator_category>::value,
+        "wait_for_all(first,last,out) requires forward iterators");
+
+    if (first == last) {
+        return out;
+    }
+
+    std::size_t n = 0;
+    for (InputIt it = first; it != last; ++it) {
+        ++n;
+    }
+
+    auto state = detail::wait_for_all_context(n);
+
+    tbb::task::suspend([&](tbb::task::suspend_point tag) {
+        state.suspend_point = tag;
+        for (InputIt it = first; it != last; ++it) {
+            const auto launch_err =
+                cudaLaunchHostFunc(*it, detail::wait_for_all_callback, &state);
+            *out = launch_err;
+            ++out;
+
+            if (launch_err != cudaSuccess) {
+                // Callback won't run; exclude it from the pending count.
+                if (state.pending.fetch_sub(1, std::memory_order_acq_rel) ==
+                    1) {
+                    tbb::task::resume(state.suspend_point);
+                }
+            }
+        }
+    });
+    return out;
+}
 }  // namespace coopsync_tbb::cuda
 
 #undef COOPSYNC_TBB_CUDA_NODISCARD

@@ -4,6 +4,9 @@
 #include <gtest/gtest.h>
 
 #include <cstddef>
+#include <cstdint>
+#include <iterator>
+#include <vector>
 
 #include "nanospin.hpp"
 
@@ -39,7 +42,7 @@ TEST(CUDAWaitFor, MemoryOperations) {
     auto event = cudaEvent_t{};
     ASSERT_EQ(cudaEventCreate(&event), cudaSuccess);
 
-    std::uint32_t* host = nullptr;
+    int* host = nullptr;
     ASSERT_EQ(
         cudaMallocHost(
             reinterpret_cast<  // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
@@ -47,7 +50,7 @@ TEST(CUDAWaitFor, MemoryOperations) {
             size * sizeof(int)),
         cudaSuccess);
 
-    std::uint32_t* device = nullptr;
+    int* device = nullptr;
     ASSERT_EQ(
         cudaMalloc(
             reinterpret_cast<  // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
@@ -63,7 +66,6 @@ TEST(CUDAWaitFor, MemoryOperations) {
     ASSERT_EQ(cudaMemcpyAsync(device, host, size * sizeof(int),
                               cudaMemcpyHostToDevice, stream),
               cudaSuccess);
-    // Mutate device buffer so the DtH copy must complete and change host.
     ASSERT_EQ(cudaMemsetAsync(device, 0, size * sizeof(int), stream),
               cudaSuccess);
     ASSERT_EQ(cudaMemcpyAsync(host, device, size * sizeof(int),
@@ -72,8 +74,7 @@ TEST(CUDAWaitFor, MemoryOperations) {
     ASSERT_EQ(cudaEventRecord(event, stream), cudaSuccess);
     ASSERT_EQ(coopsync_tbb::cuda::wait_for(stream), cudaSuccess);
     ASSERT_EQ(cudaEventQuery(event), cudaSuccess);
-    ASSERT_EQ(cudaStreamSynchronize(stream),
-              cudaSuccess);  // Ensure all the errors are propagated
+    ASSERT_EQ(cudaStreamSynchronize(stream), cudaSuccess);
     ASSERT_EQ(cudaGetLastError(), cudaSuccess);
     for (std::size_t i = 0; i < size; ++i) {
         ASSERT_EQ(
@@ -116,7 +117,7 @@ TEST(CUDAWaitFor, WaitForAllOneStream) {
     ASSERT_EQ(cudaStreamDestroy(stream), cudaSuccess);
 }
 
-TEST(CUDAWaitFor, MultipleStreams) {
+TEST(CUDAWaitFor, WaitForAllTwoStreams) {
     ASSERT_EQ(cudaSetDevice(0), cudaSuccess);
 
     auto s0 = cudaStream_t{};
@@ -140,6 +141,65 @@ TEST(CUDAWaitFor, MultipleStreams) {
     ASSERT_EQ(cudaEventRecord(e1, s1), cudaSuccess);
 
     const auto errs = coopsync_tbb::cuda::wait_for_all(s0, s1);
+    ASSERT_EQ(errs.size(), 2u);
+    ASSERT_EQ(errs[0], cudaSuccess);
+    ASSERT_EQ(errs[1], cudaSuccess);
+    ASSERT_EQ(cudaEventQuery(e0), cudaSuccess);
+    ASSERT_EQ(cudaEventQuery(e1), cudaSuccess);
+
+    ASSERT_EQ(cudaStreamSynchronize(s0), cudaSuccess);
+    ASSERT_EQ(cudaStreamSynchronize(s1), cudaSuccess);
+    ASSERT_EQ(cudaGetLastError(), cudaSuccess);
+
+    ASSERT_EQ(cudaEventDestroy(e1), cudaSuccess);
+    ASSERT_EQ(cudaEventDestroy(e0), cudaSuccess);
+    ASSERT_EQ(cudaStreamDestroy(s1), cudaSuccess);
+    ASSERT_EQ(cudaStreamDestroy(s0), cudaSuccess);
+}
+
+TEST(CUDAWaitFor, WaitForAllIteratorZeroStreams) {
+    std::vector<cudaStream_t> streams;
+    std::vector<cudaError_t> errs;
+
+    const auto out = coopsync_tbb::cuda::wait_for_all(
+        streams.begin(), streams.end(), std::back_inserter(errs));
+    (void)out;
+    ASSERT_TRUE(errs.empty());
+}
+
+TEST(CUDAWaitFor, WaitForAllIteratorTwoStreams) {
+    ASSERT_EQ(cudaSetDevice(0), cudaSuccess);
+
+    auto s0 = cudaStream_t{};
+    auto s1 = cudaStream_t{};
+    ASSERT_EQ(cudaStreamCreate(&s0), cudaSuccess);
+    ASSERT_EQ(cudaStreamCreate(&s1), cudaSuccess);
+
+    auto e0 = cudaEvent_t{};
+    auto e1 = cudaEvent_t{};
+    ASSERT_EQ(cudaEventCreate(&e0), cudaSuccess);
+    ASSERT_EQ(cudaEventCreate(&e1), cudaSuccess);
+
+    const auto ns1 = 1'000'000;
+    const auto ns2 = 100'000;
+    launch_nanospin(ns1, s0);
+    ASSERT_EQ(cudaGetLastError(), cudaSuccess);
+    launch_nanospin(ns2, s1);
+    ASSERT_EQ(cudaGetLastError(), cudaSuccess);
+
+    ASSERT_EQ(cudaEventRecord(e0, s0), cudaSuccess);
+    ASSERT_EQ(cudaEventRecord(e1, s1), cudaSuccess);
+
+    std::vector<cudaStream_t> streams;
+    streams.push_back(s0);
+    streams.push_back(s1);
+    std::vector<cudaError_t> errs;
+
+    const auto out = coopsync_tbb::cuda::wait_for_all(
+        streams.begin(), streams.end(), std::back_inserter(errs));
+    (void)out;
+
+    ASSERT_EQ(errs.size(), 2u);
     ASSERT_EQ(errs[0], cudaSuccess);
     ASSERT_EQ(errs[1], cudaSuccess);
     ASSERT_EQ(cudaEventQuery(e0), cudaSuccess);
