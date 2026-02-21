@@ -1,8 +1,5 @@
 #pragma once
 
-#include <oneapi/tbb/spin_mutex.h>
-#include <oneapi/tbb/task.h>
-
 #include <atomic>
 #include <cassert>
 #include <exception>
@@ -14,8 +11,8 @@
 #include <type_traits>
 #include <utility>
 
-#include "coopsync_tbb/detail/intrusive_list.hpp"
 #include "coopsync_tbb/detail/macros.hpp"
+#include "coopsync_tbb/detail/wait_queue.hpp"
 
 namespace coopsync_tbb {
 
@@ -50,10 +47,7 @@ enum class status : unsigned char {
 
 struct shared_state_base {
 
-    using waiter_t = tbb::task::suspend_point;
-
-    tbb::spin_mutex waiters_mutex;
-    intrusive_list<waiter_t> waiters;
+    detail::wait_queue waiters;
 
     std::atomic<status> state{status::empty};
     std::atomic<bool> future_obtained{false};
@@ -65,13 +59,6 @@ struct shared_state_base {
         return state.load(std::memory_order_acquire) != status::empty;
     }
 
-    void resume_all_waiters() {
-        auto lock = tbb::spin_mutex::scoped_lock(waiters_mutex);
-        while (const auto* waiter = waiters.pop_front()) {
-            tbb::task::resume(waiter->value);
-        }
-    }
-
     void set_exception(std::exception_ptr p) {
         const auto s = state.load(std::memory_order_acquire);
         if (s != status::empty) {
@@ -79,7 +66,7 @@ struct shared_state_base {
         }
         exception = std::move(p);
         state.store(status::exception, std::memory_order_release);
-        resume_all_waiters();
+        waiters.resume_all();
     }
 
     void break_promise() noexcept {
@@ -88,28 +75,11 @@ struct shared_state_base {
             return;
         }
         state.store(status::broken, std::memory_order_release);
-        resume_all_waiters();
+        waiters.resume_all();
     }
 
     void wait() {
-        if (ready()) {
-            return;
-        }
-
-        auto node = intrusive_list<tbb::task::suspend_point>::node{};
-        waiters_mutex.lock();
-
-        if (ready()) {
-            waiters_mutex.unlock();
-            return;
-        }
-
-        tbb::task::suspend([this, &node](tbb::task::suspend_point sp) {
-            node.value = sp;
-            waiters.push_back(node);
-            waiters_mutex.unlock();
-        });
-
+        waiters.wait_if([this] { return !ready(); });
         assert(ready());
     }
 };
@@ -127,7 +97,7 @@ struct shared_state : public shared_state_base {
         }
         value.emplace(std::forward<R>(v));
         state.store(status::value, std::memory_order_release);
-        resume_all_waiters();
+        waiters.resume_all();
     }
 };
 
@@ -139,7 +109,7 @@ struct shared_state<void> : public shared_state_base {
             throw future_error(std::future_errc::promise_already_satisfied);
         }
         state.store(status::value, std::memory_order_release);
-        resume_all_waiters();
+        waiters.resume_all();
     }
 };
 
@@ -154,7 +124,7 @@ struct shared_state<T&> : public shared_state_base {
         }
         value = std::addressof(v);
         state.store(status::value, std::memory_order_release);
-        resume_all_waiters();
+        waiters.resume_all();
     }
 };
 
