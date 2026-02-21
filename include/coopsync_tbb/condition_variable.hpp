@@ -28,7 +28,7 @@ class condition_variable {
     /// @note The destructor must not be called while there are still tasks
     /// waiting on the condition variable. The destructor does not notify or
     /// resume any waiting tasks.
-    ~condition_variable() = default;
+    ~condition_variable();
 
     /// @brief Resumes one task suspended waiting on this condition variable, if
     /// there is any.
@@ -61,6 +61,10 @@ class condition_variable {
     private:
     detail::wait_queue m_waiters;
 };
+
+inline condition_variable::~condition_variable() {
+    assert(m_waiters.empty());
+}
 
 inline void condition_variable::notify_one() {
     m_waiters.resume_one();
