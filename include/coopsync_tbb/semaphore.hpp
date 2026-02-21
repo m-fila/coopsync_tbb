@@ -135,6 +135,64 @@ class counting_semaphore {
     detail::wait_queue m_waiters;
 };
 
+/// @brief A specialization of a counting_semaphore handling only a single
+/// permit. Same as @c binary_semaphore.
+///
+template <>
+class counting_semaphore<1> {
+    public:
+    /// @brief Constructs a counting_semaphore with the specified initial count.
+    /// @param desired The initial count. Must be 0 or 1.
+    explicit counting_semaphore(std::ptrdiff_t desired);
+
+    /// @brief counting_semaphore is not copy-constructible.
+    counting_semaphore(const counting_semaphore&) = delete;
+
+    /// @brief counting_semaphore is not copy-assignable.
+    counting_semaphore& operator=(const counting_semaphore&) = delete;
+
+    /// @brief counting_semaphore is not move-constructible.
+    counting_semaphore(counting_semaphore&&) = delete;
+
+    /// @brief counting_semaphore is not move-assignable.
+    counting_semaphore& operator=(counting_semaphore&&) = delete;
+
+    /// @brief Destroys the counting_semaphore.
+    /// @note The destructor must not be called while there are still tasks
+    /// waiting on the counting_semaphore. The destructor does not notify or
+    /// resume any waiting tasks.
+    ~counting_semaphore() = default;
+
+    /// @brief Releases the semaphore incrementing the counter by the specified
+    /// update. If there are tasks suspended on the semaphore and the counter
+    /// becomes greater than zero, one of them is resumed.
+    /// @param update The value to increment the counter by. Must be
+    /// non-negative,  all positive values are treated as 1.
+    void release(std::ptrdiff_t update = 1);
+
+    /// @brief Acquires the semaphore. If the semaphore is already acquired the
+    /// calling task is suspended until the semaphore is released.
+    /// @note The suspended task must remain valid until it is resumed.
+    /// @note The suspended task must be resumed before the binary_semaphore
+    /// is destroyed.
+    void acquire();
+
+    /// @brief Attempts to acquire the semaphore without suspending.
+    /// @return true if the semaphore was successfully acquired, false
+    /// otherwise.
+    COOPSYNC_TBB_NODISCARD bool try_acquire();
+
+    /// @brief Returns the maximum value for the counter of the binary
+    /// semaphore.
+    /// @return Always returns 1.
+    constexpr static std::ptrdiff_t max() noexcept;
+
+    private:
+    std::atomic<bool> m_available;
+    detail::wait_queue m_waiters;
+};
+
+/// @brief An alias for @c counting_semaphore<1>.
 using binary_semaphore = counting_semaphore<1>;
 
 template <std::ptrdiff_t LeastMaxValue>
@@ -185,6 +243,43 @@ inline void counting_semaphore<LeastMaxValue>::release(std::ptrdiff_t update) {
 
     // Wake up to `update` waiters; any unused permits stay in m_counter.
     m_waiters.resume_n(update);
+}
+
+inline counting_semaphore<1>::counting_semaphore(std::ptrdiff_t desired)
+    : m_available(desired) {
+    assert(desired == 0 || desired == 1);
+}
+
+inline constexpr std::ptrdiff_t counting_semaphore<1>::max() noexcept {
+    return 1;
+}
+
+inline bool counting_semaphore<1>::try_acquire() {
+    auto expected = true;
+    const auto desired = false;
+    return m_available.compare_exchange_strong(expected, desired,
+                                               std::memory_order_acquire,
+                                               std::memory_order_relaxed);
+}
+
+inline void counting_semaphore<1>::acquire() {
+    while (!try_acquire()) {
+        m_waiters.wait_if(
+            [this] { return !m_available.load(std::memory_order_acquire); });
+    }
+}
+
+inline void counting_semaphore<1>::release(std::ptrdiff_t update) {
+    assert(update >= 0);
+
+    // No permits returned
+    if (update == 0) {
+        return;
+    }
+
+    assert(m_available.load(std::memory_order_acquire) == false);
+    m_available.store(true, std::memory_order_release);
+    m_waiters.resume_one();
 }
 
 }  // namespace coopsync_tbb
