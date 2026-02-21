@@ -1,15 +1,12 @@
 #pragma once
 
-#include <oneapi/tbb/spin_mutex.h>
-#include <oneapi/tbb/task.h>
-
 #include <atomic>
 #include <cassert>
 #include <cstddef>
 #include <limits>
 
-#include "coopsync_tbb/detail/intrusive_list.hpp"
 #include "coopsync_tbb/detail/macros.hpp"
+#include "coopsync_tbb/detail/wait_queue.hpp"
 
 namespace coopsync_tbb {
 /// @brief A latch is a down-ward counter that allows tasks to wait until the
@@ -71,10 +68,8 @@ class latch {
     void arrive_and_wait(std::ptrdiff_t update = 1);
 
     private:
-    using waiter_t = tbb::task::suspend_point;
     std::atomic<std::ptrdiff_t> m_counter;
-    tbb::spin_mutex m_waiters_mutex;
-    detail::intrusive_list<waiter_t> m_waiters;
+    detail::wait_queue m_waiters;
 };
 
 inline latch::latch(std::ptrdiff_t expected) : m_counter(expected) {
@@ -100,40 +95,15 @@ inline void latch::count_down(std::ptrdiff_t update) {
     auto prev = m_counter.fetch_sub(update, std::memory_order_acq_rel);
     assert(prev >= update);
     if (prev == update) {
-        auto waiters_to_resume = detail::intrusive_list<waiter_t>{};
-        {
-            tbb::spin_mutex::scoped_lock lock(m_waiters_mutex);
-            waiters_to_resume.swap(m_waiters);
-            assert(m_waiters.empty());
-        }
-        while (const auto* waiter = waiters_to_resume.pop_front()) {
-            tbb::task::resume(waiter->value);
-        }
+        m_waiters.resume_all();
     }
 }
 
 inline void latch::wait() {
     // Fast path
-    if (try_wait()) {
-        return;
+    if (!try_wait()) {
+        m_waiters.wait_if([this] { return !try_wait(); });
     }
-    // Slow path
-    auto node = detail::intrusive_list<waiter_t>::node{};
-    m_waiters_mutex.lock();
-
-    // Re-check while holding the lock to avoid racing with count_down()
-    if (try_wait()) {
-        m_waiters_mutex.unlock();
-        return;
-    }
-
-    // Guaranteed that the suspend lambda will be executed on the same
-    // thread so capturing locked mutex is fine.
-    tbb::task::suspend([this, &node](tbb::task::suspend_point sp) {
-        node.value = sp;
-        m_waiters.push_back(node);
-        m_waiters_mutex.unlock();
-    });
 
     // Post resumption, the latch counter has reached zero.
     assert(m_counter.load(std::memory_order_acquire) == 0);

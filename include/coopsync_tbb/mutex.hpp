@@ -1,14 +1,11 @@
 #pragma once
 
-#include <oneapi/tbb/spin_mutex.h>
-#include <oneapi/tbb/task.h>
-
 #include <atomic>
 #include <cassert>
 
-#include "coopsync_tbb/detail/intrusive_list.hpp"
 #include "coopsync_tbb/detail/macros.hpp"
 #include "coopsync_tbb/detail/unique_scoped_lock.hpp"
+#include "coopsync_tbb/detail/wait_queue.hpp"
 
 namespace coopsync_tbb {
 
@@ -69,10 +66,8 @@ class mutex {
     static inline constexpr bool is_fair_mutex = false;
 
     private:
-    using waiter_t = tbb::task::suspend_point;
     std::atomic<bool> m_locked = false;
-    detail::intrusive_list<waiter_t> m_waiters;
-    tbb::spin_mutex m_waiters_mutex;
+    detail::wait_queue m_wait_queue;
 };
 
 inline bool mutex::try_lock() noexcept {
@@ -84,51 +79,18 @@ inline bool mutex::try_lock() noexcept {
 }
 
 inline void mutex::lock() {
-    // Fast path
-    if (try_lock()) {
-        return;
+    while (!try_lock()) {
+        m_wait_queue.wait_if(
+            [this] { return m_locked.load(std::memory_order_acquire); });
     }
-
-    // Slow path
-    auto node = detail::intrusive_list<waiter_t>::node{};
-    // node must remain valid until the task is
-    // resumed. It's a local variable on a stack of suspended task which is
-    // preserved during suspension so it isn't an issue.
-    tbb::task::suspend([this, &node](tbb::task::suspend_point sp) {
-        {
-            // Re-check while holding the lock to avoid racing with unlock()
-            tbb::spin_mutex::scoped_lock lock_(m_waiters_mutex);
-            if (!try_lock()) {
-                node.value = sp;
-                m_waiters.push_back(node);
-                return;
-            }
-        }
-        // Resume immediately in case re-check succeeded
-        tbb::task::resume(sp);
-    });
-
-    // Post resumption, the ownership was transferred to the resumed task.
-    assert(m_locked.load(std::memory_order_acquire));
 }
 
 inline void mutex::unlock() {
     assert(m_locked.load(std::memory_order_acquire));
-
-    typename detail::intrusive_list<waiter_t>::node* waiter = nullptr;
-
-    {
-        tbb::spin_mutex::scoped_lock lock_(m_waiters_mutex);
-        waiter = m_waiters.pop_front();
-    }
-
-    if (waiter) {
-        // Direct handoff: keep the mutex locked and resume exactly one waiter.
-        tbb::task::resume(waiter->value);
-        return;
-    }
-    // No waiters, unlock the mutex.
     m_locked.store(false, std::memory_order_release);
+
+    // Wake a single waiter (if any). The woken task will retry try_lock().
+    m_wait_queue.resume_one();
 }
 
 }  // namespace coopsync_tbb

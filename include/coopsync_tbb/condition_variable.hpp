@@ -1,11 +1,6 @@
 #pragma once
 
-#include <oneapi/tbb/spin_mutex.h>
-#include <oneapi/tbb/task.h>
-
-#include <cassert>
-
-#include "coopsync_tbb/detail/intrusive_list.hpp"
+#include "coopsync_tbb/detail/wait_queue.hpp"
 
 namespace coopsync_tbb {
 
@@ -64,10 +59,7 @@ class condition_variable {
     void wait(Lock& lock, Pred pred);
 
     private:
-    using waiter_t = tbb::task::suspend_point;
-
-    tbb::spin_mutex m_waiters_mutex;
-    detail::intrusive_list<waiter_t> m_waiters;
+    detail::wait_queue m_waiters;
 };
 
 inline condition_variable::~condition_variable() {
@@ -75,48 +67,17 @@ inline condition_variable::~condition_variable() {
 }
 
 inline void condition_variable::notify_one() {
-
-    typename detail::intrusive_list<waiter_t>::node* waiter = nullptr;
-    {
-        tbb::spin_mutex::scoped_lock lock(m_waiters_mutex);
-        waiter = m_waiters.pop_front();
-    }
-
-    if (waiter) {
-        tbb::task::resume(waiter->value);
-    }
+    m_waiters.resume_one();
 }
 
 inline void condition_variable::notify_all() {
-
-    auto waiters_to_resume = detail::intrusive_list<waiter_t>{};
-
-    {
-        tbb::spin_mutex::scoped_lock lock(m_waiters_mutex);
-        waiters_to_resume.swap(m_waiters);
-        assert(m_waiters.empty());
-    }
-
-    while (const auto* waiter = waiters_to_resume.pop_front()) {
-        tbb::task::resume(waiter->value);
-    }
+    m_waiters.resume_all();
 }
 
 template <typename Lock>
 inline void condition_variable::wait(Lock& lock) {
-
-    auto node = typename detail::intrusive_list<waiter_t>::node{};
-    // node must remain valid until the task is
-    // resumed. It's a local variable on a stack of suspended task which is
-    // preserved during suspension so it isn't an issue.
-    tbb::task::suspend([this, &node, &lock](tbb::task::suspend_point sp) {
-        node.value = sp;
-        {
-            tbb::spin_mutex::scoped_lock waiters_lock(m_waiters_mutex);
-            m_waiters.push_back(node);
-        }
-        lock.unlock();
-    });
+    lock.unlock();
+    m_waiters.wait_if([] { return true; });
 
     // Post-resumption, reacquire the lock.
     lock.lock();
