@@ -188,11 +188,8 @@ class counting_semaphore<1> {
     constexpr static std::ptrdiff_t max() noexcept;
 
     private:
-    using waiter_t = tbb::task::suspend_point;
-
     std::atomic<bool> m_available;
-    tbb::spin_mutex m_waiters_mutex;
-    detail::intrusive_list<waiter_t> m_waiters;
+    detail::wait_queue m_waiters;
 };
 
 /// @brief An alias for @c counting_semaphore<1>.
@@ -266,31 +263,10 @@ inline bool counting_semaphore<1>::try_acquire() {
 }
 
 inline void counting_semaphore<1>::acquire() {
-    // Fast path
-    if (try_acquire()) {
-        return;
+    while (!try_acquire()) {
+        m_waiters.wait_if(
+            [this] { return !m_available.load(std::memory_order_acquire); });
     }
-
-    // Slow path
-    auto node = detail::intrusive_list<waiter_t>::node{};
-    // node must remain valid until the task is
-    // resumed. It's a local variable on a stack of suspended task which is
-    // preserved during suspension so it isn't an issue.
-    tbb::task::suspend([this, &node](tbb::task::suspend_point sp) {
-        {
-            // Re-check under lock to avoid race with release().
-            tbb::spin_mutex::scoped_lock lock_(m_waiters_mutex);
-            if (!try_acquire()) {
-                node.value = sp;
-                m_waiters.push_back(node);
-                return;
-            }
-        }
-        // Resume immediately in case re-check succeeded.
-        tbb::task::resume(sp);
-    });
-
-    // Post resumption, release() has handed a permit to us.
 }
 
 inline void counting_semaphore<1>::release(std::ptrdiff_t update) {
@@ -302,21 +278,8 @@ inline void counting_semaphore<1>::release(std::ptrdiff_t update) {
     }
 
     assert(m_available.load(std::memory_order_acquire) == false);
-
-    typename detail::intrusive_list<waiter_t>::node* waiter{};
-    {
-        auto lock = tbb::spin_mutex::scoped_lock(m_waiters_mutex);
-        waiter = m_waiters.pop_front();
-    }
-    // Direct handoff: resume a waiter if there is any.
-    if (waiter) {
-        m_available.store(false, std::memory_order_relaxed);
-        tbb::task::resume(waiter->value);
-        return;
-    }
-
-    // No waiters: store a single permit.
-    m_available.exchange(true, std::memory_order_release);
+    m_available.store(true, std::memory_order_release);
+    m_waiters.resume_one();
 }
 
 }  // namespace coopsync_tbb
