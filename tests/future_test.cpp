@@ -169,3 +169,92 @@ TEST(SharedFutureRef, GetReturnsSameReference) {
         }
     });
 }
+
+TEST(PackagedTask, DefaultConstructedInvalid) {
+    auto task = coopsync_tbb::packaged_task<int()>();
+    EXPECT_FALSE(task.valid());
+    EXPECT_THROW(std::ignore = task.get_future(), coopsync_tbb::future_error);
+    EXPECT_THROW(task(), coopsync_tbb::future_error);
+}
+
+TEST(PackagedTask, GetFutureOnlyOnce) {
+    const auto expected = 123;
+    auto task = coopsync_tbb::packaged_task<int()>([] { return expected; });
+    auto f = task.get_future();
+    EXPECT_THROW(std::ignore = task.get_future(), coopsync_tbb::future_error);
+}
+
+TEST(PackagedTask, RunsAndSetsValue) {
+    const auto input = 41;
+    const auto expected = 42;
+    auto task =
+        coopsync_tbb::packaged_task<int(int)>([](int x) { return x + 1; });
+    auto f = task.get_future();
+
+    std::atomic<int> result{-1};
+    tbb::parallel_for(0, 2, [&](int i) {
+        if (i == 0) {
+            result.store(f.get(), std::memory_order_relaxed);
+        } else {
+            task(input);
+        }
+    });
+
+    ASSERT_EQ(result.load(std::memory_order_relaxed), expected);
+}
+
+TEST(PackagedTaskVoid, RunsAndUnblocksFuture) {
+    auto x = std::atomic<int>{0};
+    auto task = coopsync_tbb::packaged_task<void()>([&] { x.fetch_add(1); });
+    auto f = task.get_future();
+
+    tbb::parallel_for(0, 2, [&](int i) {
+        if (i == 0) {
+            f.get();
+        } else {
+            task();
+        }
+    });
+
+    ASSERT_EQ(x.load(), 1);
+}
+
+TEST(PackagedTask, ExceptionIsStoredInFuture) {
+    auto task = coopsync_tbb::packaged_task<int()>(
+        []() -> int { throw std::runtime_error("boom"); });
+    auto f = task.get_future();
+
+    tbb::parallel_for(0, 2, [&](int i) {
+        if (i == 0) {
+            EXPECT_THROW(std::ignore = f.get(), std::runtime_error);
+        } else {
+            EXPECT_NO_THROW(task());
+        }
+    });
+}
+
+TEST(PackagedTask, ResetCreatesNewSharedState) {
+    auto counter = 0;
+    auto task = coopsync_tbb::packaged_task<int()>([&] { return ++counter; });
+
+    auto f1 = task.get_future();
+    task();
+    ASSERT_EQ(f1.get(), 1);
+
+    task.reset();
+    auto f2 = task.get_future();
+    task();
+    ASSERT_EQ(f2.get(), 2);
+}
+
+TEST(PackagedTask, MoveTransfersValidity) {
+    const auto expected = 7;
+    auto task1 = coopsync_tbb::packaged_task<int()>([] { return expected; });
+    auto f = task1.get_future();
+
+    auto task2 = std::move(task1);
+    EXPECT_TRUE(task2.valid());
+
+    task2();
+    ASSERT_EQ(f.get(), expected);
+}

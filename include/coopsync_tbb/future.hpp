@@ -3,6 +3,7 @@
 #include <atomic>
 #include <cassert>
 #include <exception>
+#include <functional>
 #include <future>
 #include <memory>
 #include <optional>
@@ -296,6 +297,9 @@ class future;
 template <typename T>
 class promise;
 
+template <typename>
+class packaged_task;
+
 template <typename T>
 class shared_future;
 
@@ -370,6 +374,8 @@ class future : private detail::future::future_base<T> {
 
     private:
     friend class promise<T>;
+    template <typename>
+    friend class packaged_task;
     explicit future(std::shared_ptr<detail::future::shared_state<T>> state)
         : detail::future::future_base<T>(std::move(state)) {}
 };
@@ -437,6 +443,8 @@ class future<void> : private detail::future::future_base<void> {
 
     private:
     friend class promise<void>;
+    template <typename>
+    friend class packaged_task;
     explicit future(std::shared_ptr<detail::future::shared_state<void>> state)
         : detail::future::future_base<void>(std::move(state)) {}
 };
@@ -511,6 +519,8 @@ class future<T&> : private detail::future::future_base<T&> {
 
     private:
     friend class promise<T&>;
+    template <typename>
+    friend class packaged_task;
     explicit future(std::shared_ptr<detail::future::shared_state<T&>> state)
         : detail::future::future_base<T&>(std::move(state)) {}
 };
@@ -958,5 +968,143 @@ class promise<T&> : private detail::future::promise_base<T&> {
         detail::future::promise_base<T&>::set_exception(std::move(p));
     }
 };
+
+template <typename>
+class packaged_task;
+
+template <typename R, typename... Args>
+class packaged_task<R(Args...)> {
+    public:
+    packaged_task() = default;
+    template <typename F>
+    explicit packaged_task(F f)
+        : m_function(std::move(f)),
+          m_state(m_function
+                      ? std::make_shared<detail::future::shared_state<R>>()
+                      : nullptr) {}
+
+    /// @brief The packaged_task is not copy-constructible.
+    packaged_task(const packaged_task&) = delete;
+
+    /// @brief The packaged_task is not copy-assignable.
+    packaged_task& operator=(const packaged_task&) = delete;
+
+    /// @brief The packaged_task is move-constructible.
+    /// @param other The packaged_task to move from, after construction has no
+    /// shared state and is not valid.
+    packaged_task(packaged_task&& other) noexcept
+        : m_function(std::move(other.m_function)),
+          m_state(std::move(other.m_state)) {
+        other.m_function = {};
+        other.m_state.reset();
+    }
+
+    /// @brief The packaged_task is move-assignable.
+    /// @param other The packaged_task to move from, after assignment has no
+    /// shared state and is not valid.
+    packaged_task& operator=(packaged_task&& other) noexcept {
+        if (this != &other) {
+            // Ensure any previously held shared state is released and marked as
+            // broken if it wasn't made ready.
+            if (m_state) {
+                m_state->break_promise();
+            }
+            m_state.reset();
+
+            m_function = std::move(other.m_function);
+            m_state = std::move(other.m_state);
+
+            other.m_function = {};
+            other.m_state.reset();
+        }
+        return *this;
+    }
+
+    /// @brief Destroys the packaged_task. If it has a shared state that is not
+    /// ready, the shared state is marked as broken.
+    ~packaged_task() {
+        if (m_state) {
+            m_state->break_promise();
+        }
+    }
+
+    /// @brief Tests whether the packaged_task has a valid function and an
+    /// associated shared state.
+    /// @return true if the packaged_task is valid, false otherwise.
+    bool valid() const noexcept {
+        return static_cast<bool>(m_function) && static_cast<bool>(m_state);
+    }
+
+    /// @brief Exchanges the shared states with another packaged_task.
+    /// @param other The packaged_task to exchange state with.
+    void swap(packaged_task& other) noexcept {
+        using std::swap;
+        swap(m_function, other.m_function);
+        swap(m_state, other.m_state);
+    }
+
+    future<R> get_future() {
+        if (!valid()) {
+            throw future_error(std::future_errc::no_state);
+        }
+
+        bool expected = false;
+        if (!m_state->future_obtained.compare_exchange_strong(
+                expected, true, std::memory_order_acq_rel,
+                std::memory_order_relaxed)) {
+            throw future_error(std::future_errc::future_already_retrieved);
+        }
+        return future<R>(m_state);
+    }
+
+    void operator()(Args... args) {
+        if (!valid()) {
+            throw future_error(std::future_errc::no_state);
+        }
+
+        try {
+            if constexpr (std::is_void_v<R>) {
+                std::invoke(m_function, std::forward<Args>(args)...);
+                m_state->set_value();
+            } else if constexpr (std::is_reference_v<R>) {
+                auto& r = std::invoke(m_function, std::forward<Args>(args)...);
+                m_state->set_value(r);
+            } else {
+                m_state->set_value(
+                    std::invoke(m_function, std::forward<Args>(args)...));
+            }
+        } catch (...) {
+            m_state->set_exception(std::current_exception());
+        }
+    }
+
+    /// @brief Resets the packaged_task to a valid state with an empty shared
+    /// state. After this call, the packaged_task can be invoked again to set a
+    /// new value in the shared state.
+    void reset() {
+        if (!valid()) {
+            throw future_error(std::future_errc::no_state);
+        }
+
+        auto new_state = std::make_shared<detail::future::shared_state<R>>();
+
+        // Mark the old shared state as broken if it wasn't made ready yet.
+        m_state->break_promise();
+        m_state = std::move(new_state);
+    }
+
+    private:
+    std::function<R(Args...)> m_function;
+    std::shared_ptr<detail::future::shared_state<R>> m_state;
+};
+
+/// @brief Exchanges the states between two packaged_tasks.
+/// @param lhs The first packaged_task to exchange state with.
+/// @param rhs The second packaged_task to exchange state with.
+template <typename R, typename... Args>
+void swap(packaged_task<R(Args...)>& lhs,
+          packaged_task<R(Args...)>& rhs) noexcept {
+    lhs.swap(rhs);
+}
 
 }  // namespace coopsync_tbb
