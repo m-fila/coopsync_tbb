@@ -142,21 +142,16 @@ wait_for_all(StreamTs... streams) {
 /// CUDA streams completes.
 /// A CUDA host callback is enqueued into every stream. The calling task resumes
 /// once all callbacks that were successfully enqueued have executed.
-/// @param first Iterator to first CUDA stream.
-/// @param last Iterator past the last CUDA stream.
-/// @param out Output iterator receiving CUDA error codes in the same order.
-/// @return Advanced output iterator.
+/// @param first Iterator to first CUDA stream. Must be a LegacyForwardIterator.
+/// @param last Iterator past the last CUDA stream. Must be a LegacyForwardIterator.
+/// @param out Iterator receiving CUDA error codes in the same order. Must be a LegacyOutputIterator.
+/// @return Iterator past the last written error code.
 template <typename InputIt, typename OutputIt>
 static inline OutputIt wait_for_all(InputIt first, InputIt last, OutputIt out) {
     static_assert(
         detail::is_cuda_stream<
             typename std::iterator_traits<InputIt>::value_type>::value,
         "wait_for_all(first,last,out) requires cudaStream_t values");
-    static_assert(
-        std::is_base_of<
-            std::forward_iterator_tag,
-            typename std::iterator_traits<InputIt>::iterator_category>::value,
-        "wait_for_all(first,last,out) requires forward iterators");
 
     if (first == last) {
         return out;
