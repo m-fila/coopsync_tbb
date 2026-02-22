@@ -41,8 +41,10 @@ enum class status : unsigned char {
     empty = 0,      ///< No value or exception has been set.
     value = 1,      ///< A value has been set and is ready to be consumed.
     exception = 2,  ///< An exception has been set and is ready to be rethrown.
-    broken =
-        3,  ///< The promise was destroyed without setting a value or exception.
+    broken = 3,     ///< The promise was destroyed without setting a value or an
+                    ///< exception.
+    transition = 4  ///< The shared state is in a transient state while setting
+                    ///< a value or an exception
 };
 
 struct shared_state_base {
@@ -56,12 +58,17 @@ struct shared_state_base {
     std::exception_ptr exception;
 
     bool ready() const noexcept {
-        return state.load(std::memory_order_acquire) != status::empty;
+        auto status = state.load(std::memory_order_acquire);
+        return (status == status::value) || (status == status::exception) ||
+               (status == status::broken);
     }
 
     void set_exception(std::exception_ptr p) {
-        const auto s = state.load(std::memory_order_acquire);
-        if (s != status::empty) {
+        auto expected = status::empty;
+        const auto desired = status::transition;
+        if (!state.compare_exchange_strong(expected, desired,
+                                           std::memory_order_release,
+                                           std::memory_order_relaxed)) {
             throw future_error(std::future_errc::promise_already_satisfied);
         }
         exception = std::move(p);
@@ -70,12 +77,13 @@ struct shared_state_base {
     }
 
     void break_promise() noexcept {
-        const auto s = state.load(std::memory_order_acquire);
-        if (s != status::empty) {
-            return;
+        auto expected = status::empty;
+        const auto desired = status::broken;
+        if (state.compare_exchange_strong(expected, desired,
+                                          std::memory_order_release,
+                                          std::memory_order_relaxed)) {
+            waiters.resume_all();
         }
-        state.store(status::broken, std::memory_order_release);
-        waiters.resume_all();
     }
 
     void wait() {
@@ -91,12 +99,20 @@ struct shared_state : public shared_state_base {
 
     template <typename R>
     void set_value(R&& v) {
-        const auto s = state.load(std::memory_order_acquire);
-        if (s != status::empty) {
+        auto expected = status::empty;
+        const auto desired = status::transition;
+        if (!state.compare_exchange_strong(expected, desired,
+                                           std::memory_order_release,
+                                           std::memory_order_relaxed)) {
             throw future_error(std::future_errc::promise_already_satisfied);
         }
-        value.emplace(std::forward<R>(v));
-        state.store(status::value, std::memory_order_release);
+        try {
+            value.emplace(std::forward<R>(v));
+            state.store(status::value, std::memory_order_release);
+        } catch (...) {
+            exception = std::current_exception();
+            state.store(status::exception, std::memory_order_release);
+        }
         waiters.resume_all();
     }
 };
@@ -104,11 +120,14 @@ struct shared_state : public shared_state_base {
 template <>
 struct shared_state<void> : public shared_state_base {
     void set_value() {
-        const auto s = state.load(std::memory_order_acquire);
-        if (s != status::empty) {
+
+        auto expected = status::empty;
+        const auto desired = status::value;
+        if (!state.compare_exchange_strong(expected, desired,
+                                           std::memory_order_release,
+                                           std::memory_order_relaxed)) {
             throw future_error(std::future_errc::promise_already_satisfied);
         }
-        state.store(status::value, std::memory_order_release);
         waiters.resume_all();
     }
 };
@@ -118,12 +137,20 @@ struct shared_state<T&> : public shared_state_base {
     T* value = nullptr;
 
     void set_value(T& v) {
-        const auto s = state.load(std::memory_order_acquire);
-        if (s != status::empty) {
+        auto expected = status::empty;
+        const auto desired = status::transition;
+        if (!state.compare_exchange_strong(expected, desired,
+                                           std::memory_order_release,
+                                           std::memory_order_relaxed)) {
             throw future_error(std::future_errc::promise_already_satisfied);
         }
-        value = std::addressof(v);
-        state.store(status::value, std::memory_order_release);
+        try {
+            value = std::addressof(v);
+            state.store(status::value, std::memory_order_release);
+        } catch (...) {
+            exception = std::current_exception();
+            state.store(status::exception, std::memory_order_release);
+        }
         waiters.resume_all();
     }
 };
