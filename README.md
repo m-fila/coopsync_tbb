@@ -14,7 +14,7 @@ Cooperative synchronization primitives for TBB resumable tasks
 | `buffered_channel`   | ❌     |
 | `unbuffered_channel` | ❌     |
 | `condition_variable` | ✔️     |
-| `future`             | ❌     |
+| `future`             | ✔️     |
 | `packaged_task`      | ❌     |
 | `latch`              | ✔️     |
 | `mutex`              | ✔️     |

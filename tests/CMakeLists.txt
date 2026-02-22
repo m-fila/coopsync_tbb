@@ -2,6 +2,7 @@ include(GoogleTest)
 
 add_executable(
   coopsync_tbb_test
+  # extras
   mutex_traits.hpp
   # details
   intrusive_list_test.cpp
@@ -9,6 +10,7 @@ add_executable(
   # main classes
   barrier_test.cpp
   condition_variable_test.cpp
+  future_test.cpp
   latch_test.cpp
   mutex_test.cpp
   semaphore_test.cpp)
