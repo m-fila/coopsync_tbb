@@ -6,19 +6,20 @@
 #include <atomic>
 #include <cstddef>
 #include <stdexcept>
+#include <utility>
 
 TEST(Future, NoStateThrows) {
 
     auto f = coopsync_tbb::future<int>{};
     EXPECT_FALSE(f.valid());
-    EXPECT_THROW((void)f.get(), coopsync_tbb::future_error);
+    EXPECT_THROW(std::ignore = f.get(), coopsync_tbb::future_error);
     EXPECT_THROW(f.wait(), coopsync_tbb::future_error);
 }
 
 TEST(Future, FutureAlreadyRetrievedThrows) {
     auto p = coopsync_tbb::promise<int>{};
     auto f1 = p.get_future();
-    EXPECT_THROW((void)p.get_future(), coopsync_tbb::future_error);
+    EXPECT_THROW(std::ignore = p.get_future(), coopsync_tbb::future_error);
 }
 
 TEST(Future, PromiseAlreadySatisfiedThrows) {
@@ -36,7 +37,7 @@ TEST(Future, BrokenPromiseThrows) {
         // p is destroyed without set_value
     }
 
-    EXPECT_THROW((void)f.get(), coopsync_tbb::future_error);
+    EXPECT_THROW(std::ignore = f.get(), coopsync_tbb::future_error);
 }
 
 TEST(Future, ExceptionPropagates) {
@@ -45,7 +46,7 @@ TEST(Future, ExceptionPropagates) {
 
     p.set_exception(std::make_exception_ptr(std::runtime_error("boom")));
 
-    EXPECT_THROW((void)f.get(), std::runtime_error);
+    EXPECT_THROW(std::ignore = f.get(), std::runtime_error);
 }
 
 TEST(Future, GetReturnsValue) {
