@@ -3,6 +3,7 @@
 #include <gtest/gtest.h>
 #include <hip/hip_runtime_api.h>
 
+#include <array>
 #include <cstddef>
 
 #include "nanospin.hpp"
@@ -85,4 +86,74 @@ TEST(HIPWaitFor, MemoryOperations) {
     ASSERT_EQ(hipFreeHost(host), hipSuccess);
     ASSERT_EQ(hipEventDestroy(event), hipSuccess);
     ASSERT_EQ(hipStreamDestroy(stream), hipSuccess);
+}
+
+TEST(HIPWaitFor, WaitForAllZeroStreams) {
+    const auto errs = coopsync_tbb::hip::wait_for_all();
+    ASSERT_EQ(errs.size(), 0u);
+}
+
+TEST(HIPWaitFor, WaitForAllOneStream) {
+    ASSERT_EQ(hipSetDevice(0), hipSuccess);
+
+    auto stream = hipStream_t{};
+    ASSERT_EQ(hipStreamCreate(&stream), hipSuccess);
+    auto event = hipEvent_t{};
+    ASSERT_EQ(hipEventCreate(&event), hipSuccess);
+
+    const auto ns = 1'000'000;
+    launch_nanospin(ns, stream);
+    ASSERT_EQ(hipGetLastError(), hipSuccess);
+    ASSERT_EQ(hipEventRecord(event, stream), hipSuccess);
+
+    const auto errs = coopsync_tbb::hip::wait_for_all(stream);
+    ASSERT_EQ(errs.size(), 1u);
+    ASSERT_EQ(errs[0], hipSuccess);
+    ASSERT_EQ(hipEventQuery(event), hipSuccess);
+
+    ASSERT_EQ(hipStreamSynchronize(stream), hipSuccess);
+    ASSERT_EQ(hipGetLastError(), hipSuccess);
+
+    ASSERT_EQ(hipEventDestroy(event), hipSuccess);
+    ASSERT_EQ(hipStreamDestroy(stream), hipSuccess);
+}
+
+TEST(HIPWaitFor, WaitForAllTwoStreams) {
+    ASSERT_EQ(hipSetDevice(0), hipSuccess);
+
+    auto s0 = hipStream_t{};
+    auto s1 = hipStream_t{};
+    ASSERT_EQ(hipStreamCreate(&s0), hipSuccess);
+    ASSERT_EQ(hipStreamCreate(&s1), hipSuccess);
+
+    auto e0 = hipEvent_t{};
+    auto e1 = hipEvent_t{};
+    ASSERT_EQ(hipEventCreate(&e0), hipSuccess);
+    ASSERT_EQ(hipEventCreate(&e1), hipSuccess);
+
+    const auto ns1 = 1'000'000;
+    const auto ns2 = 100'000;
+    launch_nanospin(ns1, s0);
+    ASSERT_EQ(hipGetLastError(), hipSuccess);
+    launch_nanospin(ns2, s1);
+    ASSERT_EQ(hipGetLastError(), hipSuccess);
+
+    ASSERT_EQ(hipEventRecord(e0, s0), hipSuccess);
+    ASSERT_EQ(hipEventRecord(e1, s1), hipSuccess);
+
+    const auto errs = coopsync_tbb::hip::wait_for_all(s0, s1);
+    ASSERT_EQ(errs.size(), 2u);
+    ASSERT_EQ(errs[0], hipSuccess);
+    ASSERT_EQ(errs[1], hipSuccess);
+    ASSERT_EQ(hipEventQuery(e0), hipSuccess);
+    ASSERT_EQ(hipEventQuery(e1), hipSuccess);
+
+    ASSERT_EQ(hipStreamSynchronize(s0), hipSuccess);
+    ASSERT_EQ(hipStreamSynchronize(s1), hipSuccess);
+    ASSERT_EQ(hipGetLastError(), hipSuccess);
+
+    ASSERT_EQ(hipEventDestroy(e1), hipSuccess);
+    ASSERT_EQ(hipEventDestroy(e0), hipSuccess);
+    ASSERT_EQ(hipStreamDestroy(s1), hipSuccess);
+    ASSERT_EQ(hipStreamDestroy(s0), hipSuccess);
 }
