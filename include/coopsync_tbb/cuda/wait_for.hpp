@@ -143,8 +143,10 @@ wait_for_all(StreamTs... streams) {
 /// A CUDA host callback is enqueued into every stream. The calling task resumes
 /// once all callbacks that were successfully enqueued have executed.
 /// @param first Iterator to first CUDA stream. Must be a LegacyForwardIterator.
-/// @param last Iterator past the last CUDA stream. Must be a LegacyForwardIterator.
-/// @param out Iterator receiving CUDA error codes in the same order. Must be a LegacyOutputIterator.
+/// @param last Iterator past the last CUDA stream. Must be a
+/// LegacyForwardIterator.
+/// @param out Iterator receiving CUDA error codes in the same order. Must be a
+/// LegacyOutputIterator.
 /// @return Iterator past the last written error code.
 template <typename InputIt, typename OutputIt>
 static inline OutputIt wait_for_all(InputIt first, InputIt last, OutputIt out) {
