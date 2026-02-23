@@ -32,7 +32,9 @@ class wait_queue {
     ~wait_queue();
 
     /// @brief Resumes one of the waiting tasks, if there is any.
-    void resume_one();
+    /// @return true if a task was resumed, false if there were no waiting
+    /// tasks.
+    bool resume_one();
 
     /// @brief Resumes all waiting tasks.
     void resume_all();
@@ -63,14 +65,14 @@ class wait_queue {
     mutable tbb::spin_mutex m_waiters_mutex;
     intrusive_list<waiter_t> m_waiters;
 
-    void do_resume_all(intrusive_list<waiter_t>& waiters_to_resume);
+    static void do_resume_all(intrusive_list<waiter_t>& waiters_to_resume);
 };
 
 inline wait_queue::~wait_queue() {
     assert(m_waiters.empty());
 }
 
-inline void wait_queue::resume_one() {
+inline bool wait_queue::resume_one() {
     typename detail::intrusive_list<waiter_t>::node* waiter = nullptr;
     {
         tbb::spin_mutex::scoped_lock lock(m_waiters_mutex);
@@ -78,7 +80,9 @@ inline void wait_queue::resume_one() {
     }
     if (waiter) {
         tbb::task::resume(waiter->value);
+        return true;
     }
+    return false;
 }
 
 inline void wait_queue::resume_all() {
