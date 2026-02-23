@@ -969,13 +969,28 @@ class promise<T&> : private detail::future::promise_base<T&> {
     }
 };
 
+/// @brief Class template wrapping a callable object and allowing to invoke it
+/// asynchronously, storing the result in a shared state that can be accessed
+/// through a future.
 template <typename>
 class packaged_task;
 
 template <typename R, typename... Args>
 class packaged_task<R(Args...)> {
     public:
+    /// @brief Constructs a new packaged_task with no callable and no shared
+    /// state. After construction the packaged_task is not valid.
     packaged_task() = default;
+
+    /// @brief Constructs a new packaged_task that wraps the given callable.
+    /// The shared state is allocated if the callable is valid. After
+    /// construction, the packaged_task is valid if the callable is valid.
+    /// @tparam F The type of the callable to wrap. Must be invocable with
+    /// arguments of types \ref Args... and return a type convertible to R. Must
+    /// fulfill the standard requirements for Callable.
+    /// @param f The callable to wrap in the packaged_task. If the callable is
+    /// empty (e.g., default-constructed \c std::function), the packaged_task is
+    /// constructed in a not valid state.
     template <typename F>
     explicit packaged_task(F f)
         : m_function(std::move(f)),
@@ -1043,7 +1058,12 @@ class packaged_task<R(Args...)> {
         swap(m_state, other.m_state);
     }
 
-    future<R> get_future() {
+    /// @brief Returns a future associated with the shared state. Can be called
+    /// only once for a given packaged_task.
+    /// @throws future_error with \c std::future_errc::no_state if the
+    /// packaged_task is not valid.
+    /// @throws future_error with \c std::future_errc::
+    COOPSYNC_TBB_NODISCARD future<R> get_future() {
         if (!valid()) {
             throw future_error(std::future_errc::no_state);
         }
@@ -1057,6 +1077,15 @@ class packaged_task<R(Args...)> {
         return future<R>(m_state);
     }
 
+    /// @brief Invokes the wrapped callable and stores the result or an
+    /// exception is tored in the shared state. The shared state is made and any
+    /// tasks suspended waiting on it are resumed. Can be called only once for a
+    /// given packaged_task.
+    /// @param args The arguments to invoke the wrapped callable with.
+    /// @throws future_error with \c std::future_errc::no_state if the
+    /// packaged_task is not valid.
+    /// @throws future_error with \c std::future_errc::promise_already_satisfied
+    /// if the shared state already stores a value or an exception.
     void operator()(Args... args) {
         if (!valid()) {
             throw future_error(std::future_errc::no_state);
