@@ -104,6 +104,10 @@ class shared_mutex {
     detail::wait_queue m_reader_waiters;
 };
 
+/// @brief Alias for shared_mutex, following the TBB convention of naming
+/// reader-writer mutexes.
+using rw_mutex = shared_mutex;
+
 shared_mutex::~shared_mutex() {
     assert(m_state.load(std::memory_order_acquire) == 0);
     assert(m_writer_waiters.empty());
