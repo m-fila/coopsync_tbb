@@ -138,11 +138,11 @@ inline void shared_mutex::lock() {
 inline void shared_mutex::unlock() {
     assert(m_state.load(std::memory_order_acquire) == k_writer_locked);
 
-    // Direct handoff to a waiting writer if there is one.
+    // Direct handoff to a waiting writer if there is any.
     if (m_writer_waiters.resume_one()) {
         return;
     }
-    // Otherwise, resume all waiting readers.
+    // Otherwise, unlock and resume all waiting readers.
     m_state.store(0, std::memory_order_release);
     m_reader_waiters.resume_all();
 }
@@ -190,7 +190,7 @@ inline void shared_mutex::unlock_shared() {
         }
     }
 
-    // Direct handoff to a waiting writer if there is one.
+    // Direct handoff to a waiting writer if there is any.
     m_state.store(k_writer_locked, std::memory_order_release);
     if (m_writer_waiters.resume_one()) {
         return;
