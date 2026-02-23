@@ -5,14 +5,16 @@
 #include <atomic>
 #include <cassert>
 
+#include "coopsync_tbb/detail/macros.hpp"
 #include "coopsync_tbb/detail/unique_scoped_lock.hpp"
 #include "coopsync_tbb/detail/wait_queue.hpp"
 
 namespace coopsync_tbb {
 
 /// @brief A shared mutex that can be used to synchronize access to shared
-/// resources. The mutex can be acquired in exclusive mode (lock) or shared mode
-/// (lock_shared). The mutex is non-recursive and provides no fairness
+/// resources. The mutex can be acquired in exclusive (writer) mode (\ref lock)
+/// or shared (reader) mode
+/// (\ref lock_shared). The mutex is non-recursive and provides no fairness
 /// guarantees.
 /// @note This mutex does satisfy the standard named requirements for
 /// BasicLockable and Lockable but does not meet the requirements for Mutex
@@ -114,7 +116,7 @@ shared_mutex::~shared_mutex() {
     assert(m_reader_waiters.empty());
 }
 
-inline bool shared_mutex::try_lock() noexcept {
+COOPSYNC_TBB_NODISCARD bool shared_mutex::try_lock() noexcept {
     int expected = 0;
     const int desired = k_writer_locked;
     return m_state.compare_exchange_strong(expected, desired,
@@ -145,7 +147,7 @@ inline void shared_mutex::unlock() {
     m_reader_waiters.resume_all();
 }
 
-inline bool shared_mutex::try_lock_shared() noexcept {
+COOPSYNC_TBB_NODISCARD inline bool shared_mutex::try_lock_shared() noexcept {
     int state = m_state.load(std::memory_order_relaxed);
     while (state >= 0) {
         if (m_state.compare_exchange_weak(state, state + 1,
