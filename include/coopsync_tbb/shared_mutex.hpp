@@ -119,20 +119,25 @@ inline bool shared_mutex::try_lock() noexcept {
 }
 
 inline void shared_mutex::lock() {
-    while (!try_lock()) {
-        m_writer_waiters.wait_if(
-            [this] { return m_state.load(std::memory_order_acquire) != 0; });
+    if (try_lock()) {
+        return;
     }
+    m_writer_waiters.wait_if([this] { return !try_lock(); });
+
+    // Post direct handoff, the state should be already locked on the writer's
+    // behalf.
+    assert(m_state.load(std::memory_order_acquire) == k_writer_locked);
 }
 
 inline void shared_mutex::unlock() {
     assert(m_state.load(std::memory_order_acquire) == k_writer_locked);
-    m_state.store(0, std::memory_order_release);
 
-    // Prefer a writer if any are waiting, otherwise resume all readers.
+    // Direct handoff to a waiting writer if there is one.
     if (m_writer_waiters.resume_one()) {
         return;
     }
+    // Otherwise, resume all waiting readers.
+    m_state.store(0, std::memory_order_release);
     m_reader_waiters.resume_all();
 }
 
@@ -179,12 +184,13 @@ inline void shared_mutex::unlock_shared() {
         }
     }
 
-    m_state.store(0, std::memory_order_release);
-
-    // Prefer a writer if any are waiting, otherwise resume all readers.
+    // Direct handoff to a waiting writer if there is one.
+    m_state.store(k_writer_locked, std::memory_order_release);
     if (m_writer_waiters.resume_one()) {
         return;
     }
+    // Otherwise, unlock and resume all waiting readers.
+    m_state.store(0, std::memory_order_release);
     m_reader_waiters.resume_all();
 }
 
