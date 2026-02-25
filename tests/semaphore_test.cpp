@@ -95,7 +95,7 @@ TEST(CountingSemaphore, ContentionAcquireRelease) {
     });
 }
 
-TEST(Semaphore, ContentionAcquireRelease) {
+TEST(BinarySemaphore, ContentionAcquireRelease) {
     auto sem = coopsync_tbb::binary_semaphore(1);
     auto counter = 0;
     const auto n = 20'000;
