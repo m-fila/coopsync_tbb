@@ -33,3 +33,9 @@ Cooperative synchronization primitives for TBB resumable tasks
 | Triton                     | ❌     |
 
 ✔️: supported, ❌: not supported
+
+## Disclaimer
+
+CoopSync for TBB is an independent extension library designed to work with oneTBB.
+
+This project is not affiliated with, endorsed by, sponsored by, or otherwise associated with Intel Corporation, UXL Foundation or the oneTBB project.
