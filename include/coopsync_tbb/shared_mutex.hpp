@@ -51,7 +51,7 @@ class shared_mutex {
     /// @brief Attempts to acquire the shared_mutex without suspending.
     /// @return true if the shared_mutex was successfully acquired, false
     /// otherwise.
-    bool try_lock() noexcept;
+    COOPSYNC_TBB_NODISCARD bool try_lock() noexcept;
 
     /// @brief Acquires the shared_mutex, suspending the calling task if
     /// necessary until the shared_mutex becomes available.
@@ -70,7 +70,7 @@ class shared_mutex {
     /// suspending.
     /// @return true if the shared_mutex was successfully acquired in shared
     /// mode, false otherwise.
-    bool try_lock_shared() noexcept;
+    COOPSYNC_TBB_NODISCARD bool try_lock_shared() noexcept;
 
     /// @brief Acquires the shared_mutex in a shared mode, suspending the
     /// calling task if necessary until the shared_mutex becomes available in
@@ -116,7 +116,7 @@ shared_mutex::~shared_mutex() {
     assert(m_reader_waiters.empty());
 }
 
-COOPSYNC_TBB_NODISCARD bool shared_mutex::try_lock() noexcept {
+inline bool shared_mutex::try_lock() noexcept {
     int expected = 0;
     const int desired = k_writer_locked;
     return m_state.compare_exchange_strong(expected, desired,
@@ -147,7 +147,7 @@ inline void shared_mutex::unlock() {
     m_reader_waiters.resume_all();
 }
 
-COOPSYNC_TBB_NODISCARD inline bool shared_mutex::try_lock_shared() noexcept {
+inline bool shared_mutex::try_lock_shared() noexcept {
     int state = m_state.load(std::memory_order_relaxed);
     while (state >= 0) {
         if (m_state.compare_exchange_weak(state, state + 1,
