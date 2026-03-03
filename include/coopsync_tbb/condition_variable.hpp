@@ -62,18 +62,6 @@ class condition_variable {
     detail::wait_queue m_waiters;
 };
 
-inline condition_variable::~condition_variable() {
-    assert(m_waiters.empty());
-}
-
-inline void condition_variable::notify_one() {
-    m_waiters.resume_one();
-}
-
-inline void condition_variable::notify_all() {
-    m_waiters.resume_all();
-}
-
 template <typename Lock>
 inline void condition_variable::wait(Lock& lock) {
     lock.unlock();

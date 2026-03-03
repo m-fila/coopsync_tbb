@@ -68,60 +68,6 @@ class wait_queue {
     static void do_resume_all(intrusive_list<waiter_t>& waiters_to_resume);
 };
 
-inline wait_queue::~wait_queue() {
-    assert(m_waiters.empty());
-}
-
-inline bool wait_queue::resume_one() {
-    typename detail::intrusive_list<waiter_t>::node* waiter = nullptr;
-    {
-        tbb::spin_mutex::scoped_lock lock(m_waiters_mutex);
-        waiter = m_waiters.pop_front();
-    }
-    if (waiter) {
-        tbb::task::resume(waiter->value);
-        return true;
-    }
-    return false;
-}
-
-inline void wait_queue::resume_all() {
-    auto waiters_to_resume = detail::intrusive_list<waiter_t>{};
-    {
-        tbb::spin_mutex::scoped_lock lock(m_waiters_mutex);
-        waiters_to_resume.swap(m_waiters);
-        assert(m_waiters.empty());
-    }
-    do_resume_all(waiters_to_resume);
-}
-
-inline std::ptrdiff_t wait_queue::resume_n(std::ptrdiff_t n) {
-    assert(n >= 0);
-    if (n == 0) {
-        return 0;
-    }
-    ptrdiff_t resumed = 0;
-    auto waiters_to_resume = detail::intrusive_list<waiter_t>{};
-    {
-        tbb::spin_mutex::scoped_lock lock(m_waiters_mutex);
-        while (resumed < n) {
-            auto* waiter = m_waiters.pop_front();
-            if (!waiter) {
-                break;
-            }
-            waiters_to_resume.push_back(*waiter);
-            ++resumed;
-        }
-    }
-    do_resume_all(waiters_to_resume);
-    return resumed;
-}
-
-inline bool wait_queue::empty() const {
-    tbb::spin_mutex::scoped_lock lock(m_waiters_mutex);
-    return m_waiters.empty();
-}
-
 template <typename Pred>
 void wait_queue::wait_if(Pred pred) {
 
@@ -153,10 +99,4 @@ void wait_queue::wait_if(Pred pred) {
     });
 }
 
-inline void wait_queue::do_resume_all(
-    intrusive_list<waiter_t>& waiters_to_resume) {
-    while (const auto* waiter = waiters_to_resume.pop_front()) {
-        tbb::task::resume(waiter->value);
-    }
-}
 }  // namespace coopsync_tbb::detail
