@@ -87,20 +87,19 @@ class shared_mutex {
     void unlock_shared();
 
     /// @brief The shared_mutex is a reader-writer (shared) mutex.
-    static inline constexpr bool is_rw_mutex = true;
+    static constexpr bool is_rw_mutex = true;
     /// @brief The shared_mutex is not recursive.
-    static inline constexpr bool is_recursive_mutex = false;
+    static constexpr bool is_recursive_mutex = false;
     /// @brief The shared_mutex does not provide any fairness guarantees.
-    static inline constexpr bool is_fair_mutex = false;
+    static constexpr bool is_fair_mutex = false;
 
     private:
     // m_state meanings:
-    static inline constexpr int k_transition =
+    static constexpr int k_transition =
         -2;  // transition state during last-reader handoff
-    static inline constexpr int k_writer_locked =
-        -1;  // exclusive (writer) locked
+    static constexpr int k_writer_locked = -1;  // exclusive (writer) locked
     //  >=0 : number of shared (reader) owners
-    std::atomic<int> m_state = 0;
+    std::atomic<int> m_state = {0};
 
     detail::wait_queue m_writer_waiters;
     detail::wait_queue m_reader_waiters;
