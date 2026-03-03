@@ -49,7 +49,7 @@ This library provides a set of cooperative synchronization primitives designed f
 
 ✔️: supported, ❌: not implemented
 
-The project also provides optional integrations for GPU and other libraries. These integrations allow the current task to be suspended until the associated asynchronous operation completes.
+The project also provides optional integrations for GPU and other libraries. These integrations allow the current task to be suspended until the associated asynchronous operations complete.
 
 | Accelerators and libraries | Status |
 | -------------------------- | ------ |
