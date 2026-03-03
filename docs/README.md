@@ -1,6 +1,6 @@
-# CoopSync for TBB documentation
+# Building documentation locally
 
-This project uses doxygen for documentation. To generate documentation, make sure doxygen is installed, then either use the CMake preset:
+This project uses Doxygen for documentation. To generate documentation, make sure `doxygen` is installed, then either use the CMake preset:
 
 ```
 cmake --workflow --preset docs
