@@ -3,3 +3,5 @@ checkersReport:*
 unusedFunction:*
 unmatchedSuppression:*
 unreadVariable:*
+
+noExplicitConstructor:include/coopsync_tbb/future.hpp
