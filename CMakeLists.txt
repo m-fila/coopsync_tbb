@@ -15,6 +15,14 @@ include(cmake/Sanitizers.cmake) # COOPSYNC_TBB_SANITIZER option
 
 # Common config
 
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 17)
+endif()
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+if(CMAKE_CXX_STANDARD LESS 17)
+  message(FATAL_ERROR "CoopsSync_TBB requires C++17 or higher.")
+endif()
 include(GNUInstallDirs)
 
 # Set up TBB.
@@ -66,34 +74,53 @@ endif()
 
 # Library
 
-add_library(CoopSync_TBB INTERFACE)
+add_library(CoopSync_TBB SHARED)
 
 coopsync_tbb_apply_sanitizer(CoopSync_TBB)
 
 target_sources(
   CoopSync_TBB
-  INTERFACE FILE_SET
-            HEADERS
-            BASE_DIRS
-            include/
-            FILES
-            include/coopsync_tbb/coopsync_tbb.hpp
-            include/coopsync_tbb/detail/intrusive_list.hpp
-            include/coopsync_tbb/detail/macros.hpp
-            include/coopsync_tbb/detail/unique_scoped_lock.hpp
-            include/coopsync_tbb/detail/wait_queue.hpp
-            include/coopsync_tbb/barrier.hpp
-            include/coopsync_tbb/condition_variable.hpp
-            include/coopsync_tbb/future.hpp
-            include/coopsync_tbb/latch.hpp
-            include/coopsync_tbb/mutex.hpp
-            include/coopsync_tbb/shared_mutex.hpp
-            include/coopsync_tbb/semaphore.hpp
-            include/coopsync_tbb/cuda/wait_for.hpp
-            include/coopsync_tbb/hip/wait_for.hpp)
+  PUBLIC FILE_SET
+         HEADERS
+         BASE_DIRS
+         include/
+         FILES
+         # public API
+         include/coopsync_tbb/coopsync_tbb.hpp
+         # details
+         include/coopsync_tbb/detail/intrusive_list.hpp
+         include/coopsync_tbb/detail/macros.hpp
+         include/coopsync_tbb/detail/unique_scoped_lock.hpp
+         include/coopsync_tbb/detail/wait_queue.hpp
+         # primitives
+         include/coopsync_tbb/barrier.hpp
+         include/coopsync_tbb/condition_variable.hpp
+         include/coopsync_tbb/future.hpp
+         include/coopsync_tbb/latch.hpp
+         include/coopsync_tbb/mutex.hpp
+         include/coopsync_tbb/shared_mutex.hpp
+         include/coopsync_tbb/semaphore.hpp
+         # integrations
+         include/coopsync_tbb/cuda/wait_for.hpp
+         include/coopsync_tbb/hip/wait_for.hpp
+  PRIVATE # public API
+          src/coopsync_tbb.cpp
+          # details
+          src/intrusive_list.cpp
+          src/macros.cpp
+          src/unique_scoped_lock.cpp
+          src/wait_queue.cpp
+          # primitives
+          src/barrier.cpp
+          src/condition_variable.cpp
+          src/future.cpp
+          src/latch.cpp
+          src/mutex.cpp
+          src/semaphore.cpp
+          src/shared_mutex.cpp)
 
 add_library(CoopSync_TBB::CoopSync_TBB ALIAS CoopSync_TBB)
-target_link_libraries(CoopSync_TBB INTERFACE TBB::tbb)
+target_link_libraries(CoopSync_TBB PUBLIC TBB::tbb)
 
 # Tests
 

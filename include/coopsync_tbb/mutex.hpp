@@ -59,38 +59,15 @@ class mutex {
     void unlock();
 
     /// @brief The mutex is not a reader-writer (shared) mutex.
-    static inline constexpr bool is_rw_mutex = false;
+    static constexpr bool is_rw_mutex = false;
     /// @brief The mutex is not recursive.
-    static inline constexpr bool is_recursive_mutex = false;
+    static constexpr bool is_recursive_mutex = false;
     /// @brief The mutex does not provide any fairness guarantees.
-    static inline constexpr bool is_fair_mutex = false;
+    static constexpr bool is_fair_mutex = false;
 
     private:
-    std::atomic<bool> m_locked = false;
+    std::atomic<bool> m_locked = {false};
     detail::wait_queue m_wait_queue;
 };
-
-inline bool mutex::try_lock() noexcept {
-    bool expected = false;
-    const bool desired = true;
-    return m_locked.compare_exchange_strong(expected, desired,
-                                            std::memory_order_acquire,
-                                            std::memory_order_relaxed);
-}
-
-inline void mutex::lock() {
-    while (!try_lock()) {
-        m_wait_queue.wait_if(
-            [this] { return m_locked.load(std::memory_order_acquire); });
-    }
-}
-
-inline void mutex::unlock() {
-    assert(m_locked.load(std::memory_order_acquire));
-    m_locked.store(false, std::memory_order_release);
-
-    // Wake a single waiter (if any). The woken task will retry try_lock().
-    m_wait_queue.resume_one();
-}
 
 }  // namespace coopsync_tbb
