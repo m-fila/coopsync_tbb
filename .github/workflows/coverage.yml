@@ -60,9 +60,7 @@ jobs:
                --rc branch_coverage=1
           lcov --remove coverage.info \
                '/usr/*' \
-               '*/_deps/*' \
                '*/tests/*' \
-               '*/cmake/downstream/*' \
                --output-file coverage.info \
                --rc branch_coverage=1
           lcov --list coverage.info --rc branch_coverage=1
