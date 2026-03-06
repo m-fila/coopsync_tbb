@@ -34,7 +34,8 @@ jobs:
             --base-directory . \
             --ignore-errors mismatch \
             --output-file baseline.info \
-            --rc branch_coverage=1
+            --rc branch_coverage=1 \
+            --exclude "*/_deps/*"
 
       - name: Run tests
         run: |
@@ -47,7 +48,8 @@ jobs:
             --base-directory . \
             --ignore-errors mismatch \
             --output-file test.info \
-            --rc branch_coverage=1
+            --rc branch_coverage=1 \
+            --exclude "*/_deps/*"
 
       - name: Merge and filter coverage
         run: |
