@@ -42,3 +42,15 @@ option(COOPSYNC_TBB_BUILD_HIP_TESTING "Enable HIP tests" ${hip_FOUND})
 if(COOPSYNC_TBB_BUILD_HIP_TESTING)
   add_subdirectory(hip)
 endif()
+
+# ONNX Runtime
+
+find_package(onnxruntime QUIET)
+option(
+  COOPSYNC_TBB_BUILD_ONNX_TESTING
+  "Enable ONNX Runtime tests"
+  ${onnxruntime_FOUND}
+)
+if(COOPSYNC_TBB_BUILD_ONNX_TESTING)
+  add_subdirectory(onnx)
+endif()
