@@ -27,18 +27,18 @@ jobs:
 
       - name: Collect coverage (lcov)
         run: |
-          lcov --capture --initial --directory build --output-file baseline.info \
+          lcov --capture --initial --directory build --base-directory . --output-file baseline.info \
             --rc lcov_branch_coverage=1
-          lcov --capture --directory build --output-file test.info \
+          lcov --capture --directory build --base-directory . --output-file test.info \
             --rc lcov_branch_coverage=1
           lcov --add-tracefile baseline.info --add-tracefile test.info \
             --output-file coverage.info \
             --rc lcov_branch_coverage=1
           lcov --remove coverage.info \
             '/usr/*' \
-            '${{ github.workspace }}/build/*' \
-            '${{ github.workspace }}/tests/*' \
-            '${{ github.workspace }}/cmake/downstream/*' \
+            '*/_deps/*' \
+            '*/tests/*' \
+            '*/cmake/downstream/*' \
             --output-file coverage.info \
             --rc lcov_branch_coverage=1
           lcov --list coverage.info --rc lcov_branch_coverage=1
