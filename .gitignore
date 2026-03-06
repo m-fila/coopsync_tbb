@@ -62,6 +62,12 @@ compile_commands.json
 *.bak
 *.swp
 
+# Coverage files
+*.gcno
+*.gcda
+*.gcov
+*.info
+
 # vcpkg
 vcpkg_installed/
 
