@@ -990,21 +990,16 @@ class packaged_task<R(Args...)> {
     /// state. After construction the packaged_task is not valid.
     packaged_task() = default;
 
-    /// @brief Constructs a new packaged_task that wraps the given callable.
-    /// The shared state is allocated if the callable is valid. After
-    /// construction, the packaged_task is valid if the callable is valid.
+    /// @brief Constructs a new packaged_task with the given callable and an
+    /// allocated shared state. After construction, the packaged_task is valid.
     /// @tparam F The type of the callable to wrap. Must be invocable with
     /// arguments of types \ref Args... and return a type convertible to R. Must
     /// fulfill the standard requirements for Callable.
-    /// @param f The callable to wrap in the packaged_task. If the callable is
-    /// empty (e.g., default-constructed \c std::function), the packaged_task is
-    /// constructed in a not valid state.
+    /// @param f The callable to wrap in the packaged_task.
     template <typename F>
     explicit packaged_task(F f)
         : m_function(std::move(f)),
-          m_state(m_function
-                      ? std::make_shared<detail::future::shared_state<R>>()
-                      : nullptr) {}
+          m_state(std::make_shared<detail::future::shared_state<R>>()) {}
 
     /// @brief The packaged_task is not copy-constructible.
     packaged_task(const packaged_task&) = delete;
@@ -1051,12 +1046,10 @@ class packaged_task<R(Args...)> {
         }
     }
 
-    /// @brief Tests whether the packaged_task has a valid function and an
-    /// associated shared state.
-    /// @return true if the packaged_task is valid, false otherwise.
-    bool valid() const noexcept {
-        return static_cast<bool>(m_function) && static_cast<bool>(m_state);
-    }
+    /// @brief Tests whether the packaged_task has an associated shared state.
+    /// @return true if the packaged_task has an associated shared state, false
+    /// otherwise.
+    bool valid() const noexcept { return static_cast<bool>(m_state); }
 
     /// @brief Exchanges the shared states with another packaged_task.
     /// @param other The packaged_task to exchange state with.
@@ -1085,10 +1078,10 @@ class packaged_task<R(Args...)> {
         return future<R>(m_state);
     }
 
-    /// @brief Invokes the wrapped callable and stores the result or an
-    /// exception is tored in the shared state. The shared state is made and any
-    /// tasks suspended waiting on it are resumed. Can be called only once for a
-    /// given packaged_task.
+    /// @brief Invokes the wrapped callable and in the shared state either
+    /// obtained  result or encountered exception. The shared state is made
+    /// ready and any tasks suspended waiting on it are resumed. Can be called
+    /// only once for a given packaged_task.
     /// @param args The arguments to invoke the wrapped callable with.
     /// @throws future_error with \c std::future_errc::no_state if the
     /// packaged_task is not valid.
