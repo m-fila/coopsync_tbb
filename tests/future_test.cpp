@@ -12,7 +12,7 @@ TEST(Future, NoStateThrows) {
 
     auto f = coopsync_tbb::future<int>{};
     EXPECT_FALSE(f.valid());
-    EXPECT_THROW(std::ignore = f.get(), coopsync_tbb::future_error);
+    EXPECT_THROW(f.get(), coopsync_tbb::future_error);
     EXPECT_THROW(f.wait(), coopsync_tbb::future_error);
 }
 
@@ -27,6 +27,9 @@ TEST(Future, PromiseAlreadySatisfiedThrows) {
     auto f = p.get_future();
     p.set_value(-1);
     EXPECT_THROW(p.set_value(1), coopsync_tbb::future_error);
+    EXPECT_THROW(
+        p.set_exception(std::make_exception_ptr(std::runtime_error("boom"))),
+        coopsync_tbb::future_error);
 }
 
 TEST(Future, BrokenPromiseThrows) {
@@ -67,6 +70,16 @@ TEST(Future, GetReturnsValue) {
     ASSERT_EQ(result.load(std::memory_order_relaxed), expected);
 }
 
+TEST(FutureVoid, PromiseAlreadySatisfiedThrows) {
+    auto p = coopsync_tbb::promise<void>{};
+    auto f = p.get_future();
+    p.set_value();
+    EXPECT_THROW(p.set_value(), coopsync_tbb::future_error);
+    EXPECT_THROW(
+        p.set_exception(std::make_exception_ptr(std::runtime_error("boom"))),
+        coopsync_tbb::future_error);
+}
+
 TEST(FutureVoid, GetUnblocksAfterSetValue) {
     auto p = coopsync_tbb::promise<void>();
     auto f = p.get_future();
@@ -83,6 +96,17 @@ TEST(FutureVoid, GetUnblocksAfterSetValue) {
     });
 
     ASSERT_TRUE(done.load(std::memory_order_relaxed));
+}
+
+TEST(FutureRef, PromiseAlreadySatisfiedThrows) {
+    auto p = coopsync_tbb::promise<int&>{};
+    auto f = p.get_future();
+    int x = 0;
+    p.set_value(x);
+    EXPECT_THROW(p.set_value(x), coopsync_tbb::future_error);
+    EXPECT_THROW(
+        p.set_exception(std::make_exception_ptr(std::runtime_error("boom"))),
+        coopsync_tbb::future_error);
 }
 
 TEST(FutureRef, GetReturnsReference) {
