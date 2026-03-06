@@ -30,8 +30,7 @@ void counting_semaphore<1>::release(std::ptrdiff_t update) {
         return;
     }
 
-    assert(m_available.load(std::memory_order_acquire) ==
-           false);  // LCOV_EXCL_LINE
+    assert(!m_available.load(std::memory_order_acquire));  // LCOV_EXCL_LINE
     m_available.store(true, std::memory_order_release);
     m_waiters.resume_one();
 }

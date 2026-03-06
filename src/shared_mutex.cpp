@@ -24,13 +24,13 @@ void shared_mutex::lock() {
 
     // Post direct handoff, the state should be already locked on the writer's
     // behalf.
-    assert(m_state.load(std::memory_order_acquire) ==
-           k_writer_locked);  // LCOV_EXCL_LINE
+    assert(m_state.load(std::memory_order_acquire) ==  // LCOV_EXCL_LINE
+           k_writer_locked);
 }
 
 void shared_mutex::unlock() {
-    assert(m_state.load(std::memory_order_acquire) ==
-           k_writer_locked);  // LCOV_EXCL_LINE
+    assert(m_state.load(std::memory_order_acquire) ==  // LCOV_EXCL_LINE
+           k_writer_locked);
 
     // Direct handoff to a waiting writer if there is any.
     if (m_writer_waiters.resume_one()) {

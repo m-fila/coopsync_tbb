@@ -239,8 +239,8 @@ inline void counting_semaphore<LeastMaxValue>::release(std::ptrdiff_t update) {
 
     const auto prev = m_counter.fetch_add(static_cast<storage_t>(update),
                                           std::memory_order_release);
-    assert(update <=
-           max() - static_cast<std::ptrdiff_t>(prev));  // LCOV_EXCL_LINE
+    assert(update <=  // LCOV_EXCL_LINE
+           max() - static_cast<std::ptrdiff_t>(prev));
 
     // Wake up to `update` waiters; any unused permits stay in m_counter.
     m_waiters.resume_n(update);
