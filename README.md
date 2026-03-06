@@ -1,8 +1,9 @@
 # CoopSync for TBB
 
+[![documentation](https://img.shields.io/badge/docs-latest-blue.svg)](https://m-fila.github.io/coopsync_tbb/)
 [![tests](https://github.com/m-fila/coopsync_tbb/actions/workflows/tests.yml/badge.svg)](https://github.com/m-fila/coopsync_tbb/actions/workflows/tests.yml)
 [![sanitizers](https://github.com/m-fila/coopsync_tbb/actions/workflows/sanitizers.yml/badge.svg)](https://github.com/m-fila/coopsync_tbb/actions/workflows/sanitizers.yml)
-[![](https://img.shields.io/badge/docs-dev-blue.svg)](https://m-fila.github.io/coopsync_tbb/)
+[![codecov](https://codecov.io/gh/m-fila/coopsync_tbb/graph/badge.svg?token=IKWQ0R4I2F)](https://codecov.io/gh/m-fila/coopsync_tbb)
 
 Cooperative synchronization primitives for TBB resumable tasks
 
