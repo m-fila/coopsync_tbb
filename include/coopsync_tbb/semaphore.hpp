@@ -100,7 +100,7 @@ class counting_semaphore {
     /// @note The destructor must not be called while there are still tasks
     /// waiting on the counting_semaphore. The destructor does not notify or
     /// resume any waiting tasks.
-    ~counting_semaphore() = default;
+    ~counting_semaphore();
 
     /// @brief Releases the semaphore, incrementing the counter by the specified
     /// update. If there are tasks suspended on the semaphore and the counter
@@ -161,7 +161,7 @@ class counting_semaphore<1> {
     /// @note The destructor must not be called while there are still tasks
     /// waiting on the counting_semaphore. The destructor does not notify or
     /// resume any waiting tasks.
-    ~counting_semaphore() = default;
+    ~counting_semaphore();
 
     /// @brief Releases the semaphore incrementing the counter by the specified
     /// update. If there are tasks suspended on the semaphore and the counter
@@ -204,6 +204,11 @@ inline counting_semaphore<LeastMaxValue>::counting_semaphore(
 }
 
 template <std::ptrdiff_t LeastMaxValue>
+inline counting_semaphore<LeastMaxValue>::~counting_semaphore() {
+    assert(m_waiters.empty());  // LCOV_EXCL_LINE
+}
+
+template <std::ptrdiff_t LeastMaxValue>
 inline constexpr std::ptrdiff_t
 counting_semaphore<LeastMaxValue>::max() noexcept {
     return static_cast<std::ptrdiff_t>(std::numeric_limits<storage_t>::max());
@@ -239,8 +244,8 @@ inline void counting_semaphore<LeastMaxValue>::release(std::ptrdiff_t update) {
 
     const auto prev = m_counter.fetch_add(static_cast<storage_t>(update),
                                           std::memory_order_release);
-    assert(update <=
-           max() - static_cast<std::ptrdiff_t>(prev));  // LCOV_EXCL_LINE
+    assert(update <=  // LCOV_EXCL_LINE
+           max() - static_cast<std::ptrdiff_t>(prev));
 
     // Wake up to `update` waiters; any unused permits stay in m_counter.
     m_waiters.resume_n(update);

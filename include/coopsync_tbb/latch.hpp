@@ -38,7 +38,7 @@ class latch {
     /// @note The destructor must not be called while there are still tasks
     /// waiting on the latch. The destructor does not notify or resume any
     /// waiting tasks.
-    ~latch() = default;
+    ~latch();
 
     /// @brief Returns the maximum value for the latch counter.
     /// @return The maximum value for the latch counter.

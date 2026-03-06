@@ -7,6 +7,10 @@ counting_semaphore<1>::counting_semaphore(std::ptrdiff_t desired)
     assert(desired == 0 || desired == 1);  // LCOV_EXCL_LINE
 }
 
+counting_semaphore<1>::~counting_semaphore() {
+    assert(m_waiters.empty());  // LCOV_EXCL_LINE
+}
+
 bool counting_semaphore<1>::try_acquire() {
     auto expected = true;
     const auto desired = false;
@@ -30,8 +34,7 @@ void counting_semaphore<1>::release(std::ptrdiff_t update) {
         return;
     }
 
-    assert(m_available.load(std::memory_order_acquire) ==
-           false);  // LCOV_EXCL_LINE
+    assert(!m_available.load(std::memory_order_acquire));  // LCOV_EXCL_LINE
     m_available.store(true, std::memory_order_release);
     m_waiters.resume_one();
 }

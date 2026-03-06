@@ -2,6 +2,10 @@
 
 namespace coopsync_tbb {
 
+latch::~latch() {
+    assert(m_waiters.empty());  // LCOV_EXCL_LINE
+}
+
 latch::latch(std::ptrdiff_t expected) : m_counter(expected) {
     assert(expected >= 0);      // LCOV_EXCL_LINE
     assert(expected <= max());  // LCOV_EXCL_LINE

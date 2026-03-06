@@ -50,6 +50,14 @@ enum class status : unsigned char {
 
 struct shared_state_base {
 
+    shared_state_base() = default;
+    shared_state_base(const shared_state_base&) = delete;
+    shared_state_base& operator=(const shared_state_base&) = delete;
+    shared_state_base(shared_state_base&&) = delete;
+    shared_state_base& operator=(shared_state_base&&) = delete;
+
+    ~shared_state_base() { assert(waiters.empty()); }  // LCOV_EXCL_LINE
+
     detail::wait_queue waiters;
 
     std::atomic<status> state{status::empty};
