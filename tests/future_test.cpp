@@ -238,7 +238,7 @@ TEST(PackagedTask, RunsAndSetsValue) {
     ASSERT_EQ(result.load(std::memory_order_relaxed), expected);
 }
 
-TEST(PackagedTaskVoid, RunsAndUnblocksFuture) {
+TEST(PackagedTask, RunsAndUnblocksFuture) {
     auto x = std::atomic<int>{0};
     auto task = coopsync_tbb::packaged_task<void()>([&] { x.fetch_add(1); });
     auto f = task.get_future();
@@ -280,6 +280,11 @@ TEST(PackagedTask, ResetCreatesNewSharedState) {
     auto f2 = task.get_future();
     task();
     ASSERT_EQ(f2.get(), 2);
+}
+
+TEST(PackagedTask, ResetWithNoStateThrows) {
+    auto task = coopsync_tbb::packaged_task<int()>();
+    EXPECT_THROW(task.reset(), coopsync_tbb::future_error);
 }
 
 TEST(PackagedTask, MoveTransfersValidity) {
