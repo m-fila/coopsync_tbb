@@ -3,8 +3,8 @@
 namespace coopsync_tbb {
 
 latch::latch(std::ptrdiff_t expected) : m_counter(expected) {
-    assert(expected >= 0);
-    assert(expected <= max());
+    assert(expected >= 0);      // LCOV_EXCL_LINE
+    assert(expected <= max());  // LCOV_EXCL_LINE
 }
 
 bool latch::try_wait() const noexcept {
@@ -17,9 +17,9 @@ void latch::arrive_and_wait(std::ptrdiff_t update) {
 }
 
 void latch::count_down(std::ptrdiff_t update) {
-    assert(update >= 0);
+    assert(update >= 0);  // LCOV_EXCL_LINE
     auto prev = m_counter.fetch_sub(update, std::memory_order_acq_rel);
-    assert(prev >= update);
+    assert(prev >= update);  // LCOV_EXCL_LINE
     if (prev == update) {
         m_waiters.resume_all();
     }
@@ -32,7 +32,7 @@ void latch::wait() {
     }
 
     // Post resumption, the latch counter has reached zero.
-    assert(m_counter.load(std::memory_order_acquire) == 0);
+    assert(m_counter.load(std::memory_order_acquire) == 0);  // LCOV_EXCL_LINE
 }
 
 }  // namespace coopsync_tbb

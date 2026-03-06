@@ -3,7 +3,7 @@
 namespace coopsync_tbb::detail {
 
 wait_queue::~wait_queue() {
-    assert(m_waiters.empty());
+    assert(m_waiters.empty());  // LCOV_EXCL_LINE
 }
 
 bool wait_queue::resume_one() {
@@ -24,13 +24,13 @@ void wait_queue::resume_all() {
     {
         tbb::spin_mutex::scoped_lock lock(m_waiters_mutex);
         waiters_to_resume.swap(m_waiters);
-        assert(m_waiters.empty());
+        assert(m_waiters.empty());  // LCOV_EXCL_LINE
     }
     do_resume_all(waiters_to_resume);
 }
 
 std::ptrdiff_t wait_queue::resume_n(std::ptrdiff_t n) {
-    assert(n >= 0);
+    assert(n >= 0);  // LCOV_EXCL_LINE
     if (n == 0) {
         return 0;
     }

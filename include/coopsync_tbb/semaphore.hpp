@@ -199,8 +199,8 @@ template <std::ptrdiff_t LeastMaxValue>
 inline counting_semaphore<LeastMaxValue>::counting_semaphore(
     std::ptrdiff_t desired)
     : m_counter(desired) {
-    assert(desired >= 0);
-    assert(desired <= max());
+    assert(desired >= 0);      // LCOV_EXCL_LINE
+    assert(desired <= max());  // LCOV_EXCL_LINE
 }
 
 template <std::ptrdiff_t LeastMaxValue>
@@ -232,14 +232,15 @@ inline void counting_semaphore<LeastMaxValue>::acquire() {
 
 template <std::ptrdiff_t LeastMaxValue>
 inline void counting_semaphore<LeastMaxValue>::release(std::ptrdiff_t update) {
-    assert(update >= 0);
+    assert(update >= 0);  // LCOV_EXCL_LINE
     if (update == 0) {
         return;
     }
 
     const auto prev = m_counter.fetch_add(static_cast<storage_t>(update),
                                           std::memory_order_release);
-    assert(update <= max() - static_cast<std::ptrdiff_t>(prev));
+    assert(update <=
+           max() - static_cast<std::ptrdiff_t>(prev));  // LCOV_EXCL_LINE
 
     // Wake up to `update` waiters; any unused permits stay in m_counter.
     m_waiters.resume_n(update);

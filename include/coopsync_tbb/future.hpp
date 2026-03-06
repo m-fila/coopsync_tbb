@@ -89,7 +89,7 @@ struct shared_state_base {
 
     void wait() {
         waiters.wait_if([this] { return !ready(); });
-        assert(ready());
+        assert(ready());  // LCOV_EXCL_LINE
     }
 };
 
@@ -187,7 +187,7 @@ class future_base {
         if (st == status::broken) {
             throw future_error(std::future_errc::broken_promise);
         }
-        assert(st == status::value);
+        assert(st == status::value);  // LCOV_EXCL_LINE
     }
 
     /// @brief Marks the shared state as consumed.
@@ -359,7 +359,7 @@ class future : private detail::future::future_base<T> {
         this->throw_if_exception_or_broken();
         this->mark_consumed();
 
-        assert(this->m_state->value.has_value());
+        assert(this->m_state->value.has_value());  // LCOV_EXCL_LINE
         auto out = std::move(*this->m_state->value);
         this->reset();
         return out;
@@ -504,7 +504,7 @@ class future<T&> : private detail::future::future_base<T&> {
         this->throw_if_exception_or_broken();
         this->mark_consumed();
 
-        assert(this->m_state->value != nullptr);
+        assert(this->m_state->value != nullptr);  // LCOV_EXCL_LINE
         T* out = this->m_state->value;
         this->reset();
         return *out;
@@ -571,7 +571,7 @@ class shared_future : private detail::future::future_base<T> {
         this->ensure_valid();
         this->m_state->wait();
         this->throw_if_exception_or_broken();
-        assert(this->m_state->value.has_value());
+        assert(this->m_state->value.has_value());  // LCOV_EXCL_LINE
         return *this->m_state->value;
     }
 
@@ -710,7 +710,7 @@ class shared_future<T&> : private detail::future::future_base<T&> {
         this->ensure_valid();
         this->m_state->wait();
         this->throw_if_exception_or_broken();
-        assert(this->m_state->value != nullptr);
+        assert(this->m_state->value != nullptr);  // LCOV_EXCL_LINE
         return *this->m_state->value;
     }
 

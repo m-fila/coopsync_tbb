@@ -3,9 +3,9 @@
 namespace coopsync_tbb {
 
 shared_mutex::~shared_mutex() {
-    assert(m_state.load(std::memory_order_acquire) == 0);
-    assert(m_writer_waiters.empty());
-    assert(m_reader_waiters.empty());
+    assert(m_state.load(std::memory_order_acquire) == 0);  // LCOV_EXCL_LINE
+    assert(m_writer_waiters.empty());                      // LCOV_EXCL_LINE
+    assert(m_reader_waiters.empty());                      // LCOV_EXCL_LINE
 }
 
 bool shared_mutex::try_lock() noexcept {
@@ -24,11 +24,13 @@ void shared_mutex::lock() {
 
     // Post direct handoff, the state should be already locked on the writer's
     // behalf.
-    assert(m_state.load(std::memory_order_acquire) == k_writer_locked);
+    assert(m_state.load(std::memory_order_acquire) ==
+           k_writer_locked);  // LCOV_EXCL_LINE
 }
 
 void shared_mutex::unlock() {
-    assert(m_state.load(std::memory_order_acquire) == k_writer_locked);
+    assert(m_state.load(std::memory_order_acquire) ==
+           k_writer_locked);  // LCOV_EXCL_LINE
 
     // Direct handoff to a waiting writer if there is any.
     if (m_writer_waiters.resume_one()) {
@@ -62,7 +64,7 @@ void shared_mutex::unlock_shared() {
     // Decrement readers. The last reader performs the handoff.
     int state = m_state.load(std::memory_order_acquire);
     while (true) {
-        assert(state >= 1);
+        assert(state >= 1);  // LCOV_EXCL_LINE
 
         if (state > 1) {
             if (m_state.compare_exchange_weak(state, state - 1,
