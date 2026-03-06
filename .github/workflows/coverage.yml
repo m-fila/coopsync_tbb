@@ -1,0 +1,75 @@
+name: coverage
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  coverage:
+    name: Build + Test + Coverage (gcc)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake gcc g++ lcov
+
+      - name: Configure + build
+        run: |
+          cmake --preset coverage
+          cmake --build --preset coverage
+
+      - name: Baseline coverage
+        run: |
+          lcov --capture --initial \
+            --directory build \
+            --base-directory . \
+            --ignore-errors mismatch,source \
+            --output-file baseline.info \
+            --rc branch_coverage=1 \
+            --exclude "*/_deps/*"
+
+      - name: Run tests
+        run: |
+          ctest --preset coverage --output-on-failure
+
+      - name: Capture coverage
+        run: |
+          lcov --capture \
+            --directory build \
+            --base-directory . \
+            --ignore-errors mismatch,source \
+            --output-file test.info \
+            --rc branch_coverage=1 \
+            --exclude "*/_deps/*"
+
+      - name: Merge and filter coverage
+        run: |
+          lcov --add-tracefile baseline.info \
+               --add-tracefile test.info \
+               --output-file coverage.info \
+               --ignore-errors mismatch \
+               --rc branch_coverage=1
+          lcov --remove coverage.info \
+               '/usr/*' \
+               '*/tests/*' \
+               --output-file coverage.info \
+               --rc branch_coverage=1
+          lcov --list coverage.info --rc branch_coverage=1
+
+      - name: Upload to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          files: coverage.info
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: true
+          token: ${{ secrets.CODECOV_TOKEN }}
