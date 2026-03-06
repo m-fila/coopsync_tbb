@@ -37,7 +37,7 @@ TEST(Future, BrokenPromiseThrows) {
         // p is destroyed without set_value
     }
 
-    EXPECT_THROW(std::ignore = f.get(), coopsync_tbb::future_error);
+    EXPECT_THROW(f.get(), coopsync_tbb::future_error);
 }
 
 TEST(Future, ExceptionPropagates) {
@@ -46,7 +46,7 @@ TEST(Future, ExceptionPropagates) {
 
     p.set_exception(std::make_exception_ptr(std::runtime_error("boom")));
 
-    EXPECT_THROW(std::ignore = f.get(), std::runtime_error);
+    EXPECT_THROW(f.get(), std::runtime_error);
 }
 
 TEST(Future, GetReturnsValue) {
@@ -237,7 +237,7 @@ TEST(PackagedTask, ExceptionIsStoredInFuture) {
 
     tbb::parallel_for(0, 2, [&](int i) {
         if (i == 0) {
-            EXPECT_THROW(std::ignore = f.get(), std::runtime_error);
+            EXPECT_THROW(f.get(), std::runtime_error);
         } else {
             EXPECT_NO_THROW(task());
         }
