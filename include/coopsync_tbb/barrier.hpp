@@ -118,8 +118,8 @@ inline barrier<CompletionFunction>::barrier(std::ptrdiff_t expected,
       m_initial_expected(expected),
       m_expected(expected),
       m_phase(0) {
-    assert(expected >= 0);
-    assert(expected <= max());
+    assert(expected >= 0);      // LCOV_EXCL_LINE
+    assert(expected <= max());  // LCOV_EXCL_LINE
 }
 
 template <typename CompletionFunction>
@@ -130,12 +130,12 @@ inline constexpr std::ptrdiff_t barrier<CompletionFunction>::max() noexcept {
 template <typename CompletionFunction>
 inline typename barrier<CompletionFunction>::arrival_token
 barrier<CompletionFunction>::arrive(std::ptrdiff_t update) {
-    assert(update >= 0);
+    assert(update >= 0);  // LCOV_EXCL_LINE
 
     const auto phase = m_phase.load(std::memory_order_relaxed);
     const auto expected =
         m_expected.fetch_sub(update, std::memory_order_acq_rel);
-    assert(expected >= 0);
+    assert(expected >= 0);  // LCOV_EXCL_LINE
 
     // Last arrival for this phase.
     if (expected == update) {
@@ -164,7 +164,7 @@ inline void barrier<CompletionFunction>::wait(arrival_token arrival) {
         if (arrival.m_phase == previous_phase) {
             return;
         }
-        assert(arrival.m_phase == current_phase);
+        assert(arrival.m_phase == current_phase);  // LCOV_EXCL_LINE
     }
 
     const auto arrival_phase = arrival.m_phase;
@@ -182,7 +182,7 @@ template <typename CompletionFunction>
 inline void barrier<CompletionFunction>::arrive_and_drop() {
     const auto prev =
         m_initial_expected.fetch_sub(1, std::memory_order_acq_rel);
-    assert(prev > 0);
+    assert(prev > 0);  // LCOV_EXCL_LINE
     std::ignore = arrive(1);
 }
 

@@ -5,7 +5,7 @@
 namespace coopsync_tbb {
 
 condition_variable::~condition_variable() {
-    assert(m_waiters.empty());
+    assert(m_waiters.empty());  // LCOV_EXCL_LINE
 }
 
 void condition_variable::notify_one() {

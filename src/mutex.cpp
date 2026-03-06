@@ -18,7 +18,7 @@ void mutex::lock() {
 }
 
 void mutex::unlock() {
-    assert(m_locked.load(std::memory_order_acquire));
+    assert(m_locked.load(std::memory_order_acquire));  // LCOV_EXCL_LINE
     m_locked.store(false, std::memory_order_release);
 
     // Wake a single waiter (if any). The woken task will retry try_lock().

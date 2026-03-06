@@ -57,7 +57,7 @@ class intrusive_list {
     /// while it is in the list.
     void push_back(node &node) noexcept {
         assert_invariants();
-        assert(node.next == nullptr);
+        assert(node.next == nullptr);  // LCOV_EXCL_LINE
         if (m_tail) {
             m_tail->next = &node;
         } else {
@@ -104,8 +104,8 @@ class intrusive_list {
     node *m_tail = nullptr;  /// Pointer to the last node in the list, or
                              /// nullptr if the list is empty.
     inline void assert_invariants() const noexcept {
-        assert((m_head == nullptr) == (m_tail == nullptr));
-        assert(!m_tail || m_tail->next == nullptr);
+        assert((m_head == nullptr) == (m_tail == nullptr));  // LCOV_EXCL_LINE
+        assert(!m_tail || m_tail->next == nullptr);          // LCOV_EXCL_LINE
     }
 };
 

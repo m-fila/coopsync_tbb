@@ -4,7 +4,7 @@ namespace coopsync_tbb {
 
 counting_semaphore<1>::counting_semaphore(std::ptrdiff_t desired)
     : m_available(desired) {
-    assert(desired == 0 || desired == 1);
+    assert(desired == 0 || desired == 1);  // LCOV_EXCL_LINE
 }
 
 bool counting_semaphore<1>::try_acquire() {
@@ -23,14 +23,15 @@ void counting_semaphore<1>::acquire() {
 }
 
 void counting_semaphore<1>::release(std::ptrdiff_t update) {
-    assert(update >= 0);
+    assert(update >= 0);  // LCOV_EXCL_LINE
 
     // No permits returned
     if (update == 0) {
         return;
     }
 
-    assert(m_available.load(std::memory_order_acquire) == false);
+    assert(m_available.load(std::memory_order_acquire) ==
+           false);  // LCOV_EXCL_LINE
     m_available.store(true, std::memory_order_release);
     m_waiters.resume_one();
 }

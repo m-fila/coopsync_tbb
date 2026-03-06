@@ -67,6 +67,38 @@ TEST(BinarySemaphore, NoContentionTryAcquireRelease) {
     }
 }
 
+TEST(CountingSemaphore, ReleaseZeroDoesNothing) {
+    const auto lmax = 5;
+
+    {
+        auto sem = coopsync_tbb::counting_semaphore<lmax>(0);
+        sem.release(0);
+        ASSERT_FALSE(sem.try_acquire());
+    }
+
+    {
+        auto sem = coopsync_tbb::counting_semaphore<lmax>(2);
+        sem.release(0);
+        ASSERT_TRUE(sem.try_acquire());
+        ASSERT_TRUE(sem.try_acquire());
+        ASSERT_FALSE(sem.try_acquire());
+    }
+}
+
+TEST(BinarySemaphore, ReleaseZeroDoesNothing) {
+    {
+        auto sem = coopsync_tbb::binary_semaphore(0);
+        sem.release(0);
+        ASSERT_FALSE(sem.try_acquire());
+    }
+    {
+        auto sem = coopsync_tbb::binary_semaphore(1);
+        sem.release(0);
+        ASSERT_TRUE(sem.try_acquire());
+        ASSERT_FALSE(sem.try_acquire());
+    }
+}
+
 TEST(CountingSemaphore, ReleaseAccumulatesPermits) {
     const auto lmax = 5;
     auto sem = coopsync_tbb::counting_semaphore<lmax>(0);
