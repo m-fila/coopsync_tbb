@@ -100,7 +100,7 @@ class counting_semaphore {
     /// @note The destructor must not be called while there are still tasks
     /// waiting on the counting_semaphore. The destructor does not notify or
     /// resume any waiting tasks.
-    ~counting_semaphore() = default;
+    ~counting_semaphore();
 
     /// @brief Releases the semaphore, incrementing the counter by the specified
     /// update. If there are tasks suspended on the semaphore and the counter
@@ -161,7 +161,7 @@ class counting_semaphore<1> {
     /// @note The destructor must not be called while there are still tasks
     /// waiting on the counting_semaphore. The destructor does not notify or
     /// resume any waiting tasks.
-    ~counting_semaphore() = default;
+    ~counting_semaphore();
 
     /// @brief Releases the semaphore incrementing the counter by the specified
     /// update. If there are tasks suspended on the semaphore and the counter
@@ -201,6 +201,11 @@ inline counting_semaphore<LeastMaxValue>::counting_semaphore(
     : m_counter(desired) {
     assert(desired >= 0);      // LCOV_EXCL_LINE
     assert(desired <= max());  // LCOV_EXCL_LINE
+}
+
+template <std::ptrdiff_t LeastMaxValue>
+inline counting_semaphore<LeastMaxValue>::~counting_semaphore() {
+    assert(m_waiters.empty());  // LCOV_EXCL_LINE
 }
 
 template <std::ptrdiff_t LeastMaxValue>

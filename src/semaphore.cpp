@@ -7,6 +7,10 @@ counting_semaphore<1>::counting_semaphore(std::ptrdiff_t desired)
     assert(desired == 0 || desired == 1);  // LCOV_EXCL_LINE
 }
 
+counting_semaphore<1>::~counting_semaphore() {
+    assert(m_waiters.empty());  // LCOV_EXCL_LINE
+}
+
 bool counting_semaphore<1>::try_acquire() {
     auto expected = true;
     const auto desired = false;

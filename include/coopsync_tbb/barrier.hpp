@@ -56,7 +56,7 @@ class barrier {
     /// @note The destructor must not be called while there are still tasks
     /// waiting on the barrier. The destructor doesn not notify or resume any
     /// waiting tasks.
-    ~barrier() = default;
+    ~barrier();
 
     /// @brief Returns the maximum value for the barrier counter.
     /// @return The maximum value for the barrier counter.
@@ -120,6 +120,11 @@ inline barrier<CompletionFunction>::barrier(std::ptrdiff_t expected,
       m_phase(0) {
     assert(expected >= 0);      // LCOV_EXCL_LINE
     assert(expected <= max());  // LCOV_EXCL_LINE
+}
+
+template <typename CompletionFunction>
+inline barrier<CompletionFunction>::~barrier() {
+    assert(m_waiters.empty());  // LCOV_EXCL_LINE
 }
 
 template <typename CompletionFunction>

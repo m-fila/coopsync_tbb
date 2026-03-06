@@ -2,6 +2,10 @@
 
 namespace coopsync_tbb {
 
+mutex::~mutex() {
+    assert(m_wait_queue.empty());  // LCOV_EXCL_LINE
+}
+
 bool mutex::try_lock() noexcept {
     bool expected = false;
     const bool desired = true;

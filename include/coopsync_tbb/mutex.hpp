@@ -42,7 +42,7 @@ class mutex {
     /// @note The destructor must not be called while the mutex is still locked
     /// or while there are tasks suspended on it. The destructor does not notify
     /// or resume any waiting tasks.
-    ~mutex() = default;
+    ~mutex();
 
     /// @brief Attempts to acquire the mutex without suspending.
     /// @return true if the mutex was successfully acquired, false otherwise.
