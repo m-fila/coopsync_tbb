@@ -29,8 +29,12 @@ jobs:
 
       - name: Baseline coverage
         run: |
-          lcov --capture --initial --directory build --base-directory . --output-file baseline.info \
-            --rc lcov_branch_coverage=1
+          lcov --capture --initial \
+            --directory build \
+            --base-directory . \
+            --ignore-errors mismatch \
+            --output-file baseline.info \
+            --rc branch_coverage=1
 
       - name: Run tests
         run: |
@@ -38,22 +42,27 @@ jobs:
 
       - name: Capture coverage
         run: |
-          lcov --capture --directory build --base-directory . --output-file test.info \
-            --rc lcov_branch_coverage=1
+          lcov --capture \
+            --directory build \
+            --base-directory . \
+            --ignore-errors mismatch \
+            --output-file test.info \
+            --rc branch_coverage=1
 
-      - name: Collect coverage (lcov)
+      - name: Merge and filter coverage
         run: |
-          lcov --add-tracefile baseline.info --add-tracefile test.info \
-            --output-file coverage.info \
-            --rc lcov_branch_coverage=1
+          lcov --add-tracefile baseline.info \
+               --add-tracefile test.info \
+               --output-file coverage.info \
+               --rc branch_coverage=1
           lcov --remove coverage.info \
-            '/usr/*' \
-            '*/_deps/*' \
-            '*/tests/*' \
-            '*/cmake/downstream/*' \
-            --output-file coverage.info \
-            --rc lcov_branch_coverage=1
-          lcov --list coverage.info --rc lcov_branch_coverage=1
+               '/usr/*' \
+               '*/_deps/*' \
+               '*/tests/*' \
+               '*/cmake/downstream/*' \
+               --output-file coverage.info \
+               --rc branch_coverage=1
+          lcov --list coverage.info --rc branch_coverage=1
 
       - name: Upload to Codecov
         uses: codecov/codecov-action@v5
