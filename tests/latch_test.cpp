@@ -44,3 +44,12 @@ TEST(Latch, ContentionWait) {
 
     ASSERT_TRUE(latch.try_wait());
 }
+
+TEST(Latch, ContentionArriveAndWait) {
+    const auto arrivals = 16;
+    auto latch = coopsync_tbb::latch(arrivals);
+
+    tbb::parallel_for(0, arrivals, [&](int) { latch.arrive_and_wait(); });
+
+    ASSERT_TRUE(latch.try_wait());
+}
