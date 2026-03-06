@@ -22,15 +22,27 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y cmake gcc g++ lcov
 
-      - name: Configure, build, test (coverage preset)
-        run: cmake --workflow --preset coverage
+      - name: Configure + build
+        run: |
+          cmake --preset coverage
+          cmake --build --preset coverage
 
-      - name: Collect coverage (lcov)
+      - name: Baseline coverage
         run: |
           lcov --capture --initial --directory build --base-directory . --output-file baseline.info \
             --rc lcov_branch_coverage=1
+
+      - name: Run tests
+        run: |
+          ctest --preset coverage --output-on-failure
+
+      - name: Capture coverage
+        run: |
           lcov --capture --directory build --base-directory . --output-file test.info \
             --rc lcov_branch_coverage=1
+
+      - name: Collect coverage (lcov)
+        run: |
           lcov --add-tracefile baseline.info --add-tracefile test.info \
             --output-file coverage.info \
             --rc lcov_branch_coverage=1
