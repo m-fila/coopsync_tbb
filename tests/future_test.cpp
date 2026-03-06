@@ -177,6 +177,17 @@ TEST(PackagedTask, DefaultConstructedInvalid) {
     EXPECT_THROW(task(), coopsync_tbb::future_error);
 }
 
+TEST(PackagedTask, EmptyStdFunctionStillAllocatesState) {
+    auto fn = std::function<int()>{};
+    auto task = coopsync_tbb::packaged_task<int()>(fn);
+
+    EXPECT_TRUE(task.valid());
+    auto f = task.get_future();
+
+    task();
+    EXPECT_THROW(f.get(), std::bad_function_call);
+}
+
 TEST(PackagedTask, GetFutureOnlyOnce) {
     const auto expected = 123;
     auto task = coopsync_tbb::packaged_task<int()>([] { return expected; });
