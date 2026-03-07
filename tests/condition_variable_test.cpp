@@ -15,6 +15,16 @@ TEST(ConditionVariable, NotifyWithNoWaiters) {
     cv.notify_all();
 }
 
+TEST(ConditionVariable, WaitReturnsImmediatelyIfReady) {
+    auto m = coopsync_tbb::mutex{};
+    auto cv = coopsync_tbb::condition_variable{};
+    {
+        auto lock = std::unique_lock<coopsync_tbb::mutex>(m);
+        // Should not suspend or block.
+        cv.wait(lock, [&]() { return true; });
+    }
+}
+
 TEST(ConditionVariable, NotifyOne) {
     auto m = coopsync_tbb::mutex{};
     auto cv = coopsync_tbb::condition_variable{};
