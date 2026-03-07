@@ -8,6 +8,13 @@
 
 #include "coopsync_tbb/mutex.hpp"
 
+TEST(ConditionVariable, NotifyWithNoWaiters) {
+    auto cv = coopsync_tbb::condition_variable{};
+    // Should not crash or do anything.
+    cv.notify_one();
+    cv.notify_all();
+}
+
 TEST(ConditionVariable, NotifyOne) {
     auto m = coopsync_tbb::mutex{};
     auto cv = coopsync_tbb::condition_variable{};
