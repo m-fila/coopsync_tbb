@@ -39,7 +39,7 @@ class atomic_condition {
     /// @brief Constructs a new atomic_condition with the given initial value.
     /// This operation is not atomic.
     /// @param value A value to move-construct the internal atomic from.
-    explicit atomic_condition(value_type value);
+    explicit atomic_condition(T value);
 
     /// @brief The atomic_condition is not copy-constructible.
     atomic_condition(const atomic_condition&) = delete;
@@ -144,8 +144,7 @@ void atomic_notify_all(atomic_condition<T>& object);
 namespace coopsync_tbb {
 
 template <typename T>
-atomic_condition<T>::atomic_condition(value_type value)
-    : m_value(std::move(value)) {}
+atomic_condition<T>::atomic_condition(T value) : m_value(std::move(value)) {}
 
 template <typename T>
 atomic_condition<T>::~atomic_condition() {
