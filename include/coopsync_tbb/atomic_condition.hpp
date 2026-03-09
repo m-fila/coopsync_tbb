@@ -67,10 +67,13 @@ class atomic_condition {
     /// @param old The value to compare the internal atomic value to. The task
     /// will be suspended while the internal atomic value is equal to old.
     /// @param order The memory order to use for loading the internal atomic
-    /// value. Must not be \c std::memory_order_release or
-    /// \c std::memory_order_acq
+    /// value. Must not be \c std::memory_order_release or \c
+    /// std::memory_order_acq_rel.
     /// @note Due to ABA problem, transitions from old to a different value and
     /// back to old may be missed.
+    /// @note The comparison is done by bitwise comparison of the internal
+    /// atomic value and old, not by \c operator==. The comparison may be
+    /// affected by padding bytes.
     void wait(value_type old,
               std::memory_order order = std::memory_order_seq_cst);
 
@@ -103,8 +106,11 @@ class atomic_condition {
 /// @param object The atomic_condition to wait on.
 /// @param old The value to compare the internal atomic value to. The task will
 /// be suspended while the internal atomic value is equal to old.
-/// @param order The memory order to use for loading the internal atomic value.
-/// Must not be \c std::memory_order_release or \c std
+/// @note Due to ABA problem, transitions from old to a different value and
+/// back to old may be missed.
+/// @note The comparison is done by bitwise comparison of the internal atomic
+/// value and old, not by \c operator==. The comparison may be affected by
+/// padding bytes.
 template <typename T>
 void atomic_wait(atomic_condition<T>& object,
                  typename atomic_condition<T>::value_type old);
@@ -121,10 +127,15 @@ void atomic_wait(atomic_condition<T>& object,
 /// be suspended while the internal atomic value is equal to old.
 /// @param order The memory order to use for loading the internal atomic value.
 /// Must not be \c std::memory_order_release or \c std::memory_order_acq_rel.
+/// @note Due to ABA problem, transitions from old to a different value and
+/// back to old may be missed.
+/// @note The comparison is done by bitwise comparison of the internal atomic
+/// value and old, not by \c operator==. The comparison may be affected by
+/// padding bytes.
 template <typename T>
-void atomic_wait(atomic_condition<T>& object,
-                 typename atomic_condition<T>::value_type old,
-                 std::memory_order order);
+void atomic_wait_explicit(atomic_condition<T>& object,
+                          typename atomic_condition<T>::value_type old,
+                          std::memory_order order);
 
 /// @brief Resumes one task suspended waiting on the atomic_condition, if there
 /// is any.
@@ -214,9 +225,9 @@ inline void atomic_wait(atomic_condition<T>& object,
 }
 
 template <typename T>
-inline void atomic_wait(atomic_condition<T>& object,
-                        typename atomic_condition<T>::value_type old,
-                        std::memory_order order) {
+inline void atomic_wait_explicit(atomic_condition<T>& object,
+                                 typename atomic_condition<T>::value_type old,
+                                 std::memory_order order) {
     object.wait(old, order);
 }
 
