@@ -1,5 +1,6 @@
 #pragma once
 
+#include "coopsync_tbb/atomic_condition.hpp"
 #include "coopsync_tbb/barrier.hpp"
 #include "coopsync_tbb/condition_variable.hpp"
 #include "coopsync_tbb/future.hpp"
