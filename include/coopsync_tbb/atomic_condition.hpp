@@ -1,6 +1,7 @@
 #pragma once
 
 #include <atomic>
+#include <cstring>
 #include <type_traits>
 
 #include "coopsync_tbb/detail/wait_queue.hpp"
@@ -38,7 +39,7 @@ class atomic_condition {
     /// @brief Constructs a new atomic_condition with the given initial value.
     /// This operation is not atomic.
     /// @param value A value to move-construct the internal atomic from.
-    explicit atomic_condition(value_type value);
+    explicit atomic_condition(T value);
 
     /// @brief The atomic_condition is not copy-constructible.
     atomic_condition(const atomic_condition&) = delete;
@@ -143,8 +144,7 @@ void atomic_notify_all(atomic_condition<T>& object);
 namespace coopsync_tbb {
 
 template <typename T>
-atomic_condition<T>::atomic_condition(value_type value)
-    : m_value(std::move(value)) {}
+atomic_condition<T>::atomic_condition(T value) : m_value(std::move(value)) {}
 
 template <typename T>
 atomic_condition<T>::~atomic_condition() {
@@ -156,7 +156,13 @@ void atomic_condition<T>::wait(value_type old, std::memory_order order) {
     assert(order != std::memory_order_release);  // LCOV_EXCL_LINE
     assert(order != std::memory_order_acq_rel);  // LCOV_EXCL_LINE
 
-    while (m_value.load(order) == old) {
+    while (true) {
+        // bitwise comparison instead of operator==
+        // TODO make this ignore padding bytes
+        const auto current = m_value.load(order);
+        if (std::memcmp(&current, &old, sizeof(value_type)) != 0) {
+            break;
+        }
         m_waiters.wait_if([] { return true; });
     }
 }
