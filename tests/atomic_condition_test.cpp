@@ -85,20 +85,40 @@ TEST(AtomicCondition, NotifyAllUnblocksAllWaiters) {
 }
 
 TEST(AtomicCondition, FreeFunctions) {
-    auto cond = coopsync_tbb::atomic_condition<int>(0);
-    auto done = std::atomic<int>{0};
+    {
+        auto cond = coopsync_tbb::atomic_condition<int>(0);
+        auto done = std::atomic<int>{0};
 
-    tbb::parallel_for(0, 2, [&](int i) {
-        if (i == 0) {
-            coopsync_tbb::atomic_wait(cond, 0, std::memory_order_seq_cst);
-            done.store(1, std::memory_order_relaxed);
-        } else {
-            cond.atomic().store(1, std::memory_order_relaxed);
-            coopsync_tbb::atomic_notify_one(cond);
-        }
-    });
+        tbb::parallel_for(0, 2, [&](int i) {
+            if (i == 0) {
+                coopsync_tbb::atomic_wait_explicit(cond, 0,
+                                                   std::memory_order_seq_cst);
+                done.store(1, std::memory_order_relaxed);
+            } else {
+                cond.atomic().store(1, std::memory_order_relaxed);
+                coopsync_tbb::atomic_notify_one(cond);
+            }
+        });
 
-    ASSERT_EQ(done.load(std::memory_order_relaxed), 1);
+        ASSERT_EQ(done.load(std::memory_order_relaxed), 1);
+    }
+
+    {
+        auto cond = coopsync_tbb::atomic_condition<int>(0);
+        auto done = std::atomic<int>{0};
+
+        tbb::parallel_for(0, 2, [&](int i) {
+            if (i == 0) {
+                coopsync_tbb::atomic_wait(cond, 0);
+                done.store(1, std::memory_order_relaxed);
+            } else {
+                cond.atomic().store(1, std::memory_order_relaxed);
+                coopsync_tbb::atomic_notify_one(cond);
+            }
+        });
+
+        ASSERT_EQ(done.load(std::memory_order_relaxed), 1);
+    }
 }
 
 struct always_equal {
