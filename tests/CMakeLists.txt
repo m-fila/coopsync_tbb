@@ -8,6 +8,7 @@ add_executable(
   intrusive_list_test.cpp
   unique_scoped_lock_test.cpp
   # main classes
+  atomic_condition_test.cpp
   barrier_test.cpp
   condition_variable_test.cpp
   future_test.cpp

@@ -93,6 +93,7 @@ target_sources(
          include/coopsync_tbb/detail/unique_scoped_lock.hpp
          include/coopsync_tbb/detail/wait_queue.hpp
          # primitives
+         include/coopsync_tbb/atomic_condition.hpp
          include/coopsync_tbb/barrier.hpp
          include/coopsync_tbb/condition_variable.hpp
          include/coopsync_tbb/future.hpp
@@ -111,6 +112,7 @@ target_sources(
           src/unique_scoped_lock.cpp
           src/wait_queue.cpp
           # primitives
+          src/atomic_condition.cpp
           src/barrier.cpp
           src/condition_variable.cpp
           src/future.cpp
