@@ -100,3 +100,23 @@ TEST(AtomicCondition, FreeFunctions) {
 
     ASSERT_EQ(done.load(std::memory_order_relaxed), 1);
 }
+
+struct always_equal {
+    int value;
+};
+
+inline bool operator==(const always_equal&, const always_equal&) noexcept {
+    return true;
+}
+
+TEST(AtomicCondition, WaitUsesBitwiseComparison) {
+
+    const auto old = always_equal{0};
+    const auto new_value = always_equal{1};
+    ASSERT_EQ(old, new_value);
+
+    auto cond = coopsync_tbb::atomic_condition<always_equal>(old);
+    // should not suspend or hang since the the comparison is bitwise
+    // and the values are different
+    cond.wait(new_value);
+}
