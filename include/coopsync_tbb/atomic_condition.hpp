@@ -148,7 +148,7 @@ atomic_condition<T>::atomic_condition(value_type value)
 
 template <typename T>
 atomic_condition<T>::~atomic_condition() {
-    assert(m_waiters.empty());  // LC_EXCL_LINE
+    assert(m_waiters.empty());  // LCOV_EXCL_LINE
 }
 
 template <typename T>
