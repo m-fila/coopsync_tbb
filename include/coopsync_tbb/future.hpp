@@ -198,17 +198,6 @@ class future_base {
         assert(st == status::value);  // LCOV_EXCL_LINE
     }
 
-    /// @brief Marks the shared state as consumed.
-    /// @throws future_error with \c std::future_errc::future_already_retrieved.
-    void mark_consumed() {
-        bool expected = false;
-        if (!m_state->value_consumed.compare_exchange_strong(
-                expected, true, std::memory_order_acq_rel,
-                std::memory_order_relaxed)) {
-            throw future_error(std::future_errc::future_already_retrieved);
-        }
-    }
-
     /// @brief Releases the reference to the shared state.
     void reset() noexcept { m_state.reset(); }
 
@@ -365,7 +354,6 @@ class future : private detail::future::future_base<T> {
         this->ensure_valid();
         this->m_state->wait();
         this->throw_if_exception_or_broken();
-        this->mark_consumed();
 
         assert(this->m_state->value.has_value());  // LCOV_EXCL_LINE
         auto out = std::move(*this->m_state->value);
@@ -438,7 +426,6 @@ class future<void> : private detail::future::future_base<void> {
         this->ensure_valid();
         this->m_state->wait();
         this->throw_if_exception_or_broken();
-        this->mark_consumed();
         this->reset();
     }
 
@@ -510,7 +497,6 @@ class future<T&> : private detail::future::future_base<T&> {
         this->ensure_valid();
         this->m_state->wait();
         this->throw_if_exception_or_broken();
-        this->mark_consumed();
 
         assert(this->m_state->value != nullptr);  // LCOV_EXCL_LINE
         T* out = this->m_state->value;
