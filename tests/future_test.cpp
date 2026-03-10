@@ -71,6 +71,37 @@ TEST(Future, GetReturnsValue) {
     ASSERT_EQ(result.load(std::memory_order_relaxed), expected);
 }
 
+TEST(Future, NoContentionWaitGet) {
+    {
+        auto p = coopsync_tbb::promise<int>();
+        auto f = p.get_future();
+        p.set_value(1);
+        f.wait();
+        EXPECT_TRUE(f.valid());  // wait does not invalidate the future
+        ASSERT_EQ(f.get(), 1);
+        EXPECT_FALSE(f.valid());  // get invalidates the future
+    }
+}
+
+TEST(Future, WaitUnblocksAfterSetValue) {
+    auto p = coopsync_tbb::promise<int>();
+    auto f = p.get_future();
+
+    std::atomic<bool> done{false};
+
+    tbb::parallel_for(0, 2, [&](int i) {
+        if (i == 0) {
+            f.wait();
+            EXPECT_TRUE(f.valid());  // wait does not invalidate the future
+            done.store(true, std::memory_order_relaxed);
+        } else {
+            p.set_value(1);
+        }
+    });
+
+    ASSERT_TRUE(done.load(std::memory_order_relaxed));
+}
+
 TEST(FutureVoid, PromiseAlreadySatisfiedThrows) {
     auto p = coopsync_tbb::promise<void>{};
     auto f = p.get_future();
