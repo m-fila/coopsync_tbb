@@ -172,9 +172,12 @@ void atomic_condition<T>::wait(value_type old, std::memory_order order) {
         // TODO make this ignore padding bytes
         const auto current = m_value.load(order);
         if (std::memcmp(&current, &old, sizeof(value_type)) != 0) {
-            break;
+            return;
         }
-        m_waiters.wait_if([] { return true; });
+        m_waiters.wait_if([this, &old, order] {
+            const auto current = m_value.load(order);
+            return std::memcmp(&current, &old, sizeof(value_type)) == 0;
+        });
     }
 }
 
