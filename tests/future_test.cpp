@@ -62,6 +62,7 @@ TEST(Future, GetReturnsValue) {
     tbb::parallel_for(0, 2, [&](int i) {
         if (i == 0) {
             result.store(f.get(), std::memory_order_relaxed);
+            EXPECT_FALSE(f.valid());  // get invalidates the future
         } else {
             p.set_value(expected);
         }
@@ -89,6 +90,7 @@ TEST(FutureVoid, GetUnblocksAfterSetValue) {
     tbb::parallel_for(0, 2, [&](int i) {
         if (i == 0) {
             f.get();
+            EXPECT_FALSE(f.valid());  // get invalidates the future
             done.store(true, std::memory_order_relaxed);
         } else {
             p.set_value();
@@ -118,6 +120,7 @@ TEST(FutureRef, GetReturnsReference) {
     tbb::parallel_for(0, 2, [&](int i) {
         if (i == 0) {
             int& r = f.get();
+            EXPECT_FALSE(f.valid());  // get invalidates the future
             r = expected;
         } else {
             p.set_value(x);
