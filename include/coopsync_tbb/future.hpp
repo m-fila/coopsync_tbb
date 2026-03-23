@@ -62,8 +62,6 @@ struct shared_state_base {
 
     std::atomic<status> state{status::empty};
     std::atomic<bool> future_obtained{false};
-    std::atomic<bool> value_consumed{false};
-
     std::exception_ptr exception;
 
     bool ready() const noexcept {
