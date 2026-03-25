@@ -29,7 +29,7 @@ namespace detail {
 
 /// @brief Context for HIP callback to resume a suspended TBB task.
 struct context {
-    tbb::task::suspend_point suspend_point{};
+    ::tbb::task::suspend_point suspend_point{};
     hipError_t err{};
 };
 
@@ -42,14 +42,14 @@ static inline void resumption_callback(hipStream_t, hipError_t err,
                                        void* data) {
     auto* ctx = static_cast<detail::context*>(data);
     ctx->err = err;
-    tbb::task::resume(ctx->suspend_point);
+    ::tbb::task::resume(ctx->suspend_point);
 }
 
 struct wait_for_all_context {
     explicit wait_for_all_context(std::size_t pending_streams)
         : pending(pending_streams) {}
     std::atomic<std::size_t> pending{0};
-    tbb::task::suspend_point suspend_point{};
+    ::tbb::task::suspend_point suspend_point{};
 };
 
 struct wait_for_all_payload {
@@ -85,7 +85,7 @@ static inline void wait_for_all_status_callback(hipStream_t, hipError_t status,
     }
     if (payload->context->pending.fetch_sub(1, std::memory_order_acq_rel) ==
         1) {
-        tbb::task::resume(payload->context->suspend_point);
+        ::tbb::task::resume(payload->context->suspend_point);
     }
 }
 
@@ -100,7 +100,7 @@ static inline void wait_for_all_status_callback(hipStream_t, hipError_t status,
 COOPSYNC_TBB_HIP_NODISCARD static inline hipError_t wait_for(
     hipStream_t stream) {
     auto ctx = detail::context{};
-    tbb::task::suspend([stream, &ctx](tbb::task::suspend_point tag) {
+    ::tbb::task::suspend([stream, &ctx](::tbb::task::suspend_point tag) {
         ctx.suspend_point = tag;
         // Note: hipLaunchHostFunc is beta, using hipStreamAddCallback for now
         auto err =
@@ -137,7 +137,7 @@ wait_for_all(StreamTs... streams) {
     std::array<detail::wait_for_all_payload, sizeof...(StreamTs)> payloads = {
         {}};
 
-    tbb::task::suspend([&](tbb::task::suspend_point tag) {
+    ::tbb::task::suspend([&](::tbb::task::suspend_point tag) {
         state.suspend_point = tag;
         for (std::size_t i = 0; i < N; ++i) {
             payloads.at(i).context = &state;
@@ -151,7 +151,7 @@ wait_for_all(StreamTs... streams) {
                 // Callback won't run; exclude it from the pending count.
                 if (state.pending.fetch_sub(1, std::memory_order_acq_rel) ==
                     1) {
-                    tbb::task::resume(state.suspend_point);
+                    ::tbb::task::resume(state.suspend_point);
                 }
             }
         }

@@ -3,7 +3,6 @@
 #include <oneapi/tbb/spin_mutex.h>
 #include <oneapi/tbb/task.h>
 
-#include <cassert>
 #include <cstddef>
 #include <utility>
 
@@ -60,9 +59,9 @@ class wait_queue {
     void wait_if(Pred pred);
 
     private:
-    using waiter_t = tbb::task::suspend_point;
+    using waiter_t = ::tbb::task::suspend_point;
 
-    mutable tbb::spin_mutex m_waiters_mutex;
+    mutable ::tbb::spin_mutex m_waiters_mutex;
     intrusive_list<waiter_t> m_waiters;
 
     static void do_resume_all(intrusive_list<waiter_t>& waiters_to_resume);
@@ -81,12 +80,12 @@ void wait_queue::wait_if(Pred pred) {
     // node must remain valid until the task is resumed. It's a local
     // variable on a stack of suspended task which is preserved during
     // suspension so it isn't an issue.
-    tbb::task::suspend([this, &node, pred = std::move(pred)](
-                           tbb::task::suspend_point sp) mutable {
+    ::tbb::task::suspend([this, &node, pred = std::move(pred)](
+                             ::tbb::task::suspend_point sp) mutable {
         {
             // Re-check while holding the lock to avoid racing with a
             // resume_* call.
-            tbb::spin_mutex::scoped_lock waiters_lock(m_waiters_mutex);
+            ::tbb::spin_mutex::scoped_lock waiters_lock(m_waiters_mutex);
             if (pred()) {
                 node.value = sp;
                 m_waiters.push_back(node);
@@ -95,7 +94,7 @@ void wait_queue::wait_if(Pred pred) {
         }
 
         // Resume immediately in case the re-check succeeded.
-        tbb::task::resume(sp);
+        ::tbb::task::resume(sp);
     });
 }
 
