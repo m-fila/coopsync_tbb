@@ -35,14 +35,14 @@ static inline void resumption_callback(void* tag) {
     if (tag == nullptr) {
         return;
     }
-    tbb::task::resume(*static_cast<tbb::task::suspend_point*>(tag));
+    ::tbb::task::resume(*static_cast<::tbb::task::suspend_point*>(tag));
 }
 
 struct wait_for_all_context {
     explicit wait_for_all_context(size_t pending_streams = 0)
         : pending(pending_streams) {}
     std::atomic<std::size_t> pending{0};
-    tbb::task::suspend_point suspend_point{};
+    ::tbb::task::suspend_point suspend_point{};
 };
 
 template <typename T>
@@ -53,8 +53,8 @@ template <bool...>
 struct bool_pack;
 
 template <bool... Bs>
-struct all_true
-    : std::is_same<bool_pack<Bs..., true>, bool_pack<true, Bs...> > {};
+struct all_true : std::is_same<bool_pack<Bs..., true>, bool_pack<true, Bs...>> {
+};
 
 template <typename... Ts>
 struct all_cuda_stream : all_true<is_cuda_stream<Ts>::value...> {};
@@ -65,7 +65,7 @@ static inline void wait_for_all_callback(void* context) {
     }
     auto* wait_context = static_cast<wait_for_all_context*>(context);
     if (wait_context->pending.fetch_sub(1, std::memory_order_acq_rel) == 1) {
-        tbb::task::resume(wait_context->suspend_point);
+        ::tbb::task::resume(wait_context->suspend_point);
     }
 }
 
@@ -79,10 +79,10 @@ static inline void wait_for_all_callback(void* context) {
 /// immediately.
 COOPSYNC_TBB_CUDA_NODISCARD static inline cudaError_t wait_for(
     cudaStream_t stream) {
-    auto suspend_point = tbb::task::suspend_point{};
+    auto suspend_point = ::tbb::task::suspend_point{};
     auto err = cudaSuccess;
-    tbb::task::suspend(
-        [stream, &err, &suspend_point](tbb::task::suspend_point tag) {
+    ::tbb::task::suspend(
+        [stream, &err, &suspend_point](::tbb::task::suspend_point tag) {
             suspend_point = tag;
             // Note: cudaStreamAddCallback is pending for deprecation, using
             // cudaLaunchHostFunc instead.
@@ -118,7 +118,7 @@ wait_for_all(StreamTs... streams) {
 
     auto state = detail::wait_for_all_context(N);
 
-    tbb::task::suspend([&](tbb::task::suspend_point tag) {
+    ::tbb::task::suspend([&](::tbb::task::suspend_point tag) {
         state.suspend_point = tag;
         for (std::size_t i = 0; i < N; ++i) {
             const auto launch_err = cudaLaunchHostFunc(
@@ -129,7 +129,7 @@ wait_for_all(StreamTs... streams) {
                 // Callback won't run; exclude it from the pending count.
                 if (state.pending.fetch_sub(1, std::memory_order_acq_rel) ==
                     1) {
-                    tbb::task::resume(state.suspend_point);
+                    ::tbb::task::resume(state.suspend_point);
                 }
             }
         }
@@ -166,7 +166,7 @@ static inline OutputIt wait_for_all(InputIt first, InputIt last, OutputIt out) {
 
     auto state = detail::wait_for_all_context(n);
 
-    tbb::task::suspend([&](tbb::task::suspend_point tag) {
+    ::tbb::task::suspend([&](::tbb::task::suspend_point tag) {
         state.suspend_point = tag;
         for (InputIt it = first; it != last; ++it) {
             const auto launch_err =
@@ -178,7 +178,7 @@ static inline OutputIt wait_for_all(InputIt first, InputIt last, OutputIt out) {
                 // Callback won't run; exclude it from the pending count.
                 if (state.pending.fetch_sub(1, std::memory_order_acq_rel) ==
                     1) {
-                    tbb::task::resume(state.suspend_point);
+                    ::tbb::task::resume(state.suspend_point);
                 }
             }
         }
