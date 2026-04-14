@@ -379,7 +379,7 @@ class future : private detail::future::future_base<T> {
         : detail::future::future_base<T>(std::move(state)) {}
 };
 
-/// @brief Specialization of future for void type.
+/// @brief Specialization of \ref future for \c void type.
 template <>
 class future<void> : private detail::future::future_base<void> {
     public:
@@ -448,8 +448,8 @@ class future<void> : private detail::future::future_base<void> {
         : detail::future::future_base<void>(std::move(state)) {}
 };
 
-/// @brief Specialization of future for reference types.
-// @tparam T The type of the value that will be stored in the shared state.
+/// @brief Specialization of \ref future for reference types.
+/// @tparam T The type of the value that will be stored in the shared state.
 template <typename T>
 class future<T&> : private detail::future::future_base<T&> {
     public:
@@ -525,8 +525,8 @@ class future<T&> : private detail::future::future_base<T&> {
 
 /// @brief Copyable future that allows retrieving the result multiple times.
 ///
-/// Unlike future, shared_future does not consume the shared state when get()
-/// is called.
+/// Unlike \ref future, shared_future does not consume the shared state when
+/// get() is called.
 ///
 /// @tparam T The type of the value stored in the shared state.
 template <typename T>
@@ -593,7 +593,7 @@ class shared_future : private detail::future::future_base<T> {
         : detail::future::future_base<T>(std::move(state)) {}
 };
 
-/// @brief Specialization of shared_future for void type.
+/// @brief Specialization of \ref shared_future for \c void type.
 template <>
 class shared_future<void> : private detail::future::future_base<void> {
     public:
@@ -661,7 +661,7 @@ class shared_future<void> : private detail::future::future_base<void> {
         : detail::future::future_base<void>(std::move(state)) {}
 };
 
-/// @brief Specialization of shared_future for reference types.
+/// @brief Specialization of \ref shared_future for reference types.
 template <typename T>
 class shared_future<T&> : private detail::future::future_base<T&> {
     public:
@@ -750,8 +750,8 @@ shared_future<T&> future<T&>::share() {
 }
 
 /// @brief Promise holding a shared state with a value type. The promise is
-/// used to set the value in the shared state that can be retrieved by a future
-/// sharing the same state.
+/// used to set the value in the shared state that can be retrieved by a \ref
+/// future sharing the same state.
 /// @tparam T The type of the value that will be stored in the shared state.
 template <typename T>
 class promise : private detail::future::promise_base<T> {
@@ -835,8 +835,8 @@ class promise : private detail::future::promise_base<T> {
     }
 };
 
-/// @brief Specialization of promise for void type. The promise<void> does not
-/// store a value, but only the state of readiness and any exception.
+/// @brief Specialization of \ref promise for \c void type. The promise<void>
+/// does not store a value, but only the state of readiness and any exception.
 template <>
 class promise<void> : private detail::future::promise_base<void> {
     public:
@@ -982,6 +982,9 @@ class promise<T&> : private detail::future::promise_base<T&> {
 /// @brief Class template wrapping a callable object and allowing to invoke it
 /// asynchronously, storing the result in a shared state that can be accessed
 /// through a future.
+/// @tparam R The type of the value that will be stored in the shared state.
+/// @tparam Args The types of the arguments that the wrapped callable will be
+/// invoked with.
 template <typename R, typename... Args>
 class packaged_task<R(Args...)> {
     public:

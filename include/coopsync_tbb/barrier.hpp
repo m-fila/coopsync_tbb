@@ -105,8 +105,8 @@ class barrier {
     detail::wait_queue m_waiters;
 };
 
-/// @brief An opaque value representing task arrival at the barrier. It is used
-/// to wait for the completion of a phase.
+/// @brief An opaque value representing task arrival at the \ref barrier. It is
+/// used to wait for the completion of a phase.
 template <typename CompletionFunction>
 class barrier<CompletionFunction>::arrival_token {
     private:
