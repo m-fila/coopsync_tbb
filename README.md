@@ -84,6 +84,10 @@ find_package(CoopSync_TBB REQUIRED)
 target_link_libraries(your_target PUBLIC CoopSync_TBB::CoopSync_TBB)
 ```
 
+## License
+
+This project is licensed under [Apache License, Version 2.0](LICENSES/Apache-2.0.txt).
+
 ## Disclaimer
 
 CoopSync for TBB is an independent extension library designed to work with oneTBB.
