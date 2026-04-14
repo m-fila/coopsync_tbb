@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2026 CERN
+
+SPDX-License-Identifier: Apache-2.0
+-->
+
 # CoopSync for TBB
 
 [![documentation](https://img.shields.io/badge/docs-latest-blue.svg)](https://m-fila.github.io/coopsync_tbb/)

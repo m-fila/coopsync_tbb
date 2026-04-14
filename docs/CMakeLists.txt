@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 CERN
+#
+# SPDX-License-Identifier: Apache-2.0
+
 find_package(Doxygen REQUIRED)
 
 set(DOXYGEN_PROJECT_NAME "CoopSync for TBB")

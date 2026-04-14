@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 CERN
+#
+# SPDX-License-Identifier: Apache-2.0
+
 # CMake include(s).
 cmake_minimum_required(VERSION 3.25)
 include(FetchContent)

@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2026 CERN
+
+SPDX-License-Identifier: Apache-2.0
+-->
+
 # Building documentation locally
 
 This project uses Doxygen for documentation. To generate documentation, make sure `doxygen` is installed, then either use the CMake preset:
