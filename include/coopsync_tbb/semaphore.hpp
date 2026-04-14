@@ -84,7 +84,7 @@ class counting_semaphore {
                   "std::numeric_limits<std::ptrdiff_t>::max()");
 
     /// @brief Constructs a counting_semaphore with the specified initial count.
-    /// @parm initial_count The initial count for the semaphore. Must be
+    /// @param desired The initial count for the semaphore. Must be
     /// non-negative and less than or equal to max().
     explicit counting_semaphore(std::ptrdiff_t desired);
 
@@ -129,7 +129,7 @@ class counting_semaphore {
     /// @brief Returns the maximum value for the counter of the
     /// counting_semaphore.
     /// @return The maximum value for the counting_semaphore, bigger than or
-    /// equal to the @ref LeastMaxValue.
+    /// equal to the LeastMaxValue.
     constexpr static std::ptrdiff_t max() noexcept;
 
     private:

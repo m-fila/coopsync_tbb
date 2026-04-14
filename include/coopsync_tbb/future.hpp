@@ -320,14 +320,15 @@ class future : private detail::future::future_base<T> {
     /// @brief The future is not copy-assignable.
     future& operator=(const future&) = delete;
 
-    /// @brief The future is move-constructible, after construction has no
+    /// @brief The future is move-constructible.
+    /// @param other The future to move from, after construction has no
     /// shared state and is not valid.
-    future(future&&) noexcept = default;
+    future(future&& other) noexcept = default;
 
     /// @brief The future is move-assignable.
     /// @param other The future to move from, after assignment has no
     /// shared state and is not valid.
-    future& operator=(future&&) noexcept = default;
+    future& operator=(future&& other) noexcept = default;
 
     /// @brief Destroys the future releasing any shared state.
     ~future() = default;
@@ -392,14 +393,15 @@ class future<void> : private detail::future::future_base<void> {
     /// @brief The future is not copy-assignable.
     future& operator=(const future&) = delete;
 
-    /// @brief The future is move-constructible, after construction has no
+    /// @brief The future is move-constructible.
+    /// @param other The future to move from, after construction has no
     /// shared state and is not valid.
-    future(future&&) noexcept = default;
+    future(future&& other) noexcept = default;
 
     /// @brief The future is move-assignable.
     /// @param other The future to move from, after assignment has no
     /// shared state and is not valid.
-    future& operator=(future&&) noexcept = default;
+    future& operator=(future&& other) noexcept = default;
 
     /// @brief Destroys the future releasing any shared state.
     ~future() = default;
@@ -461,15 +463,15 @@ class future<T&> : private detail::future::future_base<T&> {
     /// @brief The future is not copy-assignable.
     future& operator=(const future&) = delete;
 
-    /// @brief The future is move-constructible, after construction has no
-    /// shared state and is not valid.
-    future(future&&) noexcept =  // cppcheck-suppress noExplicitConstructor
-        default;
+    /// @brief The future is move-constructible.
+    /// @param other The future to move from, after construction has no shared
+    /// state and is not valid.
+    future(future&& other) noexcept = default;
 
     /// @brief The future is move-assignable.
     /// @param other The future to move from, after assignment has no
     /// shared state and is not valid.
-    future& operator=(future&&) noexcept = default;
+    future& operator=(future&& other) noexcept = default;
 
     /// @brief Destroys the future releasing any shared state.
     ~future() = default;
@@ -533,13 +535,25 @@ class shared_future : private detail::future::future_base<T> {
     /// @brief Constructs an invalid shared_future.
     shared_future() noexcept = default;
 
-    /// @brief The shared_future is copyable.
-    shared_future(const shared_future&) noexcept = default;
-    shared_future& operator=(const shared_future&) noexcept = default;
+    /// @brief The shared_future is copy-constructible.
+    /// @param other The shared_future to copy from, after copying both objects
+    /// refer to the same shared state.
+    shared_future(const shared_future& other) noexcept = default;
 
-    /// @brief The shared_future is moveable.
-    shared_future(shared_future&&) noexcept = default;
-    shared_future& operator=(shared_future&&) noexcept = default;
+    /// @brief The shared_future is copy-assignable.
+    /// @param other The shared_future to copy from, after assignment both
+    /// objects refer to the same shared state.
+    shared_future& operator=(const shared_future& other) noexcept = default;
+
+    /// @brief The shared_future is move-constructible.
+    /// @param other The shared_future to move from, after construction has no
+    /// shared state and is not valid.
+    shared_future(shared_future&& other) noexcept = default;
+
+    /// @brief The shared_future is move-assignable.
+    /// @param other The shared_future to move from, after assignment has no
+    /// shared state and is not valid.
+    shared_future& operator=(shared_future&& other) noexcept = default;
 
     /// @brief Destroys the shared_future releasing any shared state.
     ~shared_future() = default;
@@ -968,9 +982,6 @@ class promise<T&> : private detail::future::promise_base<T&> {
 /// @brief Class template wrapping a callable object and allowing to invoke it
 /// asynchronously, storing the result in a shared state that can be accessed
 /// through a future.
-template <typename>
-class packaged_task;
-
 template <typename R, typename... Args>
 class packaged_task<R(Args...)> {
     public:
@@ -981,7 +992,7 @@ class packaged_task<R(Args...)> {
     /// @brief Constructs a new packaged_task with the given callable and an
     /// allocated shared state. After construction, the packaged_task is valid.
     /// @tparam F The type of the callable to wrap. Must be invocable with
-    /// arguments of types \ref Args... and return a type convertible to R. Must
+    /// arguments of types Args... and return a type convertible to R. Must
     /// fulfill the standard requirements for Callable.
     /// @param f The callable to wrap in the packaged_task.
     template <typename F>

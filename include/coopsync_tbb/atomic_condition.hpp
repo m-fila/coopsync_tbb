@@ -32,7 +32,7 @@ class atomic_condition {
                   "atomic_condition does not support const or volatile types");
 
     public:
-    /// @brief The value type of the atomic condition, same as the value type of
+    /// @brief The value type of the atomic_condition, same as the value type of
     /// the internal atomic.
     using value_type = typename std::atomic<T>::value_type;
 
@@ -88,11 +88,34 @@ class atomic_condition {
     /// @brief Resumes all tasks suspended waiting on this atomic_condition.
     void notify_all();
 
+    /// @brief Access to the internal atomic value.
+    /// @return Reference to the internal atomic value. Remains valid for the
+    /// lifetime of the atomic_condition.
     std::atomic<T>& atomic() noexcept;
+
+    /// @brief Access to the internal atomic value.
+    /// @return Const reference to the internal atomic value. Remains valid for
+    /// the lifetime of the atomic_condition.
     const std::atomic<T>& atomic() const noexcept;
+
+    /// @brief Access to the internal atomic value.
+    /// @return Reference to the internal atomic value. Remains valid for the
+    /// lifetime of the atomic_condition.
     std::atomic<T>& operator*() noexcept;
+
+    /// @brief Access to the internal atomic value.
+    /// @return Const reference to the internal atomic value. Remains valid for
+    /// the lifetime of the atomic_condition.
     const std::atomic<T>& operator*() const noexcept;
+
+    /// @brief Access to the internal atomic value.
+    /// @return Pointer to the internal atomic value. Remains valid for the
+    /// lifetime of the atomic_condition.
     std::atomic<T>* operator->() noexcept;
+
+    /// @brief Access to the internal atomic value.
+    /// @return Const pointer to the internal atomic value. Remains valid for
+    /// the lifetime of the atomic_condition.
     const std::atomic<T>* operator->() const noexcept;
 
     private:
