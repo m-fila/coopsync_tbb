@@ -10,7 +10,7 @@ SPDX-License-Identifier: Apache-2.0
 [![tests](https://github.com/m-fila/coopsync_tbb/actions/workflows/tests.yml/badge.svg)](https://github.com/m-fila/coopsync_tbb/actions/workflows/tests.yml)
 [![sanitizers](https://github.com/m-fila/coopsync_tbb/actions/workflows/sanitizers.yml/badge.svg)](https://github.com/m-fila/coopsync_tbb/actions/workflows/sanitizers.yml)
 [![codecov](https://codecov.io/gh/m-fila/coopsync_tbb/graph/badge.svg?token=IKWQ0R4I2F)](https://codecov.io/gh/m-fila/coopsync_tbb)
-[![license](https://img.shields.io/github/license/m-fila/coopsync_tbb)](https://github.com/m-fila/coopsync_tbb/blob/master/LICENSE)
+[![license](https://img.shields.io/github/license/m-fila/coopsync_tbb)](https://github.com/m-fila/coopsync_tbb/blob/main/LICENSE)
 
 Cooperative synchronization primitives for TBB resumable tasks
 
