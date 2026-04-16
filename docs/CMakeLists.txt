@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 CERN
+#
+# SPDX-License-Identifier: Apache-2.0
+
 find_package(Doxygen REQUIRED)
 
 set(DOXYGEN_PROJECT_NAME "CoopSync for TBB")
@@ -16,8 +20,10 @@ set(DOXYGEN_ENABLE_PREPROCESSING TRUE)
 set(DOXYGEN_MACRO_EXPANSION TRUE)
 set(DOXYGEN_EXPAND_ONLY_PREDEF TRUE)
 set(DOXYGEN_EXPAND_AS_DEFINED "COOPSYNC_TBB_NODISCARD")
+set(DOXYGEN_EXTENSION_MAPPING "txt=md")
 
 doxygen_add_docs(
   coopsync_tbb_docs "${PROJECT_SOURCE_DIR}/include"
   "${CMAKE_CURRENT_SOURCE_DIR}" "${PROJECT_SOURCE_DIR}/README.md"
+  "${PROJECT_SOURCE_DIR}/LICENSES/Apache-2.0.txt"
   COMMENT "Generating Doxygen pages")

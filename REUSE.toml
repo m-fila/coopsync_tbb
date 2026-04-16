@@ -1,0 +1,7 @@
+version = 1
+
+[[annotations]]
+path = [".gitignore", ".github/workflows/*.yml", ".github/*.yml", ".clang-format", "*.clang-tidy", "*.yml", "*.yaml", "*.json", "*.suppressions"]
+precedence = "override"
+SPDX-FileCopyrightText = "2026 CERN"
+SPDX-License-Identifier = "CC0-1.0"

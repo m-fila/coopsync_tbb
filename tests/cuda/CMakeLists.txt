@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 CERN
+#
+# SPDX-License-Identifier: Apache-2.0
+
 message(STATUS "Adding CUDA tests")
 
 enable_language(CUDA)

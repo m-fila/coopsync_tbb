@@ -1,9 +1,16 @@
+<!--
+SPDX-FileCopyrightText: 2026 CERN
+
+SPDX-License-Identifier: Apache-2.0
+-->
+
 # CoopSync for TBB
 
 [![documentation](https://img.shields.io/badge/docs-latest-blue.svg)](https://m-fila.github.io/coopsync_tbb/)
 [![tests](https://github.com/m-fila/coopsync_tbb/actions/workflows/tests.yml/badge.svg)](https://github.com/m-fila/coopsync_tbb/actions/workflows/tests.yml)
 [![sanitizers](https://github.com/m-fila/coopsync_tbb/actions/workflows/sanitizers.yml/badge.svg)](https://github.com/m-fila/coopsync_tbb/actions/workflows/sanitizers.yml)
 [![codecov](https://codecov.io/gh/m-fila/coopsync_tbb/graph/badge.svg?token=IKWQ0R4I2F)](https://codecov.io/gh/m-fila/coopsync_tbb)
+[![license](https://img.shields.io/github/license/m-fila/coopsync_tbb)](https://github.com/m-fila/coopsync_tbb/blob/master/LICENSE)
 
 Cooperative synchronization primitives for TBB resumable tasks
 
@@ -77,6 +84,10 @@ find_package(CoopSync_TBB REQUIRED)
 
 target_link_libraries(your_target PUBLIC CoopSync_TBB::CoopSync_TBB)
 ```
+
+## License
+
+This project is licensed under [Apache License, Version 2.0](LICENSES/Apache-2.0.txt).
 
 ## Disclaimer
 

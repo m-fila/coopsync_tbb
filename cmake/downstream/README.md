@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2026 CERN
+
+SPDX-License-Identifier: Apache-2.0
+-->
+
 # CoopSync for TBB downstream example
 
 This directory is a minimal consumer project that verifies that an *installed* `CoopSync_TBB` can be found via CMake and linked.
