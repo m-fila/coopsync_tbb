@@ -1,0 +1,19 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: CoopSync for TBB
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Mateusz Jakub
+    family-names: Fila
+    affiliation: CERN
+    orcid: 'https://orcid.org/0000-0003-3917-2371'
+    email: mateusz.jakub.fila@cern.ch
+repository-code: 'https://github.com/m-fila/coopsync_tbb'
+abstract: >-
+  Cooperative synchronization primitives for TBB.
+license: Apache-2.0
