@@ -320,14 +320,15 @@ class future : private detail::future::future_base<T> {
     /// @brief The future is not copy-assignable.
     future& operator=(const future&) = delete;
 
-    /// @brief The future is move-constructible, after construction has no
+    /// @brief The future is move-constructible.
+    /// @param other The future to move from, after construction has no
     /// shared state and is not valid.
-    future(future&&) noexcept = default;
+    future(future&& other) noexcept = default;
 
     /// @brief The future is move-assignable.
     /// @param other The future to move from, after assignment has no
     /// shared state and is not valid.
-    future& operator=(future&&) noexcept = default;
+    future& operator=(future&& other) noexcept = default;
 
     /// @brief Destroys the future releasing any shared state.
     ~future() = default;
@@ -378,7 +379,7 @@ class future : private detail::future::future_base<T> {
         : detail::future::future_base<T>(std::move(state)) {}
 };
 
-/// @brief Specialization of future for void type.
+/// @brief Specialization of \ref future for \c void type.
 template <>
 class future<void> : private detail::future::future_base<void> {
     public:
@@ -392,14 +393,15 @@ class future<void> : private detail::future::future_base<void> {
     /// @brief The future is not copy-assignable.
     future& operator=(const future&) = delete;
 
-    /// @brief The future is move-constructible, after construction has no
+    /// @brief The future is move-constructible.
+    /// @param other The future to move from, after construction has no
     /// shared state and is not valid.
-    future(future&&) noexcept = default;
+    future(future&& other) noexcept = default;
 
     /// @brief The future is move-assignable.
     /// @param other The future to move from, after assignment has no
     /// shared state and is not valid.
-    future& operator=(future&&) noexcept = default;
+    future& operator=(future&& other) noexcept = default;
 
     /// @brief Destroys the future releasing any shared state.
     ~future() = default;
@@ -446,8 +448,8 @@ class future<void> : private detail::future::future_base<void> {
         : detail::future::future_base<void>(std::move(state)) {}
 };
 
-/// @brief Specialization of future for reference types.
-// @tparam T The type of the value that will be stored in the shared state.
+/// @brief Specialization of \ref future for reference types.
+/// @tparam T The type of the value that will be stored in the shared state.
 template <typename T>
 class future<T&> : private detail::future::future_base<T&> {
     public:
@@ -461,15 +463,15 @@ class future<T&> : private detail::future::future_base<T&> {
     /// @brief The future is not copy-assignable.
     future& operator=(const future&) = delete;
 
-    /// @brief The future is move-constructible, after construction has no
-    /// shared state and is not valid.
-    future(future&&) noexcept =  // cppcheck-suppress noExplicitConstructor
-        default;
+    /// @brief The future is move-constructible.
+    /// @param other The future to move from, after construction has no shared
+    /// state and is not valid.
+    future(future&& other) noexcept = default;
 
     /// @brief The future is move-assignable.
     /// @param other The future to move from, after assignment has no
     /// shared state and is not valid.
-    future& operator=(future&&) noexcept = default;
+    future& operator=(future&& other) noexcept = default;
 
     /// @brief Destroys the future releasing any shared state.
     ~future() = default;
@@ -523,8 +525,8 @@ class future<T&> : private detail::future::future_base<T&> {
 
 /// @brief Copyable future that allows retrieving the result multiple times.
 ///
-/// Unlike future, shared_future does not consume the shared state when get()
-/// is called.
+/// Unlike \ref future, shared_future does not consume the shared state when
+/// get() is called.
 ///
 /// @tparam T The type of the value stored in the shared state.
 template <typename T>
@@ -533,13 +535,25 @@ class shared_future : private detail::future::future_base<T> {
     /// @brief Constructs an invalid shared_future.
     shared_future() noexcept = default;
 
-    /// @brief The shared_future is copyable.
-    shared_future(const shared_future&) noexcept = default;
-    shared_future& operator=(const shared_future&) noexcept = default;
+    /// @brief The shared_future is copy-constructible.
+    /// @param other The shared_future to copy from, after copying both objects
+    /// refer to the same shared state.
+    shared_future(const shared_future& other) noexcept = default;
 
-    /// @brief The shared_future is moveable.
-    shared_future(shared_future&&) noexcept = default;
-    shared_future& operator=(shared_future&&) noexcept = default;
+    /// @brief The shared_future is copy-assignable.
+    /// @param other The shared_future to copy from, after assignment both
+    /// objects refer to the same shared state.
+    shared_future& operator=(const shared_future& other) noexcept = default;
+
+    /// @brief The shared_future is move-constructible.
+    /// @param other The shared_future to move from, after construction has no
+    /// shared state and is not valid.
+    shared_future(shared_future&& other) noexcept = default;
+
+    /// @brief The shared_future is move-assignable.
+    /// @param other The shared_future to move from, after assignment has no
+    /// shared state and is not valid.
+    shared_future& operator=(shared_future&& other) noexcept = default;
 
     /// @brief Destroys the shared_future releasing any shared state.
     ~shared_future() = default;
@@ -579,7 +593,7 @@ class shared_future : private detail::future::future_base<T> {
         : detail::future::future_base<T>(std::move(state)) {}
 };
 
-/// @brief Specialization of shared_future for void type.
+/// @brief Specialization of \ref shared_future for \c void type.
 template <>
 class shared_future<void> : private detail::future::future_base<void> {
     public:
@@ -647,7 +661,7 @@ class shared_future<void> : private detail::future::future_base<void> {
         : detail::future::future_base<void>(std::move(state)) {}
 };
 
-/// @brief Specialization of shared_future for reference types.
+/// @brief Specialization of \ref shared_future for reference types.
 template <typename T>
 class shared_future<T&> : private detail::future::future_base<T&> {
     public:
@@ -736,8 +750,8 @@ shared_future<T&> future<T&>::share() {
 }
 
 /// @brief Promise holding a shared state with a value type. The promise is
-/// used to set the value in the shared state that can be retrieved by a future
-/// sharing the same state.
+/// used to set the value in the shared state that can be retrieved by a \ref
+/// future sharing the same state.
 /// @tparam T The type of the value that will be stored in the shared state.
 template <typename T>
 class promise : private detail::future::promise_base<T> {
@@ -821,8 +835,8 @@ class promise : private detail::future::promise_base<T> {
     }
 };
 
-/// @brief Specialization of promise for void type. The promise<void> does not
-/// store a value, but only the state of readiness and any exception.
+/// @brief Specialization of \ref promise for \c void type. The promise<void>
+/// does not store a value, but only the state of readiness and any exception.
 template <>
 class promise<void> : private detail::future::promise_base<void> {
     public:
@@ -968,9 +982,9 @@ class promise<T&> : private detail::future::promise_base<T&> {
 /// @brief Class template wrapping a callable object and allowing to invoke it
 /// asynchronously, storing the result in a shared state that can be accessed
 /// through a future.
-template <typename>
-class packaged_task;
-
+/// @tparam R The type of the value that will be stored in the shared state.
+/// @tparam Args The types of the arguments that the wrapped callable will be
+/// invoked with.
 template <typename R, typename... Args>
 class packaged_task<R(Args...)> {
     public:
@@ -981,7 +995,7 @@ class packaged_task<R(Args...)> {
     /// @brief Constructs a new packaged_task with the given callable and an
     /// allocated shared state. After construction, the packaged_task is valid.
     /// @tparam F The type of the callable to wrap. Must be invocable with
-    /// arguments of types \ref Args... and return a type convertible to R. Must
+    /// arguments of types Args... and return a type convertible to R. Must
     /// fulfill the standard requirements for Callable.
     /// @param f The callable to wrap in the packaged_task.
     template <typename F>
