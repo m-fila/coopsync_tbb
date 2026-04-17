@@ -20,7 +20,7 @@ namespace coopsync_tbb {
 /// @note This mutex does satisfy the standard named requirements for
 /// BasicLockable and Lockable but does not meet the requirements for Mutex
 /// because it never blocks the calling thread, even though it exposes the same
-/// interface. Concurrent invocations of the member functions. except for
+/// interface. Concurrent invocations of the member functions, except for
 /// destructor, are safe.
 class mutex {
     public:

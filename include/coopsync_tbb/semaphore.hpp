@@ -69,7 +69,7 @@ class int_max_value_t {
 /// can acquire the semaphore by decrementing the count or release the semaphore
 /// by incrementing the count. If a task tries to acquire the semaphore when the
 /// count is zero, it is suspended until the count becomes greater than zero.
-/// Concurrent invocations of the member functions. except for destructor, are
+/// Concurrent invocations of the member functions, except for destructor, are
 /// safe.
 // @tparam LeastMaxValue The least maximum value for the counter of the
 // counting_semaphore. Must be non-negative and less than or equal to

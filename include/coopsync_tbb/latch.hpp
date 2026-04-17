@@ -16,7 +16,7 @@ namespace coopsync_tbb {
 /// @brief A latch is a down-ward counter that allows tasks to wait until the
 /// counter reaches zero. The latch is not reusable, i.e., once the counter
 /// reaches zero, it cannot be incremented again. Concurrent invocations of the
-/// member functions. except for destructor, are safe.
+/// member functions, except for destructor, are safe.
 ///
 class latch {
     public:
