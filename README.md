@@ -34,7 +34,6 @@ The interfaces of the primitives are modelled after the C++ standard library whe
 | `recursive_mutex`    | ❌     |
 | `shared_mutex`       | ✔️     |
 | `semaphore`          | ✔️     |
-| `atomic_condition`   | ✔️     |
 
 ✔️: supported, ❌: not implemented
 
