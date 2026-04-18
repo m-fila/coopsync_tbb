@@ -128,9 +128,9 @@ class atomic_condition {
 /// value is not equal to old, the function returns immediately. Otherwise, the
 /// task is suspended. The task will be resumed once associated notify function
 /// is called and the internal atomic value is not equal to old.
-/// Same as \c object.wait(old).
+/// Same as \c object->wait(old).
 /// @tparam T The type of the value contained in the atomic_condition.
-/// @param object The atomic_condition to wait on.
+/// @param object Pointer to the atomic_condition to wait on.
 /// @param old The value to compare the internal atomic value to. The task will
 /// be suspended while the internal atomic value is equal to old.
 /// @note Due to ABA problem, transitions from old to a different value and
@@ -139,7 +139,7 @@ class atomic_condition {
 /// value and old, not by \c operator==. The comparison may be affected by
 /// padding bytes.
 template <typename T>
-void atomic_wait(atomic_condition<T>& object,
+void atomic_wait(atomic_condition<T>* object,
                  typename atomic_condition<T>::value_type old);
 
 /// @brief Suspends the calling task until the internal atomic value of the
@@ -147,9 +147,9 @@ void atomic_wait(atomic_condition<T>& object,
 /// value is not equal to old, the function returns immediately. Otherwise, the
 /// task is suspended. The task will be resumed once associated notify function
 /// is called and the internal atomic value is not equal to old. Same as \c
-/// object.wait(old, order).
+/// object->wait(old, order).
 /// @tparam T The type of the value contained in the atomic_condition.
-/// @param object The atomic_condition to wait on.
+/// @param object Pointer to the atomic_condition to wait on.
 /// @param old The value to compare the internal atomic value to. The task will
 /// be suspended while the internal atomic value is equal to old.
 /// @param order The memory order to use for loading the internal atomic value.
@@ -160,22 +160,24 @@ void atomic_wait(atomic_condition<T>& object,
 /// value and old, not by \c operator==. The comparison may be affected by
 /// padding bytes.
 template <typename T>
-void atomic_wait_explicit(atomic_condition<T>& object,
+void atomic_wait_explicit(atomic_condition<T>* object,
                           typename atomic_condition<T>::value_type old,
                           std::memory_order order);
 
 /// @brief Resumes one task suspended waiting on the atomic_condition, if there
 /// is any.
+/// Same as \c object->notify_one().
 /// @tparam T The type of the value contained in the atomic_condition.
-/// @param object The atomic_condition to notify on.
+/// @param object Pointer to the atomic_condition to notify on.
 template <typename T>
-void atomic_notify_one(atomic_condition<T>& object);
+void atomic_notify_one(atomic_condition<T>* object);
 
 /// @brief Resumes all tasks suspended waiting on the atomic_condition.
+/// Same as \c object->notify_all().
 /// @tparam T The type of the value contained in the atomic_condition.
-/// @param object The atomic_condition to notify on.
+/// @param object Pointer to the atomic_condition to notify on.
 template <typename T>
-void atomic_notify_all(atomic_condition<T>& object);
+void atomic_notify_all(atomic_condition<T>* object);
 
 }  // namespace coopsync_tbb
 
@@ -249,26 +251,30 @@ const std::atomic<T>* atomic_condition<T>::operator->() const noexcept {
 }
 
 template <typename T>
-inline void atomic_wait(atomic_condition<T>& object,
+inline void atomic_wait(atomic_condition<T>* object,
                         typename atomic_condition<T>::value_type old) {
-    object.wait(old);
+    assert(object != nullptr);  // LCOV_EXCL_LINE
+    object->wait(old);
 }
 
 template <typename T>
-inline void atomic_wait_explicit(atomic_condition<T>& object,
+inline void atomic_wait_explicit(atomic_condition<T>* object,
                                  typename atomic_condition<T>::value_type old,
                                  std::memory_order order) {
-    object.wait(old, order);
+    assert(object != nullptr);  // LCOV_EXCL_LINE
+    object->wait(old, order);
 }
 
 template <typename T>
-inline void atomic_notify_one(atomic_condition<T>& object) {
-    object.notify_one();
+inline void atomic_notify_one(atomic_condition<T>* object) {
+    assert(object != nullptr);  // LCOV_EXCL_LINE
+    object->notify_one();
 }
 
 template <typename T>
-inline void atomic_notify_all(atomic_condition<T>& object) {
-    object.notify_all();
+inline void atomic_notify_all(atomic_condition<T>* object) {
+    assert(object != nullptr);  // LCOV_EXCL_LINE
+    object->notify_all();
 }
 
 }  // namespace coopsync_tbb

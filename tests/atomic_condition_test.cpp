@@ -95,12 +95,12 @@ TEST(AtomicCondition, FreeFunctions) {
 
         tbb::parallel_for(0, 2, [&](int i) {
             if (i == 0) {
-                coopsync_tbb::atomic_wait_explicit(cond, 0,
+                coopsync_tbb::atomic_wait_explicit(&cond, 0,
                                                    std::memory_order_seq_cst);
                 done.store(1, std::memory_order_relaxed);
             } else {
                 cond.atomic().store(1, std::memory_order_relaxed);
-                coopsync_tbb::atomic_notify_one(cond);
+                coopsync_tbb::atomic_notify_one(&cond);
             }
         });
 
@@ -113,11 +113,11 @@ TEST(AtomicCondition, FreeFunctions) {
 
         tbb::parallel_for(0, 2, [&](int i) {
             if (i == 0) {
-                coopsync_tbb::atomic_wait(cond, 0);
+                coopsync_tbb::atomic_wait(&cond, 0);
                 done.store(1, std::memory_order_relaxed);
             } else {
                 cond.atomic().store(1, std::memory_order_relaxed);
-                coopsync_tbb::atomic_notify_one(cond);
+                coopsync_tbb::atomic_notify_one(&cond);
             }
         });
 
