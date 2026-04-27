@@ -25,6 +25,6 @@ set(DOXYGEN_HIDE_UNDOC_CLASSES TRUE)
 
 doxygen_add_docs(
   coopsync_tbb_docs "${PROJECT_SOURCE_DIR}/include"
-  "${CMAKE_CURRENT_SOURCE_DIR}" "${PROJECT_SOURCE_DIR}/README.md"
+  "${PROJECT_SOURCE_DIR}/README.md"
   "${PROJECT_SOURCE_DIR}/LICENSES/Apache-2.0.txt"
   COMMENT "Generating Doxygen pages")
