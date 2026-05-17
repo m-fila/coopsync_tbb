@@ -29,6 +29,10 @@ if(CMAKE_CXX_STANDARD LESS 17)
 endif()
 include(GNUInstallDirs)
 
+configure_file(include/coopsync_tbb/version.hpp.in
+               ${CMAKE_CURRENT_BINARY_DIR}/include/coopsync_tbb/version.hpp
+               @ONLY)
+
 # Set up TBB.
 
 option(COOPSYNC_TBB_SETUP_TBB "Set up the TBB target(s) explicitly" TRUE)
@@ -88,9 +92,11 @@ target_sources(
          HEADERS
          BASE_DIRS
          include/
+         ${CMAKE_CURRENT_BINARY_DIR}/include
          FILES
          # public API
          include/coopsync_tbb/coopsync_tbb.hpp
+         ${CMAKE_CURRENT_BINARY_DIR}/include/coopsync_tbb/version.hpp
          # details
          include/coopsync_tbb/detail/intrusive_list.hpp
          include/coopsync_tbb/detail/macros.hpp

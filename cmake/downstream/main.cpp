@@ -5,6 +5,7 @@
 #include <oneapi/tbb/parallel_for.h>
 
 #include <coopsync_tbb/latch.hpp>
+#include <coopsync_tbb/version.hpp>
 #include <iostream>
 
 int main() {
@@ -13,5 +14,7 @@ int main() {
     tbb::parallel_for(0, 1, [&](int) { latch.wait(); });
 
     std::cout << "CoopSync_TBB downstream example: OK\n";
+
+    std::cout << "CoopSync_TBB version: " << COOPSYNC_TBB_VERSION << "\n";
     return 0;
 }
