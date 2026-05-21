@@ -7,6 +7,9 @@
 /// @file
 /// @brief Version macros for the CoopSync_TBB public API.
 
+// NOLINTBEGIN(cppcoreguidelines-macro-to-enum, cppcoreguidelines-macro-usage)
+// clang-format off
+
 /// @brief Major component of the CoopSync_TBB version.
 #define COOPSYNC_TBB_VERSION_MAJOR @PROJECT_VERSION_MAJOR@
 /// @brief Minor component of the CoopSync_TBB version.
@@ -15,3 +18,6 @@
 #define COOPSYNC_TBB_VERSION_PATCH @PROJECT_VERSION_PATCH@
 /// @brief Full CoopSync_TBB version string.
 #define COOPSYNC_TBB_VERSION "@PROJECT_VERSION@"
+
+//clang-format on
+// NOLINTEND(cppcoreguidelines-macro-to-enum, cppcoreguidelines-macro-usage)
