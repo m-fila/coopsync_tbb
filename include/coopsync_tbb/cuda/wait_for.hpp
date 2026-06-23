@@ -51,7 +51,7 @@ struct wait_for_all_context {
 
 template <typename T>
 struct is_cuda_stream
-    : std::is_same<typename std::decay<T>::type, cudaStream_t> {};
+    : std::is_same<typename std::decay<T>::type, ::cudaStream_t> {};
 
 template <bool...>
 struct bool_pack;
@@ -81,18 +81,18 @@ static inline void wait_for_all_callback(void* context) {
 /// @return The CUDA error code.
 /// @note In case of error during callback setup, the task is resumed
 /// immediately.
-COOPSYNC_TBB_CUDA_NODISCARD static inline cudaError_t wait_for(
-    cudaStream_t stream) {
+COOPSYNC_TBB_CUDA_NODISCARD static inline ::cudaError_t wait_for(
+    ::cudaStream_t stream) {
     auto suspend_point = ::tbb::task::suspend_point{};
-    auto err = cudaSuccess;
+    auto err = ::cudaSuccess;
     ::tbb::task::suspend(
         [stream, &err, &suspend_point](::tbb::task::suspend_point tag) {
             suspend_point = tag;
             // Note: cudaStreamAddCallback is pending for deprecation, using
             // cudaLaunchHostFunc instead.
-            err = cudaLaunchHostFunc(stream, detail::resumption_callback,
-                                     &suspend_point);
-            if (err != cudaSuccess) {
+            err = ::cudaLaunchHostFunc(stream, detail::resumption_callback,
+                                       &suspend_point);
+            if (err != ::cudaSuccess) {
                 detail::resumption_callback(&suspend_point);
             }
         });
@@ -105,19 +105,19 @@ COOPSYNC_TBB_CUDA_NODISCARD static inline cudaError_t wait_for(
 /// once all callbacks that were successfully enqueued have executed.
 /// @return Array of CUDA error codes. Element i corresponds to stream i.
 template <typename... StreamTs>
-COOPSYNC_TBB_CUDA_NODISCARD static inline std::array<cudaError_t,
+COOPSYNC_TBB_CUDA_NODISCARD static inline std::array<::cudaError_t,
                                                      sizeof...(StreamTs)>
 wait_for_all(StreamTs... streams) {
     static_assert(detail::all_cuda_stream<StreamTs...>::value,
                   "wait_for_all(streams...) requires cudaStream_t arguments");
 
     const std::size_t N = sizeof...(StreamTs);
-    std::array<cudaError_t, sizeof...(StreamTs)> errs = {{}};
+    std::array<::cudaError_t, sizeof...(StreamTs)> errs = {{}};
     if (N == 0) {
         return errs;
     }
 
-    const std::array<cudaStream_t, sizeof...(StreamTs)> stream_array = {
+    const std::array<::cudaStream_t, sizeof...(StreamTs)> stream_array = {
         {streams...}};
 
     auto state = detail::wait_for_all_context(N);
@@ -125,11 +125,11 @@ wait_for_all(StreamTs... streams) {
     ::tbb::task::suspend([&](::tbb::task::suspend_point tag) {
         state.suspend_point = tag;
         for (std::size_t i = 0; i < N; ++i) {
-            const auto launch_err = cudaLaunchHostFunc(
+            const auto launch_err = ::cudaLaunchHostFunc(
                 stream_array.at(i), detail::wait_for_all_callback, &state);
             errs.at(i) = launch_err;
 
-            if (launch_err != cudaSuccess) {
+            if (launch_err != ::cudaSuccess) {
                 // Callback won't run; exclude it from the pending count.
                 if (state.pending.fetch_sub(1, std::memory_order_acq_rel) ==
                     1) {
@@ -173,12 +173,12 @@ static inline OutputIt wait_for_all(InputIt first, InputIt last, OutputIt out) {
     ::tbb::task::suspend([&](::tbb::task::suspend_point tag) {
         state.suspend_point = tag;
         for (InputIt it = first; it != last; ++it) {
-            const auto launch_err =
-                cudaLaunchHostFunc(*it, detail::wait_for_all_callback, &state);
+            const auto launch_err = ::cudaLaunchHostFunc(
+                *it, detail::wait_for_all_callback, &state);
             *out = launch_err;
             ++out;
 
-            if (launch_err != cudaSuccess) {
+            if (launch_err != ::cudaSuccess) {
                 // Callback won't run; exclude it from the pending count.
                 if (state.pending.fetch_sub(1, std::memory_order_acq_rel) ==
                     1) {
