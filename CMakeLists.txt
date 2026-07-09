@@ -116,6 +116,7 @@ target_sources(
          include/coopsync_tbb/hip/wait_for.hpp
   PRIVATE # public API
           src/coopsync_tbb.cpp
+          src/version.cpp
           # details
           src/intrusive_list.cpp
           src/macros.cpp
