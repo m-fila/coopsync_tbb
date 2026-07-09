@@ -23,6 +23,7 @@ The interfaces of the primitives are modelled after the C++ standard library whe
 | Primitive            | Status |
 | -------------------- | ------ |
 | `atomic_condition`   | ✔️     |
+| `atomic_flag`        | ✔️     |
 | `barrier`            | ✔️     |
 | `buffered_channel`   | ❌     |
 | `unbuffered_channel` | ❌     |
