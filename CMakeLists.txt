@@ -97,6 +97,7 @@ target_sources(
          # public API
          include/coopsync_tbb/coopsync_tbb.hpp
          ${CMAKE_CURRENT_BINARY_DIR}/include/coopsync_tbb/version.hpp
+         include/coopsync_tbb/feature_test.hpp
          # details
          include/coopsync_tbb/detail/intrusive_list.hpp
          include/coopsync_tbb/detail/macros.hpp
@@ -104,6 +105,7 @@ target_sources(
          include/coopsync_tbb/detail/wait_queue.hpp
          # primitives
          include/coopsync_tbb/atomic_condition.hpp
+         include/coopsync_tbb/atomic_flag.hpp
          include/coopsync_tbb/barrier.hpp
          include/coopsync_tbb/condition_variable.hpp
          include/coopsync_tbb/future.hpp
@@ -117,6 +119,7 @@ target_sources(
   PRIVATE # public API
           src/coopsync_tbb.cpp
           src/version.cpp
+          src/feature_test.cpp
           # details
           src/intrusive_list.cpp
           src/macros.cpp
@@ -124,6 +127,7 @@ target_sources(
           src/wait_queue.cpp
           # primitives
           src/atomic_condition.cpp
+          src/atomic_flag.cpp
           src/barrier.cpp
           src/condition_variable.cpp
           src/future.cpp
