@@ -6,10 +6,10 @@
 
 #if defined(COOPSYNC_TBB_HAS_ATOMIC_FLAG) && COOPSYNC_TBB_HAS_ATOMIC_FLAG == 1
 
-#include "coopsync_tbb/atomic_flag_condition.hpp"
-
 #include <atomic>
 #include <cassert>
+
+#include "coopsync_tbb/atomic_flag_condition.hpp"
 
 namespace coopsync_tbb {
 

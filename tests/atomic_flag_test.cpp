@@ -6,11 +6,12 @@
 
 #if defined(COOPSYNC_TBB_HAS_ATOMIC_FLAG) && COOPSYNC_TBB_HAS_ATOMIC_FLAG == 1
 
-#include "coopsync_tbb/atomic_flag_condition.hpp"
 #include <gtest/gtest.h>
 #include <oneapi/tbb/parallel_for.h>
 
 #include <atomic>
+
+#include "coopsync_tbb/atomic_flag_condition.hpp"
 
 TEST(AtomicFlag, BasicOperations) {
     auto flag = coopsync_tbb::atomic_flag();

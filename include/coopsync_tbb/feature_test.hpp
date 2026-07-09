@@ -12,7 +12,8 @@
 #endif
 
 #ifdef DOXYGEN
-/// @brief Macro that indicates whether atomic_flag is supported on the current platform.
+/// @brief Macro that indicates whether atomic_flag is supported on the current
+/// platform.
 #define COOPSYNC_TBB_HAS_ATOMIC_FLAG 1
 #endif
 
