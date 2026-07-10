@@ -133,4 +133,59 @@ TEST(AtomicFlag, WaitFreeFunctions) {
     ASSERT_EQ(done.load(std::memory_order_relaxed), 1);
 }
 
+TEST(AtomicFlag, NotifyAllFreeFunctions) {
+
+    auto flag = coopsync_tbb::atomic_flag();
+    auto done = std::atomic<int>{0};
+
+    tbb::parallel_for(0, 3, [&](int i) {
+        if (i == 0) {
+            coopsync_tbb::atomic_wait(&flag, false);
+            done.fetch_add(1, std::memory_order_relaxed);
+        } else if (i == 1) {
+            coopsync_tbb::atomic_wait(&flag, false);
+            done.fetch_add(1, std::memory_order_relaxed);
+        } else {
+            coopsync_tbb::atomic_flag_test_and_set(&flag);
+            coopsync_tbb::atomic_notify_all(&flag);
+        }
+    });
+
+    ASSERT_EQ(done.load(std::memory_order_relaxed), 2);
+}
+
+TEST(AtomicFlag, FreeFunctionsWaitExplicit) {
+
+    auto flag = coopsync_tbb::atomic_flag();
+    auto done = std::atomic<int>{0};
+
+    tbb::parallel_for(0, 2, [&](int i) {
+        if (i == 0) {
+            coopsync_tbb::atomic_wait_explicit(&flag, false,
+                                               std::memory_order_relaxed);
+            done.store(1, std::memory_order_relaxed);
+        } else {
+            coopsync_tbb::atomic_flag_test_and_set_explicit(
+                &flag, std::memory_order_relaxed);
+            coopsync_tbb::atomic_notify_one(&flag);
+        }
+    });
+
+    ASSERT_EQ(done.load(std::memory_order_relaxed), 1);
+}
+
+TEST(AtomicFlag, FreeFunctionsTestExplicit) {
+    auto flag = coopsync_tbb::atomic_flag();
+
+    ASSERT_FALSE(coopsync_tbb::atomic_flag_test_explicit(
+        &flag, std::memory_order_relaxed));
+    coopsync_tbb::atomic_flag_test_and_set_explicit(&flag,
+                                                    std::memory_order_relaxed);
+    ASSERT_TRUE(coopsync_tbb::atomic_flag_test_explicit(
+        &flag, std::memory_order_relaxed));
+    coopsync_tbb::atomic_flag_clear_explicit(&flag, std::memory_order_relaxed);
+    ASSERT_FALSE(coopsync_tbb::atomic_flag_test_explicit(
+        &flag, std::memory_order_relaxed));
+}
+
 #endif
