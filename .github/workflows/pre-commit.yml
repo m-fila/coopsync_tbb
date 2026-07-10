@@ -33,5 +33,5 @@ jobs:
           pip install pre-commit
       - name: Run pre-commit
         run: |
-          cmake -S . -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+          cmake -S . -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_CXX_STANDARD=20
           pre-commit run --all-files --show-diff-on-failure
