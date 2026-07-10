@@ -9,7 +9,7 @@
 #include <atomic>
 #include <cassert>
 
-#include "coopsync_tbb/atomic_flag_condition.hpp"
+#include "coopsync_tbb/atomic_flag.hpp"
 
 namespace coopsync_tbb {
 

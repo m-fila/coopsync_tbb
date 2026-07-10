@@ -11,7 +11,7 @@
 
 #include <atomic>
 
-#include "coopsync_tbb/atomic_flag_condition.hpp"
+#include "coopsync_tbb/atomic_flag.hpp"
 
 TEST(AtomicFlag, BasicOperations) {
     auto flag = coopsync_tbb::atomic_flag();
