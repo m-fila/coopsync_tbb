@@ -16,7 +16,11 @@
 namespace coopsync_tbb {
 
 /// @brief Wrapper around std::atomic_flag that provides atomic waiting which
-/// suspends the calling task instead of blocking it.
+/// suspends the calling task instead of blocking it as well as atomic test and
+/// set and clear operations.
+// Available only if the standard library supports \c std::atomic_flag::test and
+// \c std::atomic_flag::clear with memory order parameters (C++20). Compliance
+// can be checked with COOPSYNC_TBB_HAS_ATOMIC_FLAG.
 class atomic_flag {
 
     public:
@@ -114,18 +118,42 @@ class atomic_flag {
     detail::wait_queue m_waiters;
 };
 
+/// @brief Atomically sets the state to clear.
+/// Same as \c object->clear().
+/// @param object Pointer to the atomic_flag to clear.
 void atomic_flag_clear(atomic_flag* object) noexcept;
 
+/// @brief Atomically sets the state to clear.
+/// Same as \c object->clear(order).
+/// @param object Pointer to the atomic_flag to clear.
+/// @param order The memory order to use for clearing the flag. Must not be
+/// \c std::memory_order_consume, \c std::memory_order_acquire or \c
+/// std::memory_order_acq_rel.
 void atomic_flag_clear_explicit(atomic_flag* object,
                                 std::memory_order order) noexcept;
 
+/// @brief Atomically sets the state to set and returns the previous state.
+/// Same as \c object->test_and_set().
+/// @param object Pointer to the atomic_flag to set.
 bool atomic_flag_test_and_set(atomic_flag* object) noexcept;
 
+/// @brief Atomically sets the state to set and returns the previous state.
+/// Same as \c object->test_and_set(order).
+/// @param object Pointer to the atomic_flag to set.
+/// @param order The memory order to use for setting the flag.
 bool atomic_flag_test_and_set_explicit(atomic_flag* object,
                                        std::memory_order order) noexcept;
 
+/// @brief Atomically reads the current state and returns it.
+/// Same as \c object->test().
+/// @param object Pointer to the atomic_flag to read.
 bool atomic_flag_test(atomic_flag* object) noexcept;
 
+/// @brief Atomically reads the current state and returns it.
+/// Same as \c object->test(order).
+/// @param object Pointer to the atomic_flag to read.
+/// @param order The memory order to use for reading the flag. Must not be
+/// \c std::memory_order_release, \c std::memory_order_acq_rel.
 bool atomic_flag_test_explicit(atomic_flag* object,
                                std::memory_order order) noexcept;
 
