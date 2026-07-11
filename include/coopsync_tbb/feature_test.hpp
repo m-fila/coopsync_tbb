@@ -20,3 +20,15 @@
 #if defined(__cpp_lib_atomic_flag_test) && __cpp_lib_atomic_flag_test >= 201907L
 #define COOPSYNC_TBB_HAS_ATOMIC_FLAG 1  // NOLINT(cppcoreguidelines-macro-usage)
 #endif
+
+#ifdef DOXYGEN
+/// @brief Macro that indicates whether atomic_ref_condition is supported on the
+/// current platform.
+#define COOPSYNC_TBB_HAS_ATOMIC_REF_CONDITION 1
+#endif
+
+#if defined(__cpp_lib_atomic_ref) && __cpp_lib_atomic_ref >= 201806L
+// clang-format off
+#define COOPSYNC_TBB_HAS_ATOMIC_REF_CONDITION 1 // NOLINT(cppcoreguidelines-macro-usage)
+// clang-format on
+#endif
