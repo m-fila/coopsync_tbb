@@ -10,7 +10,6 @@
 #include <cassert>
 
 #include "coopsync_tbb/detail/macros.hpp"
-#include "coopsync_tbb/detail/unique_scoped_lock.hpp"
 #include "coopsync_tbb/detail/wait_queue.hpp"
 
 namespace coopsync_tbb {
@@ -27,8 +26,8 @@ namespace coopsync_tbb {
 /// destructor, are safe.
 class shared_mutex {
     public:
-    /// @brief Associated RAII wrapper type for this mutex.
-    using scoped_lock = coopsync_tbb::detail::unique_scoped_lock<shared_mutex>;
+    /// @brief Associated RAII wrapper type.
+    class scoped_lock;
 
     /// @brief Constructs a new shared_mutex. The shared_mutex is initially
     /// unlocked.
@@ -107,6 +106,71 @@ class shared_mutex {
 
     detail::wait_queue m_writer_waiters;
     detail::wait_queue m_reader_waiters;
+};
+
+/// @brief RAII wrapper for mutex that acquires the
+/// mutex on construction and releases it on destruction.
+class COOPSYNC_TBB_NODISCARD shared_mutex::scoped_lock {
+    public:
+    /// @brief Constructs a scoped_lock without acquiring a mutex.
+    scoped_lock();
+
+    /// @brief Constructs a scoped_lock and acquires the given mutex.
+    /// @param m The mutex to acquire.
+    /// @param write If true, acquires the mutex in exclusive (writer) mode. If
+    /// false, acquires the mutex in shared (reader) mode.
+    explicit scoped_lock(shared_mutex& m, bool write = true);
+
+    /// @brief Destroys the scoped_lock and releases the mutex.
+    ~scoped_lock();
+
+    /// @brief scoped_lock is not copy-constructible.
+    scoped_lock(const scoped_lock&) = delete;
+
+    /// @brief scoped_lock is not copy-assignable.
+    scoped_lock& operator=(const scoped_lock&) = delete;
+
+    /// @brief scoped_lock is not move-constructible.
+    scoped_lock(scoped_lock&&) = delete;
+
+    /// @brief scoped_lock is not move-assignable.
+    scoped_lock& operator=(scoped_lock&&) = delete;
+
+    /// @brief Acquires the mutex.
+    /// @param m Mutex to acquire.
+    /// @param write If true, acquires the mutex in exclusive (writer) mode. If
+    /// false, acquires the mutex in shared (reader) mode.
+    /// @throws std::system_error if another mutex is already acquired.
+    void acquire(shared_mutex& m, bool write = true);
+
+    /// @brief Attempts to acquire the mutex without blocking.
+    /// @param m Mutex to acquire.
+    /// @param write If true, attempts to acquire the mutex in exclusive
+    /// (writer) mode. If false, attempts to acquire the mutex in shared
+    /// (reader) mode.
+    /// @return true if the mutex was successfully acquired, false otherwise.
+    /// @throws std::system_error if another mutex is already acquired.
+    COOPSYNC_TBB_NODISCARD bool try_acquire(shared_mutex& m, bool write = true);
+
+    /// @brief Releases the mutex. Does nothing if no mutex was previously
+    /// acquired.
+    void release();
+
+    /// @brief Changes a writer lock to a reader lock.
+    /// @return false if the lock was released and reacquired. Otherwise, return
+    /// true.
+    /// @throws std::system_error if no mutex was previously acquired.
+    bool upgrade_to_writer();
+
+    /// @brief Changes a reader lock to a writer lock.
+    /// @return false if the lock was released and reacquired. Otherwise, return
+    /// true.
+    /// @throws std::system_error if no mutex was previously acquired.
+    bool downgrade_to_reader();
+
+    private:
+    shared_mutex* m_mutex;
+    bool m_is_writer_lock;
 };
 
 /// @brief Alias for shared_mutex, following the TBB convention of naming
