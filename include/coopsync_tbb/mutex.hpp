@@ -8,7 +8,6 @@
 #include <cassert>
 
 #include "coopsync_tbb/detail/macros.hpp"
-#include "coopsync_tbb/detail/unique_scoped_lock.hpp"
 #include "coopsync_tbb/detail/wait_queue.hpp"
 
 namespace coopsync_tbb {
@@ -24,8 +23,8 @@ namespace coopsync_tbb {
 /// destructor, are safe.
 class mutex {
     public:
-    /// @brief Associated RAII wrapper type for this mutex.
-    using scoped_lock = coopsync_tbb::detail::unique_scoped_lock<mutex>;
+    /// @brief Associated RAII wrapper type.
+    class scoped_lock;
 
     /// @brief Constructs a new mutex. The mutex is initially unlocked.
     mutex() = default;
@@ -72,6 +71,50 @@ class mutex {
     private:
     std::atomic<bool> m_locked = {false};
     detail::wait_queue m_wait_queue;
+};
+
+/// @brief RAII wrapper for mutex that acquires the
+/// mutex on construction and releases it on destruction.
+class COOPSYNC_TBB_NODISCARD mutex::scoped_lock {
+    public:
+    /// @brief Constructs a scoped_lock without acquiring a mutex.
+    scoped_lock();
+
+    /// @brief Constructs a scoped_lock and acquires the given mutex.
+    /// @param m The mutex to acquire.
+    explicit scoped_lock(mutex& m);
+
+    /// @brief Destroys the scoped_lock and releases the mutex.
+    ~scoped_lock();
+
+    /// @brief scoped_lock is not copy-constructible.
+    scoped_lock(const scoped_lock&) = delete;
+
+    /// @brief scoped_lock is not copy-assignable.
+    scoped_lock& operator=(const scoped_lock&) = delete;
+
+    /// @brief scoped_lock is not move-constructible.
+    scoped_lock(scoped_lock&&) = delete;
+
+    /// @brief scoped_lock is not move-assignable.
+    scoped_lock& operator=(scoped_lock&&) = delete;
+    /// @brief Acquires the mutex.
+    /// @param m Mutex to acquire.
+    /// @throws std::system_error if another mutex is already acquired.
+    void acquire(mutex& m);
+
+    /// @brief Attempts to acquire the mutex without blocking.
+    /// @param m Mutex to acquire.
+    /// @return true if the mutex was successfully acquired, false otherwise.
+    /// @throws std::system_error if another mutex is already acquired.
+    COOPSYNC_TBB_NODISCARD bool try_acquire(mutex& m);
+
+    /// @brief Releases the mutex. Does nothing if no mutex was previously
+    /// acquired.
+    void release();
+
+    private:
+    mutex* m_mutex;
 };
 
 }  // namespace coopsync_tbb

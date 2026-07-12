@@ -98,4 +98,85 @@ void shared_mutex::unlock_shared() {
     m_reader_waiters.resume_all();
 }
 
+shared_mutex::scoped_lock::scoped_lock(shared_mutex& m, bool write)
+    : m_mutex(&m), m_is_writer_lock(write) {
+    if (write) {
+        m_mutex->lock();
+    } else {
+        m_mutex->lock_shared();
+    }
+}
+
+shared_mutex::scoped_lock::scoped_lock()
+    : m_mutex(nullptr), m_is_writer_lock(false) {}
+
+void shared_mutex::scoped_lock::acquire(shared_mutex& m, bool write) {
+    if (m_mutex != nullptr) {
+        throw std::system_error(
+            std::make_error_code(std::errc::operation_not_permitted));
+    }
+    m_mutex = &m;
+    if (write) {
+        m_mutex->lock();
+    } else {
+        m_mutex->lock_shared();
+    }
+    m_is_writer_lock = write;
+}
+
+shared_mutex::scoped_lock::~scoped_lock() {
+    release();
+}
+
+bool shared_mutex::scoped_lock::try_acquire(shared_mutex& m, bool write) {
+    if (m_mutex != nullptr) {
+        throw std::system_error(
+            std::make_error_code(std::errc::operation_not_permitted));
+    }
+    auto success = write ? m.try_lock() : m.try_lock_shared();
+    if (success) {
+        m_mutex = &m;
+        m_is_writer_lock = write;
+    }
+    return success;
+}
+
+void shared_mutex::scoped_lock::release() {
+    if (m_mutex == nullptr) {
+        return;
+    }
+    m_mutex->unlock();
+    m_mutex = nullptr;
+}
+
+bool shared_mutex::scoped_lock::upgrade_to_writer() {
+    if (m_mutex == nullptr) {
+        throw std::system_error(
+            std::make_error_code(std::errc::operation_not_permitted));
+    }
+    if (m_is_writer_lock) {
+        return true;
+    }
+    // Release the reader lock and acquire a writer lock.
+    m_mutex->unlock_shared();
+    m_mutex->lock();
+    m_is_writer_lock = true;
+    return false;
+}
+
+bool shared_mutex::scoped_lock::downgrade_to_reader() {
+    if (m_mutex == nullptr) {
+        throw std::system_error(
+            std::make_error_code(std::errc::operation_not_permitted));
+    }
+
+    if (!m_is_writer_lock) {
+        return true;
+    }
+    // Release the writer lock and acquire a reader lock.
+    m_mutex->unlock();
+    m_mutex->lock_shared();
+    m_is_writer_lock = false;
+    return false;
+}
 }  // namespace coopsync_tbb

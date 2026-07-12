@@ -10,7 +10,6 @@ add_executable(
   mutex_traits.hpp
   # details
   intrusive_list_test.cpp
-  unique_scoped_lock_test.cpp
   # main classes
   atomic_condition_test.cpp
   barrier_test.cpp

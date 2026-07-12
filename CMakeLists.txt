@@ -100,7 +100,6 @@ target_sources(
          # details
          include/coopsync_tbb/detail/intrusive_list.hpp
          include/coopsync_tbb/detail/macros.hpp
-         include/coopsync_tbb/detail/unique_scoped_lock.hpp
          include/coopsync_tbb/detail/wait_queue.hpp
          # primitives
          include/coopsync_tbb/atomic_condition.hpp
@@ -119,7 +118,6 @@ target_sources(
           # details
           src/intrusive_list.cpp
           src/macros.cpp
-          src/unique_scoped_lock.cpp
           src/wait_queue.cpp
           # primitives
           src/atomic_condition.cpp
