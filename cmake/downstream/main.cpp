@@ -5,7 +5,11 @@
 #include <oneapi/tbb/global_control.h>
 #include <oneapi/tbb/parallel_for.h>
 
+#ifdef USE_COOPSYNC_TBB_MODULE
+import coopsync_tbb;
+#else
 #include <coopsync_tbb/coopsync_tbb.hpp>
+#endif
 #include <coopsync_tbb/version.hpp>
 #include <iostream>
 
