@@ -20,7 +20,7 @@ find_package(CoopSync_TBB CONFIG REQUIRED)
 
 add_executable(coopsync_tbb_downstream main.cpp)
 target_link_libraries(coopsync_tbb_downstream
-                      PRIVATE CoopSync_TBB::CoopSync_TBB)
+                      PRIVATE CoopSync_TBB::coopsync_tbb)
 
 if(BUILD_TESTING)
   enable_testing()

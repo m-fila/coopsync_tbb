@@ -23,7 +23,7 @@ add_executable(
   shared_mutex_test.cpp
   semaphore_test.cpp)
 
-target_link_libraries(coopsync_tbb_test PRIVATE GTest::gtest_main CoopSync_TBB)
+target_link_libraries(coopsync_tbb_test PRIVATE GTest::gtest_main coopsync_tbb)
 
 gtest_discover_tests(coopsync_tbb_test)
 

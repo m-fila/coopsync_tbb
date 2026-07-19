@@ -83,7 +83,7 @@ This project installs a CMake configuration and exports a CMake target, making i
 ```cmake
 find_package(CoopSync_TBB REQUIRED)
 
-target_link_libraries(your_target PUBLIC CoopSync_TBB::CoopSync_TBB)
+target_link_libraries(your_target PUBLIC CoopSync_TBB::coopsync_tbb)
 ```
 
 ## License
