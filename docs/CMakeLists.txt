@@ -35,7 +35,6 @@ doxygen_add_docs(
   coopsync_tbb_docs
   "${PROJECT_SOURCE_DIR}/include"
   "${PROJECT_BINARY_DIR}/include"
-  "${PROJECT_SOURCE_DIR}/modules/"
   "${PROJECT_SOURCE_DIR}/README.md"
   "${PROJECT_SOURCE_DIR}/LICENSES/Apache-2.0.txt"
   COMMENT "Generating Doxygen pages"
