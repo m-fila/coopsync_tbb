@@ -13,6 +13,7 @@
 #include <cstring>
 #include <type_traits>
 
+#include "coopsync_tbb/detail/macros.hpp"
 #include "coopsync_tbb/detail/wait_queue.hpp"
 
 namespace coopsync_tbb {
@@ -25,7 +26,7 @@ namespace coopsync_tbb {
 /// Compliance can be checked with \ref COOPSYNC_TBB_HAS_ATOMIC_REF_CONDITION.
 ///
 template <typename T>
-class atomic_ref_condition {
+class COOPSYNC_TBB_EXPORT atomic_ref_condition {
     static_assert(std::is_trivially_copyable<T>::value,
                   "atomic_ref_condition requires trivially copyable type");
     static_assert(

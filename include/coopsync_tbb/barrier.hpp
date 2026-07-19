@@ -35,7 +35,7 @@ using default_completion_t = void (*)();
 /// when a phase completes. The completion function must be not throw and must
 /// be invocable without arguments.
 template <typename CompletionFunction = detail::barrier::default_completion_t>
-class barrier {
+class COOPSYNC_TBB_EXPORT barrier {
     public:
     class COOPSYNC_TBB_NODISCARD arrival_token;
 
