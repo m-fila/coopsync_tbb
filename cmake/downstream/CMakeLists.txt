@@ -17,12 +17,12 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 include(CTest)
 
-find_package(CoopSync_TBB CONFIG REQUIRED)
+find_package(CoopSync_TBB CONFIGREQUIRED)
 
 add_executable(coopsync_tbb_downstream main.cpp)
 target_link_libraries(
   coopsync_tbb_downstream
-  PRIVATE CoopSync_TBB::CoopSync_TBB
+  PRIVATE CoopSync_TBB::coopsync_tbb
 )
 
 if(BUILD_TESTING)

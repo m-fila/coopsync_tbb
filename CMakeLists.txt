@@ -32,7 +32,7 @@ include(GNUInstallDirs)
 
 configure_file(
   include/coopsync_tbb/version.hpp.in
-  ${CMAKE_CURRENT_BINARY_DIR}/include/coopsync_tbb/version.hpp
+  "${CMAKE_CURRENT_BINARY_DIR}/include/coopsync_tbb/version.hpp"
   @ONLY
 )
 
@@ -90,19 +90,19 @@ endif()
 
 # Library
 
-add_library(CoopSync_TBB SHARED)
+add_library(coopsync_tbb SHARED)
 
-coopsync_tbb_apply_sanitizer(CoopSync_TBB)
+coopsync_tbb_apply_sanitizer(coopsync_tbb)
 
 target_sources(
-  CoopSync_TBB
+  coopsync_tbb
   PUBLIC
     FILE_SET HEADERS
-      BASE_DIRS include/ ${CMAKE_CURRENT_BINARY_DIR}/include
+      BASE_DIRS include/ "${CMAKE_CURRENT_BINARY_DIR}/include"
       FILES
         # public API
         include/coopsync_tbb/coopsync_tbb.hpp
-        ${CMAKE_CURRENT_BINARY_DIR}/include/coopsync_tbb/version.hpp
+        "${CMAKE_CURRENT_BINARY_DIR}/include/coopsync_tbb/version.hpp"
         include/coopsync_tbb/feature_test.hpp
         # details
         include/coopsync_tbb/detail/intrusive_list.hpp
@@ -143,8 +143,8 @@ target_sources(
     src/shared_mutex.cpp
 )
 
-add_library(CoopSync_TBB::CoopSync_TBB ALIAS CoopSync_TBB)
-target_link_libraries(CoopSync_TBB PUBLIC TBB::tbb)
+add_library(CoopSync_TBB::coopsync_tbb ALIAS coopsync_tbb)
+target_link_libraries(coopsync_tbb PUBLIC TBB::tbb)
 
 # Tests
 
@@ -161,26 +161,26 @@ endif()
 
 # Install
 
-install(TARGETS CoopSync_TBB EXPORT CoopSync_TBBTargets FILE_SET HEADERS)
+install(TARGETS coopsync_tbb EXPORT CoopSync_TBBTargets FILE_SET HEADERS)
 
 install(
   EXPORT CoopSync_TBBTargets
-  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/CoopSync_TBB
+  DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/CoopSync_TBB"
   NAMESPACE CoopSync_TBB::
 )
 
 include(CMakePackageConfigHelpers)
 
 write_basic_package_version_file(
-  ${CMAKE_CURRENT_BINARY_DIR}/CoopSync_TBBConfigVersion.cmake
+  "${CMAKE_CURRENT_BINARY_DIR}/CoopSync_TBBConfigVersion.cmake"
   COMPATIBILITY ExactVersion
 )
 
 install(
   FILES
     cmake/CoopSync_TBBConfig.cmake
-    ${CMAKE_CURRENT_BINARY_DIR}/CoopSync_TBBConfigVersion.cmake
-  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/CoopSync_TBB
+    "${CMAKE_CURRENT_BINARY_DIR}/CoopSync_TBBConfigVersion.cmake"
+  DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/CoopSync_TBB"
 )
 
 set(libdir_for_pc_file "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
