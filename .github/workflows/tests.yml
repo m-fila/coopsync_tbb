@@ -29,7 +29,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake gcc g++ clang
+          sudo apt-get install -y cmake gcc g++ clang pkg-config
 
       - name: Configure
         run: |
@@ -50,4 +50,10 @@ jobs:
       - name: Downstream configure, build, test
         if: matrix.build_type == 'Release'
         working-directory: cmake/downstream
-        run: cmake --workflow --preset downstream
+        run: |
+          cmake --workflow --preset downstream
+          g++ -o pkg_test cmake/downstream/main.cpp $(pkg-config --cflags --libs coopsync_tbb)
+          LD_LIBRARY_PATH=./install/lib pkg_test
+        env:
+          PKG_CONFIG_PATH: ${{ github.workspace }}/install/lib/pkgconfig
+
