@@ -139,8 +139,8 @@ target_sources(
           src/shared_mutex.cpp)
 
 if(COOPSYNC_TBB_BUILD_MODULES)
-  target_sources(CoopSync_TBB PUBLIC FILE_SET CXX_MODULES FILES
-                                     coopsync_tbb.cppm)
+  target_sources(CoopSync_TBB PUBLIC FILE_SET CXX_MODULES BASE_DIRS modules
+                                     FILES modules/coopsync_tbb.cppm)
   target_compile_features(CoopSync_TBB PUBLIC cxx_std_20)
 endif()
 
@@ -165,8 +165,8 @@ endif()
 install(
   TARGETS CoopSync_TBB
   EXPORT CoopSync_TBBTargets
-  FILE_SET HEADERS
-  FILE_SET CXX_MODULES DESTINATION modules)
+  FILE_SET HEADERS FILE_SET CXX_MODULES
+  DESTINATION modules)
 
 install(
   EXPORT CoopSync_TBBTargets
