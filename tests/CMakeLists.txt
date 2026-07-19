@@ -21,6 +21,12 @@ add_executable(
   shared_mutex_test.cpp
   semaphore_test.cpp)
 
+if(COOPSYNC_TBB_BUILD_MODULES)
+  target_sources(coopsync_tbb_test PUBLIC module_test.cpp)
+  set_source_files_properties(module_test.cpp PROPERTIES
+                                 CXX_SCAN_FOR_MODULES ON)
+endif()
+
 target_link_libraries(coopsync_tbb_test PRIVATE GTest::gtest_main CoopSync_TBB)
 
 gtest_discover_tests(coopsync_tbb_test)
