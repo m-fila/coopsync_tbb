@@ -22,7 +22,7 @@ namespace coopsync_tbb {
 /// because it never blocks the calling thread, even though it exposes the same
 /// interface. Concurrent invocations of the member functions, except for
 /// destructor, are safe.
-class mutex {
+class COOPSYNC_TBB_EXPORT mutex {
     public:
     /// @brief Associated RAII wrapper type for this mutex.
     using scoped_lock = coopsync_tbb::detail::unique_scoped_lock<mutex>;

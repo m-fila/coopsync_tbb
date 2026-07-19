@@ -30,7 +30,7 @@ using default_completion_t = void (*)() noexcept;
 /// for the next phase. Concurrent invocations of the member functions. except
 /// for destructor, are safe.
 template <typename CompletionFunction = detail::barrier::default_completion_t>
-class barrier {
+class COOPSYNC_TBB_EXPORT barrier {
     public:
     class COOPSYNC_TBB_NODISCARD arrival_token;
 

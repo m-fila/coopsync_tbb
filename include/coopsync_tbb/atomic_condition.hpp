@@ -8,6 +8,7 @@
 #include <cstring>
 #include <type_traits>
 
+#include "coopsync_tbb/detail/macros.hpp"
 #include "coopsync_tbb/detail/wait_queue.hpp"
 
 namespace coopsync_tbb {
@@ -17,7 +18,7 @@ namespace coopsync_tbb {
 /// @tparam T The type of the value contained in the atomic_condition. Must be
 /// \c TriviallyCopyable, \c CopyConstructible and \c CopyAssignable.
 template <typename T>
-class atomic_condition {
+class COOPSYNC_TBB_EXPORT atomic_condition {
     static_assert(std::is_trivially_copyable<T>::value,
                   "atomic_condition requires trivially copyable type");
     static_assert(std::is_copy_constructible<T>::value,
@@ -139,8 +140,8 @@ class atomic_condition {
 /// value and old, not by \c operator==. The comparison may be affected by
 /// padding bytes.
 template <typename T>
-void atomic_wait(atomic_condition<T>* object,
-                 typename atomic_condition<T>::value_type old);
+COOPSYNC_TBB_EXPORT void atomic_wait(
+    atomic_condition<T>* object, typename atomic_condition<T>::value_type old);
 
 /// @brief Suspends the calling task until the internal atomic value of the
 /// atomic_condition is not equal to specified value. If the internal atomic
@@ -160,9 +161,9 @@ void atomic_wait(atomic_condition<T>* object,
 /// value and old, not by \c operator==. The comparison may be affected by
 /// padding bytes.
 template <typename T>
-void atomic_wait_explicit(atomic_condition<T>* object,
-                          typename atomic_condition<T>::value_type old,
-                          std::memory_order order);
+COOPSYNC_TBB_EXPORT void atomic_wait_explicit(
+    atomic_condition<T>* object, typename atomic_condition<T>::value_type old,
+    std::memory_order order);
 
 /// @brief Resumes one task suspended waiting on the atomic_condition, if there
 /// is any.
@@ -170,14 +171,14 @@ void atomic_wait_explicit(atomic_condition<T>* object,
 /// @tparam T The type of the value contained in the atomic_condition.
 /// @param object Pointer to the atomic_condition to notify on.
 template <typename T>
-void atomic_notify_one(atomic_condition<T>* object);
+COOPSYNC_TBB_EXPORT void atomic_notify_one(atomic_condition<T>* object);
 
 /// @brief Resumes all tasks suspended waiting on the atomic_condition.
 /// Same as \c object->notify_all().
 /// @tparam T The type of the value contained in the atomic_condition.
 /// @param object Pointer to the atomic_condition to notify on.
 template <typename T>
-void atomic_notify_all(atomic_condition<T>* object);
+COOPSYNC_TBB_EXPORT void atomic_notify_all(atomic_condition<T>* object);
 
 }  // namespace coopsync_tbb
 
