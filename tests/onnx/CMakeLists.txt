@@ -13,7 +13,7 @@ add_executable(coopsync_tbb_onnx_wait_for_test wait_for_test.cpp)
 
 target_link_libraries(
   coopsync_tbb_onnx_wait_for_test
-  PRIVATE GTest::gtest_main CoopSync_TBB onnxruntime::onnxruntime
+  PRIVATE GTest::gtest_main coopsync_tbb onnxruntime::onnxruntime
 )
 
 gtest_discover_tests(coopsync_tbb_onnx_wait_for_test)
