@@ -15,6 +15,7 @@ project(
 option(COOPSYNC_TBB_USE_SYSTEM_LIBS "Use system libraries be default" FALSE)
 option(COOPSYNC_TBB_BUILD_TESTING "Build the tests of CoopSync_TBB" TRUE)
 option(COOPSYNC_TBB_BUILD_DOCS "Build the documentation of CoopSync_TBB" OFF)
+option(COOPSYNC_TBB_BUILD_MODULES "Build CoopSync_TBB as a C++20 module" OFF)
 
 include(cmake/Sanitizers.cmake) # COOPSYNC_TBB_SANITIZER option
 
@@ -28,6 +29,14 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 if(CMAKE_CXX_STANDARD LESS 11)
   message(FATAL_ERROR "CoopsSync_TBB requires C++11 or higher.")
 endif()
+
+if(COOPSYNC_TBB_BUILD_MODULES AND CMAKE_CXX_STANDARD LESS 20)
+  message(
+    FATAL_ERROR
+    "CoopsSync_TBB requires C++20 or higher to build as a module."
+  )
+endif()
+
 include(GNUInstallDirs)
 
 configure_file(
@@ -156,6 +165,14 @@ set_target_properties(
   PROPERTIES CXX_VISIBILITY_PRESET hidden VISIBILITY_INLINES_HIDDEN TRUE
 )
 
+if(COOPSYNC_TBB_BUILD_MODULES)
+  target_sources(
+    CoopSync_TBB
+    PUBLIC FILE_SET CXX_MODULES FILES coopsync_tbb.cppm
+  )
+  target_compile_features(CoopSync_TBB PUBLIC cxx_std_20)
+endif()
+
 add_library(CoopSync_TBB::CoopSync_TBB ALIAS CoopSync_TBB)
 target_link_libraries(CoopSync_TBB PUBLIC TBB::tbb)
 
@@ -174,7 +191,12 @@ endif()
 
 # Install
 
-install(TARGETS CoopSync_TBB EXPORT CoopSync_TBBTargets FILE_SET HEADERS)
+install(
+  TARGETS CoopSync_TBB
+  EXPORT CoopSync_TBBTargets
+  FILE_SET HEADERS
+  FILE_SET CXX_MODULES DESTINATION modules
+)
 
 install(
   EXPORT CoopSync_TBBTargets
