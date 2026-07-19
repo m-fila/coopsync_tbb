@@ -56,6 +56,11 @@ Build requirements:
 - C++17 or later compiler
 - oneTBB v2021.8 or later
 
+Additional requirements for module builds:
+
+- C++20 compiler
+- CMake v3.28 or later
+
 Optional dependencies (only required for integration headers):
 
 - CUDA v10 or later
@@ -74,6 +79,11 @@ cmake --build --preset default
 
 By default the project will fetch the dependencies. To find and use the system dependencies instead, set the CMake ` -DCOOPSYNC_TBB_USE_SYSTEM_LIBS=ON` flag during configuration.
 
+### Building with C++20 modules
+
+The project provides an optional `coopsync_tbb` C++20 module interface.
+To build and install the module interface, enable module builds with `-DCOOPSYNC_TBB_BUILD_MODULES=ON` and use at least C++20.
+
 ## Using in a CMake project
 
 This project installs a CMake configuration and exports a CMake target, making it easy to use in other projects. The library can be located with `find_package` and linked to other targets:
@@ -83,6 +93,8 @@ find_package(CoopSync_TBB REQUIRED)
 
 target_link_libraries(your_target PUBLIC CoopSync_TBB::CoopSync_TBB)
 ```
+
+`CoopSync_TBB::CoopSync_TBB` target also includes C++20 modules if the library was build with them enabled.
 
 ## License
 
