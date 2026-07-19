@@ -16,6 +16,7 @@ if(NOT CMAKE_CXX_STANDARD)
 endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+option(DOWNSTREAM_USE_MODULES "Use CoopSync_TBB as a C++20 module" OFF)
 
 include(CTest)
 
@@ -27,7 +28,23 @@ target_link_libraries(
   PRIVATE CoopSync_TBB::coopsync_tbb
 )
 
+if(DOWNSTREAM_USE_MODULES)
+  set(CMAKE_CXX_SCAN_FOR_MODULES ON)
+  add_executable(coopsync_tbb_downstream_module main.cpp)
+  target_link_libraries(
+    coopsync_tbb_downstream_module
+    PRIVATE CoopSync_TBB::coopsync_tbb
+  )
+  target_compile_definitions(
+    coopsync_tbb_downstream_module
+    PRIVATE USE_COOPSYNC_TBB_MODULE
+  )
+endif()
+
 if(BUILD_TESTING)
   enable_testing()
   add_test(NAME downstream_test COMMAND coopsync_tbb_downstream)
+  if(DOWNSTREAM_USE_MODULES)
+    add_test(NAME downstream_test_module COMMAND coopsync_tbb_downstream_module)
+  endif()
 endif()
