@@ -92,6 +92,12 @@ endif()
 
 add_library(CoopSync_TBB SHARED)
 
+include(GenerateExportHeader)
+generate_export_header(
+  CoopSync_TBB
+  EXPORT_FILE_NAME
+    ${CMAKE_CURRENT_BINARY_DIR}/include/coopsync_tbb/detail/export.hpp
+)
 coopsync_tbb_apply_sanitizer(CoopSync_TBB)
 
 target_sources(
@@ -105,6 +111,7 @@ target_sources(
         ${CMAKE_CURRENT_BINARY_DIR}/include/coopsync_tbb/version.hpp
         include/coopsync_tbb/feature_test.hpp
         # details
+        ${CMAKE_CURRENT_BINARY_DIR}/include/coopsync_tbb/detail/export.hpp
         include/coopsync_tbb/detail/intrusive_list.hpp
         include/coopsync_tbb/detail/macros.hpp
         include/coopsync_tbb/detail/wait_queue.hpp
@@ -141,6 +148,11 @@ target_sources(
     src/mutex.cpp
     src/semaphore.cpp
     src/shared_mutex.cpp
+)
+
+set_target_properties(
+  CoopSync_TBB
+  PROPERTIES CXX_VISIBILITY_PRESET hidden VISIBILITY_INLINES_HIDDEN TRUE
 )
 
 add_library(CoopSync_TBB::CoopSync_TBB ALIAS CoopSync_TBB)

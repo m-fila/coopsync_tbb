@@ -11,6 +11,7 @@
 
 #include <atomic>
 
+#include "coopsync_tbb/detail/macros.hpp"
 #include "coopsync_tbb/detail/wait_queue.hpp"
 
 namespace coopsync_tbb {
@@ -22,7 +23,7 @@ namespace coopsync_tbb {
 /// Available only if the standard library supports \c std::atomic_flag::test
 /// and \c std::atomic_flag::clear with memory order parameters (C++20).
 /// Compliance can be checked with \ref COOPSYNC_TBB_HAS_ATOMIC_FLAG.
-class atomic_flag {
+class COOPSYNC_TBB_EXPORT atomic_flag {
 
     public:
     /// @brief Constructs a new atomic_flag. Initializes to clear state.
@@ -122,7 +123,7 @@ class atomic_flag {
 /// @brief Atomically sets the state to clear.
 /// Same as \c object->clear().
 /// @param object Pointer to the atomic_flag to clear.
-void atomic_flag_clear(atomic_flag* object) noexcept;
+COOPSYNC_TBB_EXPORT void atomic_flag_clear(atomic_flag* object) noexcept;
 
 /// @brief Atomically sets the state to clear.
 /// Same as \c object->clear(order).
@@ -130,33 +131,33 @@ void atomic_flag_clear(atomic_flag* object) noexcept;
 /// @param order The memory order to use for clearing the flag. Must not be
 /// \c std::memory_order_consume, \c std::memory_order_acquire or \c
 /// std::memory_order_acq_rel.
-void atomic_flag_clear_explicit(atomic_flag* object,
-                                std::memory_order order) noexcept;
+COOPSYNC_TBB_EXPORT void atomic_flag_clear_explicit(
+    atomic_flag* object, std::memory_order order) noexcept;
 
 /// @brief Atomically sets the state to set and returns the previous state.
 /// Same as \c object->test_and_set().
 /// @param object Pointer to the atomic_flag to set.
-bool atomic_flag_test_and_set(atomic_flag* object) noexcept;
+COOPSYNC_TBB_EXPORT bool atomic_flag_test_and_set(atomic_flag* object) noexcept;
 
 /// @brief Atomically sets the state to set and returns the previous state.
 /// Same as \c object->test_and_set(order).
 /// @param object Pointer to the atomic_flag to set.
 /// @param order The memory order to use for setting the flag.
-bool atomic_flag_test_and_set_explicit(atomic_flag* object,
-                                       std::memory_order order) noexcept;
+COOPSYNC_TBB_EXPORT bool atomic_flag_test_and_set_explicit(
+    atomic_flag* object, std::memory_order order) noexcept;
 
 /// @brief Atomically reads the current state and returns it.
 /// Same as \c object->test().
 /// @param object Pointer to the atomic_flag to read.
-bool atomic_flag_test(atomic_flag* object) noexcept;
+COOPSYNC_TBB_EXPORT bool atomic_flag_test(atomic_flag* object) noexcept;
 
 /// @brief Atomically reads the current state and returns it.
 /// Same as \c object->test(order).
 /// @param object Pointer to the atomic_flag to read.
 /// @param order The memory order to use for reading the flag. Must not be
 /// \c std::memory_order_release, \c std::memory_order_acq_rel.
-bool atomic_flag_test_explicit(atomic_flag* object,
-                               std::memory_order order) noexcept;
+COOPSYNC_TBB_EXPORT bool atomic_flag_test_explicit(
+    atomic_flag* object, std::memory_order order) noexcept;
 
 /// @brief Suspends the calling task until the state is not equal to specified
 /// value. If the internal atomic the state is not equal to old, the function
@@ -168,7 +169,7 @@ bool atomic_flag_test_explicit(atomic_flag* object,
 /// be suspended while the state is equal to old.
 /// @note Due to ABA problem, transitions from old to a different value and
 /// back to old may be missed.
-void atomic_flag_wait(atomic_flag* object, bool old);
+COOPSYNC_TBB_EXPORT void atomic_flag_wait(atomic_flag* object, bool old);
 
 /// @brief Suspends the calling task until the state is not equal to specified
 /// value. If the internal atomic the state is not equal to old, the function
@@ -182,19 +183,20 @@ void atomic_flag_wait(atomic_flag* object, bool old);
 /// Must not be \c std::memory_order_release or \c std::memory_order_acq_rel.
 /// @note Due to ABA problem, transitions from old to a different value and
 /// back to old may be missed.
-void atomic_flag_wait_explicit(atomic_flag* object, bool old,
-                               std::memory_order order);
+COOPSYNC_TBB_EXPORT void atomic_flag_wait_explicit(atomic_flag* object,
+                                                   bool old,
+                                                   std::memory_order order);
 
 /// @brief Resumes one task suspended waiting on the atomic_flag, if there
 /// is any.
 /// Same as \c object.notify_one().
 /// @param object Pointer to the atomic_flag to notify on.
-void atomic_flag_notify_one(atomic_flag* object);
+COOPSYNC_TBB_EXPORT void atomic_flag_notify_one(atomic_flag* object);
 
 /// @brief Resumes all tasks suspended waiting on the atomic_flag.
 /// Same as \c object.notify_all().
 /// @param object Pointer to the atomic_flag to notify on.
-void atomic_flag_notify_all(atomic_flag* object);
+COOPSYNC_TBB_EXPORT void atomic_flag_notify_all(atomic_flag* object);
 
 }  // namespace coopsync_tbb
 

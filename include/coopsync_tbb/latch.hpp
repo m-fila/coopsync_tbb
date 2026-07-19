@@ -18,7 +18,7 @@ namespace coopsync_tbb {
 /// reaches zero, it cannot be incremented again. Concurrent invocations of the
 /// member functions, except for destructor, are safe.
 ///
-class latch {
+class COOPSYNC_TBB_EXPORT latch {
     public:
     /// @brief Constructs a latch with the specified initial count. The count
     /// must be non-negative.

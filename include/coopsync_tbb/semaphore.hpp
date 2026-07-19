@@ -76,7 +76,7 @@ class int_max_value_t {
 // max().
 template <std::ptrdiff_t LeastMaxValue =
               std::numeric_limits<std::ptrdiff_t>::max()>
-class counting_semaphore {
+class COOPSYNC_TBB_EXPORT counting_semaphore {
     public:
     static_assert(LeastMaxValue >= 0, "LeastMaxValue must be non-negative");
     static_assert(LeastMaxValue <= std::numeric_limits<std::ptrdiff_t>::max(),
@@ -143,7 +143,7 @@ class counting_semaphore {
 /// permit. Same as @c binary_semaphore.
 ///
 template <>
-class counting_semaphore<1> {
+class COOPSYNC_TBB_EXPORT counting_semaphore<1> {
     public:
     /// @brief Constructs a counting_semaphore with the specified initial count.
     /// @param desired The initial count. Must be 0 or 1.
