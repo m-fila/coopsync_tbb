@@ -169,7 +169,10 @@ set_target_properties(
 if(COOPSYNC_TBB_BUILD_MODULES)
   target_sources(
     coopsync_tbb
-    PUBLIC FILE_SET CXX_MODULES FILES coopsync_tbb.cppm
+    PUBLIC
+      FILE_SET CXX_MODULES
+        BASE_DIRS include/
+        FILES include/coopsync_tbb/src/coopsync_tbb.cppm
   )
   target_compile_features(coopsync_tbb PUBLIC cxx_std_20)
 endif()
@@ -196,7 +199,7 @@ install(
   TARGETS coopsync_tbb
   EXPORT CoopSync_TBBTargets
   FILE_SET HEADERS
-  FILE_SET CXX_MODULES DESTINATION modules
+  FILE_SET CXX_MODULES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
 
 install(

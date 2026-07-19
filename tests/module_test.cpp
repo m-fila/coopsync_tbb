@@ -13,6 +13,7 @@ TEST(ModuleImport, Classes) {
     static_assert(sizeof(coopsync_tbb::future<void>) > 0);
     static_assert(sizeof(coopsync_tbb::future<int>) > 0);
     static_assert(sizeof(coopsync_tbb::future<int&>) > 0);
+    static_assert(sizeof(coopsync_tbb::future_error) > 0);
     static_assert(sizeof(coopsync_tbb::promise<void>) > 0);
     static_assert(sizeof(coopsync_tbb::promise<int>) > 0);
     static_assert(sizeof(coopsync_tbb::promise<int&>) > 0);
