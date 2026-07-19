@@ -6,8 +6,9 @@
 
 #include "coopsync_tbb/feature_test.hpp"
 
-#if defined(DOXYGEN) || (defined(COOPSYNC_TBB_HAS_ATOMIC_REF_CONDITION) && \
-                         COOPSYNC_TBB_HAS_ATOMIC_REF_CONDITION == 1)
+#if defined(COOPSYNC_TBB_DOXYGEN) ||                   \
+    (defined(COOPSYNC_TBB_HAS_ATOMIC_REF_CONDITION) && \
+     COOPSYNC_TBB_HAS_ATOMIC_REF_CONDITION == 1)
 
 #include <atomic>
 #include <cstring>
