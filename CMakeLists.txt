@@ -175,3 +175,15 @@ write_basic_package_version_file(
 install(FILES cmake/CoopSync_TBBConfig.cmake
               ${CMAKE_CURRENT_BINARY_DIR}/CoopSync_TBBConfigVersion.cmake
         DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/CoopSync_TBB)
+install(FILES cmake/CoopSync_TBBConfig.cmake
+              ${CMAKE_CURRENT_BINARY_DIR}/CoopSync_TBBConfigVersion.cmake
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/CoopSync_TBB)
+
+set(libdir_for_pc_file "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
+set(includedir_for_pc_file
+    "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}")
+configure_file(cmake/pkgconfig/coopsync_tbb.pc.in
+               "${CMAKE_CURRENT_BINARY_DIR}/coopsync_tbb.pc" @ONLY)
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/coopsync_tbb.pc"
+        DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig/")
+
