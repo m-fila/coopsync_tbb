@@ -11,6 +11,14 @@ module;
 
 /// \module coopsync_tbb
 /// \brief C++20 module interface for the CoopSync_TBB library.
+///
+/// The module interface exports all public APIs of the library, including
+/// classes, aliases and free functions. The module interface is intended to be
+/// used with C++20 modules, and can be imported using the
+/// \code{.cpp}
+/// import coopsync_tbb;
+/// \endcode
+/// directive.
 export module coopsync_tbb;
 
 export namespace coopsync_tbb {
