@@ -24,7 +24,7 @@ jobs:
 
       - name: Configure + build
         run: |
-          cmake --preset coverage
+          cmake --preset coverage -DCMAKE_CXX_STANDARD=20
           cmake --build --preset coverage
 
       - name: Baseline coverage

@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   build-and-test:
-    name: Build + Test (${{ matrix.compiler }}, ${{ matrix.build_type }})
+    name: Build + Test (${{ matrix.compiler }}, ${{ matrix.build_type }}, C++${{ matrix.cxx_standard }})
     runs-on: ubuntu-latest
     env:
       CC: ${{ matrix.compiler }}
@@ -22,6 +22,7 @@ jobs:
       matrix:
         compiler: [gcc, clang]
         build_type: [Release, Debug]
+        cxx_standard: [17, 20]
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
@@ -34,6 +35,7 @@ jobs:
         run: |
           cmake -S . -B build \
             -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+            -DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }} \
             -DBUILD_TESTING=ON
 
       - name: Build
