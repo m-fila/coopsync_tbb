@@ -105,6 +105,7 @@ target_sources(
          include/coopsync_tbb/detail/wait_queue.hpp
          # primitives
          include/coopsync_tbb/atomic_condition.hpp
+         include/coopsync_tbb/atomic_ref_condition.hpp
          include/coopsync_tbb/atomic_flag.hpp
          include/coopsync_tbb/barrier.hpp
          include/coopsync_tbb/condition_variable.hpp
@@ -127,6 +128,7 @@ target_sources(
           src/wait_queue.cpp
           # primitives
           src/atomic_condition.cpp
+          src/atomic_ref_condition.cpp
           src/atomic_flag.cpp
           src/barrier.cpp
           src/condition_variable.cpp

@@ -20,21 +20,22 @@ This library provides a set of cooperative synchronization primitives designed f
 
 The interfaces of the primitives are modelled after the C++ standard library wherever there is a direct correspondence.
 
-| Primitive            | Status |
-| -------------------- | ------ |
-| `atomic_condition`   | ✔️     |
-| `atomic_flag`        | ✔️     |
-| `barrier`            | ✔️     |
-| `buffered_channel`   | ❌     |
-| `unbuffered_channel` | ❌     |
-| `condition_variable` | ✔️     |
-| `future`             | ✔️     |
-| `packaged_task`      | ✔️     |
-| `latch`              | ✔️     |
-| `mutex`              | ✔️     |
-| `recursive_mutex`    | ❌     |
-| `shared_mutex`       | ✔️     |
-| `semaphore`          | ✔️     |
+| Primitive              | Status |
+| ---------------------- | ------ |
+| `atomic_condition`     | ✔️     |
+| `atomic_ref_condition` | ✔️     |
+| `atomic_flag`          | ✔️     |
+| `barrier`              | ✔️     |
+| `buffered_channel`     | ❌     |
+| `unbuffered_channel`   | ❌     |
+| `condition_variable`   | ✔️     |
+| `future`               | ✔️     |
+| `packaged_task`        | ✔️     |
+| `latch`                | ✔️     |
+| `mutex`                | ✔️     |
+| `recursive_mutex`      | ❌     |
+| `shared_mutex`         | ✔️     |
+| `semaphore`            | ✔️     |
 
 ✔️: supported, ❌: not implemented
 
