@@ -74,7 +74,7 @@ cmake --preset default
 cmake --build --preset default
 ```
 
-By default the project will fetch the dependencies. To find and use the system dependencies instead, set the CMake ` -DCOOPSYNC_TBB_USE_SYSTEM_LIBS=ON` flag during configuration.
+By default the project will fetch the dependencies. To find and use the system dependencies instead, set the CMake `-DCOOPSYNC_TBB_USE_SYSTEM_LIBS=ON` flag during configuration.
 
 ## Using in a CMake project
 
