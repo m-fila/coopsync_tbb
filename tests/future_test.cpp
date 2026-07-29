@@ -17,6 +17,7 @@ TEST(Future, NoStateThrows) {
     auto f = coopsync_tbb::future<int>{};
     EXPECT_FALSE(f.valid());
     EXPECT_THROW(f.get(), coopsync_tbb::future_error);
+    EXPECT_THROW(f.try_wait(), coopsync_tbb::future_error);
     EXPECT_THROW(f.wait(), coopsync_tbb::future_error);
 }
 
@@ -106,6 +107,20 @@ TEST(Future, WaitUnblocksAfterSetValue) {
     ASSERT_TRUE(done.load(std::memory_order_relaxed));
 }
 
+TEST(Future, TryWaitChecksWithoutBlocking) {
+    auto p = coopsync_tbb::promise<int>();
+    auto f = p.get_future();
+
+    EXPECT_FALSE(f.try_wait());
+
+    const auto expected = 1;
+    p.set_value(expected);
+
+    EXPECT_TRUE(f.try_wait());
+    EXPECT_TRUE(f.valid());
+    EXPECT_EQ(f.get(), expected);
+}
+
 TEST(FutureVoid, PromiseAlreadySatisfiedThrows) {
     auto p = coopsync_tbb::promise<void>{};
     auto f = p.get_future();
@@ -133,6 +148,19 @@ TEST(FutureVoid, GetUnblocksAfterSetValue) {
     });
 
     ASSERT_TRUE(done.load(std::memory_order_relaxed));
+}
+
+TEST(FutureVoid, TryWaitChecksWithoutBlocking) {
+    auto p = coopsync_tbb::promise<void>();
+    auto f = p.get_future();
+
+    EXPECT_FALSE(f.try_wait());
+
+    p.set_value();
+
+    EXPECT_TRUE(f.try_wait());
+    EXPECT_TRUE(f.valid());
+    EXPECT_NO_THROW(f.get());
 }
 
 TEST(FutureRef, PromiseAlreadySatisfiedThrows) {
@@ -165,6 +193,19 @@ TEST(FutureRef, GetReturnsReference) {
     ASSERT_EQ(x, expected);
 }
 
+TEST(FutureRef, TryWaitChecksWithoutBlocking) {
+    auto p = coopsync_tbb::promise<int&>();
+    auto f = p.get_future();
+
+    EXPECT_FALSE(f.try_wait());
+
+    auto expected = 1;
+    p.set_value(expected);
+
+    EXPECT_TRUE(f.try_wait());
+    EXPECT_EQ(&f.get(), &expected);
+}
+
 TEST(SharedFuture, ShareInvalidatesFutureAndAllowsMultipleGets) {
     auto p = coopsync_tbb::promise<int>();
     auto f = p.get_future();
@@ -193,6 +234,19 @@ TEST(SharedFuture, ShareInvalidatesFutureAndAllowsMultipleGets) {
     ASSERT_EQ(r2.load(std::memory_order_relaxed), expected);
 }
 
+TEST(SharedFuture, TryWaitChecksWithoutBlocking) {
+    auto p = coopsync_tbb::promise<int>();
+    auto sf = p.get_future().share();
+
+    EXPECT_FALSE(sf.try_wait());
+    const auto expected = 5;
+    p.set_value(expected);
+
+    EXPECT_TRUE(sf.try_wait());
+    EXPECT_EQ(sf.get(), expected);
+    EXPECT_EQ(sf.get(), expected);
+}
+
 TEST(SharedFutureVoid, MultipleGetsDoNotConsume) {
     auto p = coopsync_tbb::promise<void>();
     auto f = p.get_future();
@@ -215,6 +269,19 @@ TEST(SharedFutureVoid, MultipleGetsDoNotConsume) {
     ASSERT_EQ(done.load(std::memory_order_relaxed), 2);
 }
 
+TEST(SharedFutureVoid, TryWaitChecksWithoutBlocking) {
+    auto p = coopsync_tbb::promise<void>();
+    auto sf = p.get_future().share();
+
+    EXPECT_FALSE(sf.try_wait());
+
+    p.set_value();
+
+    EXPECT_TRUE(sf.try_wait());
+    EXPECT_NO_THROW(sf.get());
+    EXPECT_NO_THROW(sf.get());
+}
+
 TEST(SharedFutureRef, GetReturnsSameReference) {
     auto p = coopsync_tbb::promise<int&>();
     auto f = p.get_future();
@@ -230,6 +297,20 @@ TEST(SharedFutureRef, GetReturnsSameReference) {
             EXPECT_EQ(&r, &x);
         }
     });
+}
+
+TEST(SharedFutureRef, TryWaitChecksWithoutBlocking) {
+    auto p = coopsync_tbb::promise<int&>();
+    auto sf = p.get_future().share();
+
+    EXPECT_FALSE(sf.try_wait());
+
+    auto expected = 3;
+    p.set_value(expected);
+
+    EXPECT_TRUE(sf.try_wait());
+    EXPECT_EQ(&sf.get(), &expected);
+    EXPECT_EQ(&sf.get(), &expected);
 }
 
 TEST(PackagedTask, DefaultConstructedInvalid) {

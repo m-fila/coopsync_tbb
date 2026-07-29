@@ -214,6 +214,15 @@ class future_base {
     /// @return true if the future is valid, false otherwise.
     bool valid() const noexcept { return static_cast<bool>(m_state); }
 
+    /// @brief Checks whether the shared state is ready without suspending.
+    /// @return true if the shared state is ready, false otherwise.
+    /// @throws future_error with \c std::future_errc::no_state if the future is
+    /// not valid.
+    bool try_wait() const {
+        ensure_valid();
+        return m_state->ready();
+    }
+
     /// @brief Suspends the current task until the shared state is ready.
     ///
     /// If the shared state is ready this function returns immediately.
@@ -339,6 +348,12 @@ class future : private detail::future::future_base<T> {
         return detail::future::future_base<T>::valid();
     }
 
+    /// @brief Checks whether the shared state is ready without suspending.
+    /// @return true if the shared state is ready, false otherwise.
+    /// @throws future_error with \c std::future_errc::no_state if the future is
+    /// not valid.
+    bool try_wait() const { return detail::future::future_base<T>::try_wait(); }
+
     /// @brief Suspends the current task until the shared state is ready.
     /// If the shared state is ready this function returns immediately.
     /// @throws future_error with \c std::future_errc::no_state if the future is
@@ -412,6 +427,14 @@ class future<void> : private detail::future::future_base<void> {
         return detail::future::future_base<void>::valid();
     }
 
+    /// @brief Checks whether the shared state is ready without suspending.
+    /// @return true if the shared state is ready, false otherwise.
+    /// @throws future_error with \c std::future_errc::no_state if the future is
+    /// not valid.
+    bool try_wait() const {
+        return detail::future::future_base<void>::try_wait();
+    }
+
     /// @brief Suspends the current task until the shared state is ready.
     ///
     /// If the shared state is ready this function returns immediately.
@@ -480,6 +503,14 @@ class future<T&> : private detail::future::future_base<T&> {
     /// @return true if the future is valid, false otherwise.
     bool valid() const noexcept {
         return detail::future::future_base<T&>::valid();
+    }
+
+    /// @brief Checks whether the shared state is ready without suspending.
+    /// @return true if the shared state is ready, false otherwise.
+    /// @throws future_error with \c std::future_errc::no_state if the future is
+    /// not valid.
+    bool try_wait() const {
+        return detail::future::future_base<T&>::try_wait();
     }
 
     /// @brief Suspends the current task until the shared state is ready.
@@ -565,6 +596,11 @@ class shared_future : private detail::future::future_base<T> {
         return detail::future::future_base<T>::valid();
     }
 
+    /// @brief Checks whether the shared state is ready without suspending.
+    /// @return true if the shared state is ready, false otherwise.
+    /// @throws future_error with \c std::future_errc::no_state if not valid.
+    bool try_wait() const { return detail::future::future_base<T>::try_wait(); }
+
     /// @brief Suspends the current task until the shared state is ready.
     /// @throws future_error with \c std::future_errc::no_state if not valid.
     void wait() const { detail::future::future_base<T>::wait(); }
@@ -633,6 +669,13 @@ class shared_future<void> : private detail::future::future_base<void> {
         return detail::future::future_base<void>::valid();
     }
 
+    /// @brief Checks whether the shared state is ready without suspending.
+    /// @return true if the shared state is ready, false otherwise.
+    /// @throws future_error with \c std::future_errc::no_state if not valid.
+    bool try_wait() const {
+        return detail::future::future_base<void>::try_wait();
+    }
+
     /// @brief Suspends the current task until the shared state is ready.
     /// If the shared state is ready this function returns immediately.
     /// @throws future_error with \c std::future_errc::no_state if the future is
@@ -699,6 +742,14 @@ class shared_future<T&> : private detail::future::future_base<T&> {
     /// @return true if the shared_future is valid, false otherwise.
     bool valid() const noexcept {
         return detail::future::future_base<T&>::valid();
+    }
+
+    /// @brief Checks whether the shared state is ready without suspending.
+    /// @return true if the shared state is ready, false otherwise.
+    /// @throws future_error with \c std::future_errc::no_state if the future is
+    /// not valid.
+    bool try_wait() const {
+        return detail::future::future_base<T&>::try_wait();
     }
 
     /// @brief Suspends the current task until the shared state is ready.
