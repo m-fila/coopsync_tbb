@@ -289,14 +289,15 @@ TEST(SharedFutureRef, GetReturnsSameReference) {
     auto shared_futures = std::array{sf, sf, sf, sf};
     int x = 0;
 
-    tbb::parallel_for(size_t{0}, shared_futures.size() + 1, [&](size_t i) {
-        if (shared_futures.size() == i) {
-            p.set_value(x);
-        } else {
-            auto& r = shared_futures.at(i).get();
-            EXPECT_EQ(&r, &x);
-        }
-    });
+    tbb::parallel_for(std::size_t{0}, shared_futures.size() + 1,
+                      [&](std::size_t i) {
+                          if (shared_futures.size() == i) {
+                              p.set_value(x);
+                          } else {
+                              auto& r = shared_futures.at(i).get();
+                              EXPECT_EQ(&r, &x);
+                          }
+                      });
 }
 
 TEST(SharedFutureRef, TryWaitChecksWithoutBlocking) {

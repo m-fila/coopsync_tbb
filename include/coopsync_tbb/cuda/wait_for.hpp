@@ -43,7 +43,7 @@ static inline void resumption_callback(void* tag) {
 }
 
 struct wait_for_all_context {
-    explicit wait_for_all_context(size_t pending_streams = 0)
+    explicit wait_for_all_context(std::size_t pending_streams = 0)
         : pending(pending_streams) {}
     std::atomic<std::size_t> pending{0};
     ::tbb::task::suspend_point suspend_point{};
