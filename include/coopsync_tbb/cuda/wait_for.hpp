@@ -152,27 +152,25 @@ wait_for_all(StreamTs... streams) {
 /// @param out Iterator receiving CUDA error codes in the same order. Must be a
 /// LegacyOutputIterator.
 /// @return Iterator past the last written error code.
-template <typename InputIt, typename OutputIt>
-static inline OutputIt wait_for_all(InputIt first, InputIt last, OutputIt out) {
+template <typename ForwardIt, typename OutputIt>
+static inline OutputIt wait_for_all(ForwardIt first, ForwardIt last,
+                                    OutputIt out) {
     static_assert(
         detail::is_cuda_stream<
-            typename std::iterator_traits<InputIt>::value_type>::value,
+            typename std::iterator_traits<ForwardIt>::value_type>::value,
         "wait_for_all(first,last,out) requires cudaStream_t values");
 
     if (first == last) {
         return out;
     }
 
-    std::size_t n = 0;
-    for (InputIt it = first; it != last; ++it) {
-        ++n;
-    }
+    auto n = std::distance(first, last);
 
     auto state = detail::wait_for_all_context(n);
 
     ::tbb::task::suspend([&](::tbb::task::suspend_point tag) {
         state.suspend_point = tag;
-        for (InputIt it = first; it != last; ++it) {
+        for (auto it = first; it != last; ++it) {
             const auto launch_err = ::cudaLaunchHostFunc(
                 *it, detail::wait_for_all_callback, &state);
             *out = launch_err;
