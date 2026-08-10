@@ -22,21 +22,17 @@ TEST(Mutex, TBBMutexRequirement) {
         std::is_constructible<typename mutex::scoped_lock, mutex&>::value);
     static_assert(std::is_destructible<typename mutex::scoped_lock>::value);
 
-    static_assert(
-        coopsync_tbb::traits::has_acquire_v<typename mutex::scoped_lock,
-                                            mutex>);
-    static_assert(
-        coopsync_tbb::traits::has_try_acquire_v<typename mutex::scoped_lock,
-                                                mutex>);
-    static_assert(
-        coopsync_tbb::traits::has_release_v<typename mutex::scoped_lock>);
+    static_assert(coopsync_tbb::traits::has_scoped_lock_acquire_v<mutex>);
+    static_assert(coopsync_tbb::traits::has_scoped_lock_try_acquire_v<mutex>);
+
+    static_assert(coopsync_tbb::traits::has_scoped_lock_release_v<mutex>);
 
     static_assert(coopsync_tbb::traits::has_is_rw_mutex_v<mutex>);
     static_assert(coopsync_tbb::traits::has_is_fair_mutex_v<mutex>);
     static_assert(coopsync_tbb::traits::has_is_recursive_mutex_v<mutex>);
 }
 
-TEST(Mutex, StdRequirements) {
+TEST(Mutex, StdMutexRequirements) {
     using mutex = coopsync_tbb::mutex;
     // BasicLockable
     static_assert(coopsync_tbb::traits::has_lock_v<mutex>);
@@ -74,4 +70,58 @@ TEST(Mutex, MutualExclusionParallelIncrement) {
     });
 
     ASSERT_EQ(counter, n);
+}
+
+TEST(Mutex, ScopedLockAcquireRelease) {
+    {
+        auto m = coopsync_tbb::mutex{};
+        auto lock = coopsync_tbb::mutex::scoped_lock{};
+        lock.acquire(m);
+        ASSERT_FALSE(m.try_lock());
+        lock.release();
+        ASSERT_TRUE(m.try_lock());
+        m.unlock();
+    }
+    {
+        auto m = coopsync_tbb::mutex{};
+        auto lock = coopsync_tbb::mutex::scoped_lock{m};
+        ASSERT_FALSE(m.try_lock());
+        lock.release();
+        ASSERT_TRUE(m.try_lock());
+        m.unlock();
+    }
+}
+
+TEST(Mutex, ScopedLockRAII) {
+    auto m = coopsync_tbb::mutex{};
+    {
+        auto lock = coopsync_tbb::mutex::scoped_lock{m};
+        ASSERT_FALSE(m.try_lock());
+    }
+    ASSERT_TRUE(m.try_lock());
+    m.unlock();
+}
+
+TEST(Mutex, ScopedLockAcquireThrows) {
+    auto m1 = coopsync_tbb::mutex{};
+    auto m2 = coopsync_tbb::mutex{};
+    auto lock = coopsync_tbb::mutex::scoped_lock{m1};
+    ASSERT_THROW(lock.acquire(m2), std::system_error);
+}
+
+TEST(Mutex, ScopedLockTryAcquireThrows) {
+    auto m1 = coopsync_tbb::mutex{};
+    auto m2 = coopsync_tbb::mutex{};
+    auto lock = coopsync_tbb::mutex::scoped_lock{m1};
+    ASSERT_THROW(std::ignore = lock.try_acquire(m2), std::system_error);
+}
+
+TEST(Mutex, ScopedLockTryAcquire) {
+    auto m = coopsync_tbb::mutex{};
+    auto lock = coopsync_tbb::mutex::scoped_lock{};
+    ASSERT_TRUE(lock.try_acquire(m));
+    lock.release();
+    m.lock();
+    ASSERT_FALSE(lock.try_acquire(m));
+    m.unlock();
 }

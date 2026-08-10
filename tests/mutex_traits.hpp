@@ -73,48 +73,114 @@ struct has_scoped_lock<T, void_t<typename T::scoped_lock>> : std::true_type {};
 template <typename T>
 inline constexpr bool has_scoped_lock_v = has_scoped_lock<T>::value;
 
-// has void release()
+// has void scoped_lock::release()
 
 template <typename T, typename = void>
-struct has_release : std::false_type {};
+struct has_scoped_lock_release : std::false_type {};
 
 template <typename T>
-struct has_release<
+struct has_scoped_lock_release<
+    T, void_t<enable_if_t<std::is_same<
+           decltype(std::declval<typename T::scoped_lock&>().release()),
+           void>::value>>> : std::true_type {};
+
+template <typename T>
+constexpr bool has_scoped_lock_release_v = has_scoped_lock_release<T>::value;
+
+// has void scoped_lock::acquire(M&)
+
+template <typename T, typename = void>
+struct has_scoped_lock_acquire : std::false_type {};
+
+template <typename T>
+struct has_scoped_lock_acquire<
     T, void_t<enable_if_t<
-           std::is_same<decltype(std::declval<T&>().release()), void>::value>>>
-    : std::true_type {};
+           std::is_same<decltype(std::declval<typename T::scoped_lock&>()
+                                     .acquire(std::declval<T&>())),
+                        void>::value>>> : std::true_type {};
 
 template <typename T>
-constexpr bool has_release_v = has_release<T>::value;
+constexpr bool has_scoped_lock_acquire_v = has_scoped_lock_acquire<T>::value;
 
-// has void acquire(M&)
+// has void scoped_lock::acquire(M&, bool)
 
-template <typename T, typename M, typename = void>
-struct has_acquire : std::false_type {};
+template <typename T, typename = void>
+struct has_scoped_lock_acquire_with_mode : std::false_type {};
 
-template <typename T, typename M>
-struct has_acquire<T, M,
-                   void_t<enable_if_t<std::is_same<
-                       decltype(std::declval<T&>().acquire(std::declval<M&>())),
-                       void>::value>>> : std::true_type {};
+template <typename T>
+struct has_scoped_lock_acquire_with_mode<
+    T, void_t<enable_if_t<std::is_same<
+           decltype(std::declval<typename T::scoped_lock&>().acquire(
+               std::declval<T&>(), std::declval<bool>())),
+           void>::value>>> : std::true_type {};
 
-template <typename T, typename M>
-constexpr bool has_acquire_v = has_acquire<T, M>::value;
+template <typename T>
+constexpr bool has_scoped_lock_acquire_with_mode_v =
+    has_scoped_lock_acquire_with_mode<T>::value;
 
-// has bool try_acquire(M&)
+// has bool scoped_lock::try_acquire(M&)
 
-template <typename T, typename M, typename = void>
-struct has_try_acquire : std::false_type {};
+template <typename T, typename = void>
+struct has_scoped_lock_try_acquire : std::false_type {};
 
-template <typename T, typename M>
-struct has_try_acquire<
-    T, M,
-    void_t<enable_if_t<std::is_same<decltype(std::declval<T&>().try_acquire(
-                                        std::declval<M&>())),
-                                    bool>::value>>> : std::true_type {};
+template <typename T>
+struct has_scoped_lock_try_acquire<
+    T, void_t<enable_if_t<
+           std::is_same<decltype(std::declval<typename T::scoped_lock&>()
+                                     .try_acquire(std::declval<T&>())),
+                        bool>::value>>> : std::true_type {};
 
-template <typename T, typename M>
-constexpr bool has_try_acquire_v = has_try_acquire<T, M>::value;
+template <typename T>
+constexpr bool has_scoped_lock_try_acquire_v =
+    has_scoped_lock_try_acquire<T>::value;
+
+// has bool scoped_lock::try_acquire(M&, bool)
+
+template <typename T, typename = void>
+struct has_scoped_lock_try_acquire_with_mode : std::false_type {};
+
+template <typename T>
+struct has_scoped_lock_try_acquire_with_mode<
+    T, void_t<enable_if_t<std::is_same<
+           decltype(std::declval<typename T::scoped_lock&>().try_acquire(
+               std::declval<T&>(), std::declval<bool>())),
+           bool>::value>>> : std::true_type {};
+
+template <typename T>
+constexpr bool has_scoped_lock_try_acquire_with_mode_v =
+    has_scoped_lock_try_acquire_with_mode<T>::value;
+
+// has bool upgrade_to_writer()
+
+template <typename T, typename = void>
+struct has_scoped_lock_upgrade_to_writer : std::false_type {};
+
+template <typename T>
+struct has_scoped_lock_upgrade_to_writer<
+    T,
+    void_t<enable_if_t<std::is_same<
+        decltype(std::declval<typename T::scoped_lock&>().upgrade_to_writer()),
+        bool>::value>>> : std::true_type {};
+
+template <typename T>
+constexpr bool has_scoped_lock_upgrade_to_writer_v =
+    has_scoped_lock_upgrade_to_writer<T>::value;
+
+// has bool downgrade_to_reader()
+
+template <typename T, typename = void>
+struct has_scoped_lock_downgrade_to_reader : std::false_type {};
+
+template <typename T>
+struct has_scoped_lock_downgrade_to_reader<
+    T, void_t<enable_if_t<
+           std::is_same<decltype(std::declval<typename T::scoped_lock&>()
+                                     .downgrade_to_reader()),
+                        bool>::value>>> : std::true_type {};
+
+template <typename T>
+constexpr bool has_scoped_lock_downgrade_to_reader_v =
+    has_scoped_lock_downgrade_to_reader<T>::value;
 
 // has void lock()
 
@@ -156,4 +222,45 @@ struct has_unlock<T, void_t<enable_if_t<std::is_same<
 template <typename T>
 constexpr bool has_unlock_v = has_unlock<T>::value;
 
+// has void lock_shared()
+
+template <typename T, typename = void>
+struct has_lock_shared : std::false_type {};
+
+template <typename T>
+struct has_lock_shared<
+    T, void_t<enable_if_t<std::is_same<
+           decltype(std::declval<T&>().lock_shared()), void>::value>>>
+    : std::true_type {};
+
+template <typename T>
+constexpr bool has_lock_shared_v = has_lock_shared<T>::value;
+
+// has bool try_lock_shared()
+
+template <typename T, typename = void>
+struct has_try_lock_shared : std::false_type {};
+
+template <typename T>
+struct has_try_lock_shared<
+    T, void_t<enable_if_t<std::is_same<
+           decltype(std::declval<T&>().try_lock_shared()), bool>::value>>>
+    : std::true_type {};
+
+template <typename T>
+constexpr bool has_try_lock_shared_v = has_try_lock_shared<T>::value;
+
+// has void unlock_shared()
+
+template <typename T, typename = void>
+struct has_unlock_shared : std::false_type {};
+
+template <typename T>
+struct has_unlock_shared<
+    T, void_t<enable_if_t<std::is_same<
+           decltype(std::declval<T&>().unlock_shared()), void>::value>>>
+    : std::true_type {};
+
+template <typename T>
+constexpr bool has_unlock_shared_v = has_unlock_shared<T>::value;
 }  // namespace coopsync_tbb::traits
