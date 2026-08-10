@@ -220,3 +220,44 @@ TEST(SharedMutex, ScopedLockUpgradeDowngrade) {
     ASSERT_TRUE(lock.downgrade_to_reader());
     ASSERT_FALSE(m.try_lock());
 }
+
+TEST(SharedMutex, ScopedLockUpgradeDowngradeThrows) {
+    auto lock = coopsync_tbb::shared_mutex::scoped_lock{};
+    ASSERT_THROW(lock.upgrade_to_writer(), std::system_error);
+    ASSERT_THROW(lock.downgrade_to_reader(), std::system_error);
+}
+
+TEST(SharedMutex, ScopedLockAcquireThrows) {
+    auto m1 = coopsync_tbb::shared_mutex{};
+    auto m2 = coopsync_tbb::shared_mutex{};
+    auto lock = coopsync_tbb::shared_mutex::scoped_lock{m1};
+    ASSERT_THROW(lock.acquire(m2), std::system_error);
+}
+
+TEST(SharedMutex, ScopedLockTryAcquireThrows) {
+    auto m1 = coopsync_tbb::shared_mutex{};
+    auto m2 = coopsync_tbb::shared_mutex{};
+    auto lock = coopsync_tbb::shared_mutex::scoped_lock{m1};
+    ASSERT_THROW(std::ignore = lock.try_acquire(m2), std::system_error);
+}
+
+TEST(SharedMutex, ScopedLockTryAcquire) {
+    auto m = coopsync_tbb::shared_mutex{};
+    auto lock = coopsync_tbb::shared_mutex::scoped_lock{};
+    ASSERT_TRUE(lock.try_acquire(m));
+    lock.release();
+    m.lock();
+    ASSERT_FALSE(lock.try_acquire(m));
+    m.unlock();
+}
+
+TEST(SharedMutex, ScopedLockTryAcquireShared) {
+    auto m = coopsync_tbb::shared_mutex{};
+    auto lock = coopsync_tbb::shared_mutex::scoped_lock{};
+    ASSERT_TRUE(lock.try_acquire(m, false));
+    lock.release();
+    m.lock();
+    ASSERT_FALSE(lock.try_acquire(m, false));
+    lock.release();
+    m.unlock();
+}

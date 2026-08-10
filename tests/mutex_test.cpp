@@ -101,3 +101,27 @@ TEST(Mutex, ScopedLockRAII) {
     ASSERT_TRUE(m.try_lock());
     m.unlock();
 }
+
+TEST(Mutex, ScopedLockAcquireThrows) {
+    auto m1 = coopsync_tbb::mutex{};
+    auto m2 = coopsync_tbb::mutex{};
+    auto lock = coopsync_tbb::mutex::scoped_lock{m1};
+    ASSERT_THROW(lock.acquire(m2), std::system_error);
+}
+
+TEST(Mutex, ScopedLockTryAcquireThrows) {
+    auto m1 = coopsync_tbb::mutex{};
+    auto m2 = coopsync_tbb::mutex{};
+    auto lock = coopsync_tbb::mutex::scoped_lock{m1};
+    ASSERT_THROW(std::ignore = lock.try_acquire(m2), std::system_error);
+}
+
+TEST(Mutex, ScopedLockTryAcquire) {
+    auto m = coopsync_tbb::mutex{};
+    auto lock = coopsync_tbb::mutex::scoped_lock{};
+    ASSERT_TRUE(lock.try_acquire(m));
+    lock.release();
+    m.lock();
+    ASSERT_FALSE(lock.try_acquire(m));
+    m.unlock();
+}
