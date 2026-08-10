@@ -7,7 +7,8 @@ project(
   "CoopSync_TBB"
   VERSION 0.1.0
   LANGUAGES CXX
-  DESCRIPTION "Cooperative synchronization primitives for TBB resumable tasks")
+  DESCRIPTION "Cooperative synchronization primitives for TBB resumable tasks"
+)
 
 # Common options
 
@@ -29,9 +30,11 @@ if(CMAKE_CXX_STANDARD LESS 17)
 endif()
 include(GNUInstallDirs)
 
-configure_file(include/coopsync_tbb/version.hpp.in
-               ${CMAKE_CURRENT_BINARY_DIR}/include/coopsync_tbb/version.hpp
-               @ONLY)
+configure_file(
+  include/coopsync_tbb/version.hpp.in
+  ${CMAKE_CURRENT_BINARY_DIR}/include/coopsync_tbb/version.hpp
+  @ONLY
+)
 
 # Set up TBB.
 
@@ -41,9 +44,11 @@ if(COOPSYNC_TBB_USE_SYSTEM_LIBS)
 else()
   set(COOPSYNC_TBB_USE_SYSTEM_TBB_DEFAULT OFF)
 endif()
-option(COOPSYNC_TBB_USE_SYSTEM_TBB
-       "Pick up an existing installation of TBB from the build environment"
-       ${COOPSYNC_TBB_USE_SYSTEM_TBB_DEFAULT})
+option(
+  COOPSYNC_TBB_USE_SYSTEM_TBB
+  "Pick up an existing installation of TBB from the build environment"
+  ${COOPSYNC_TBB_USE_SYSTEM_TBB_DEFAULT}
+)
 unset(COOPSYNC_TBB_USE_SYSTEM_TBB_DEFAULT)
 if(COOPSYNC_TBB_SETUP_TBB)
   if(COOPSYNC_TBB_USE_SYSTEM_TBB)
@@ -59,9 +64,11 @@ include(CTest)
 if(BUILD_TESTING AND COOPSYNC_TBB_BUILD_TESTING)
   set(COOPSYNC_TBB_DEFAULT_SETUP_GOOGLETEST TRUE)
 endif()
-option(COOPSYNC_TBB_SETUP_GOOGLETEST
-       "Set up the GoogleTest target(s) explicitly"
-       ${COOPSYNC_TBB_DEFAULT_SETUP_GOOGLETEST})
+option(
+  COOPSYNC_TBB_SETUP_GOOGLETEST
+  "Set up the GoogleTest target(s) explicitly"
+  ${COOPSYNC_TBB_DEFAULT_SETUP_GOOGLETEST}
+)
 if(COOPSYNC_TBB_USE_SYSTEM_LIBS)
   set(COOPSYNC_TBB_USE_SYSTEM_GOOGLETEST_DEFAULT ON)
 else()
@@ -70,7 +77,8 @@ endif()
 option(
   COOPSYNC_TBB_USE_SYSTEM_GOOGLETEST
   "Pick up an existing installation of GoogleTest from the build environment"
-  ${COOPSYNC_TBB_USE_SYSTEM_GOOGLETEST_DEFAULT})
+  ${COOPSYNC_TBB_USE_SYSTEM_GOOGLETEST_DEFAULT}
+)
 unset(COOPSYNC_TBB_USE_SYSTEM_GOOGLETEST_DEFAULT)
 if(COOPSYNC_TBB_SETUP_GOOGLETEST)
   if(COOPSYNC_TBB_USE_SYSTEM_GOOGLETEST)
@@ -88,53 +96,52 @@ coopsync_tbb_apply_sanitizer(CoopSync_TBB)
 
 target_sources(
   CoopSync_TBB
-  PUBLIC FILE_SET
-         HEADERS
-         BASE_DIRS
-         include/
-         ${CMAKE_CURRENT_BINARY_DIR}/include
-         FILES
-         # public API
-         include/coopsync_tbb/coopsync_tbb.hpp
-         ${CMAKE_CURRENT_BINARY_DIR}/include/coopsync_tbb/version.hpp
-         include/coopsync_tbb/feature_test.hpp
-         # details
-         include/coopsync_tbb/detail/intrusive_list.hpp
-         include/coopsync_tbb/detail/macros.hpp
-         include/coopsync_tbb/detail/wait_queue.hpp
-         # primitives
-         include/coopsync_tbb/atomic_condition.hpp
-         include/coopsync_tbb/atomic_ref_condition.hpp
-         include/coopsync_tbb/atomic_flag.hpp
-         include/coopsync_tbb/barrier.hpp
-         include/coopsync_tbb/condition_variable.hpp
-         include/coopsync_tbb/future.hpp
-         include/coopsync_tbb/latch.hpp
-         include/coopsync_tbb/mutex.hpp
-         include/coopsync_tbb/shared_mutex.hpp
-         include/coopsync_tbb/semaphore.hpp
-         # integrations
-         include/coopsync_tbb/cuda/wait_for.hpp
-         include/coopsync_tbb/hip/wait_for.hpp
+  PUBLIC
+    FILE_SET HEADERS
+      BASE_DIRS include/ ${CMAKE_CURRENT_BINARY_DIR}/include
+      FILES
+        # public API
+        include/coopsync_tbb/coopsync_tbb.hpp
+        ${CMAKE_CURRENT_BINARY_DIR}/include/coopsync_tbb/version.hpp
+        include/coopsync_tbb/feature_test.hpp
+        # details
+        include/coopsync_tbb/detail/intrusive_list.hpp
+        include/coopsync_tbb/detail/macros.hpp
+        include/coopsync_tbb/detail/wait_queue.hpp
+        # primitives
+        include/coopsync_tbb/atomic_condition.hpp
+        include/coopsync_tbb/atomic_ref_condition.hpp
+        include/coopsync_tbb/atomic_flag.hpp
+        include/coopsync_tbb/barrier.hpp
+        include/coopsync_tbb/condition_variable.hpp
+        include/coopsync_tbb/future.hpp
+        include/coopsync_tbb/latch.hpp
+        include/coopsync_tbb/mutex.hpp
+        include/coopsync_tbb/shared_mutex.hpp
+        include/coopsync_tbb/semaphore.hpp
+        # integrations
+        include/coopsync_tbb/cuda/wait_for.hpp
+        include/coopsync_tbb/hip/wait_for.hpp
   PRIVATE # public API
-          src/coopsync_tbb.cpp
-          src/version.cpp
-          src/feature_test.cpp
-          # details
-          src/intrusive_list.cpp
-          src/macros.cpp
-          src/wait_queue.cpp
-          # primitives
-          src/atomic_condition.cpp
-          src/atomic_ref_condition.cpp
-          src/atomic_flag.cpp
-          src/barrier.cpp
-          src/condition_variable.cpp
-          src/future.cpp
-          src/latch.cpp
-          src/mutex.cpp
-          src/semaphore.cpp
-          src/shared_mutex.cpp)
+    src/coopsync_tbb.cpp
+    src/version.cpp
+    src/feature_test.cpp
+    # details
+    src/intrusive_list.cpp
+    src/macros.cpp
+    src/wait_queue.cpp
+    # primitives
+    src/atomic_condition.cpp
+    src/atomic_ref_condition.cpp
+    src/atomic_flag.cpp
+    src/barrier.cpp
+    src/condition_variable.cpp
+    src/future.cpp
+    src/latch.cpp
+    src/mutex.cpp
+    src/semaphore.cpp
+    src/shared_mutex.cpp
+)
 
 add_library(CoopSync_TBB::CoopSync_TBB ALIAS CoopSync_TBB)
 target_link_libraries(CoopSync_TBB PUBLIC TBB::tbb)
@@ -154,22 +161,24 @@ endif()
 
 # Install
 
-install(
-  TARGETS CoopSync_TBB
-  EXPORT CoopSync_TBBTargets
-  FILE_SET HEADERS)
+install(TARGETS CoopSync_TBB EXPORT CoopSync_TBBTargets FILE_SET HEADERS)
 
 install(
   EXPORT CoopSync_TBBTargets
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/CoopSync_TBB
-  NAMESPACE CoopSync_TBB::)
+  NAMESPACE CoopSync_TBB::
+)
 
 include(CMakePackageConfigHelpers)
 
 write_basic_package_version_file(
   ${CMAKE_CURRENT_BINARY_DIR}/CoopSync_TBBConfigVersion.cmake
-  COMPATIBILITY ExactVersion)
+  COMPATIBILITY ExactVersion
+)
 
-install(FILES cmake/CoopSync_TBBConfig.cmake
-              ${CMAKE_CURRENT_BINARY_DIR}/CoopSync_TBBConfigVersion.cmake
-        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/CoopSync_TBB)
+install(
+  FILES
+    cmake/CoopSync_TBBConfig.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/CoopSync_TBBConfigVersion.cmake
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/CoopSync_TBB
+)
