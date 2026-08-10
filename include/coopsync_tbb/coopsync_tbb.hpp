@@ -7,12 +7,22 @@
 #include "coopsync_tbb/atomic_condition.hpp"
 #include "coopsync_tbb/barrier.hpp"
 #include "coopsync_tbb/condition_variable.hpp"
+#include "coopsync_tbb/feature_test.hpp"
 #include "coopsync_tbb/future.hpp"
 #include "coopsync_tbb/latch.hpp"
 #include "coopsync_tbb/mutex.hpp"
 #include "coopsync_tbb/semaphore.hpp"
 #include "coopsync_tbb/shared_mutex.hpp"
 #include "coopsync_tbb/version.hpp"
+
+#if defined(COOPSYNC_TBB_HAS_ATOMIC_FLAG) && COOPSYNC_TBB_HAS_ATOMIC_FLAG == 1
+#include "coopsync_tbb/atomic_flag.hpp"
+#endif
+
+#if defined(COOPSYNC_TBB_HAS_ATOMIC_REF_CONDITION) && \
+    COOPSYNC_TBB_HAS_ATOMIC_REF_CONDITION == 1
+#include "coopsync_tbb/atomic_ref_condition.hpp"
+#endif
 
 /// @brief Main namespace of the library, containing all public APIs.
 namespace coopsync_tbb {}
