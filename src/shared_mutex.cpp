@@ -145,7 +145,12 @@ void shared_mutex::scoped_lock::release() {
     if (m_mutex == nullptr) {
         return;
     }
-    m_mutex->unlock();
+    if (m_is_writer_lock) {
+        m_mutex->unlock();
+    } else {
+        m_mutex->unlock_shared();
+    }
+    m_is_writer_lock = false;
     m_mutex = nullptr;
 }
 
