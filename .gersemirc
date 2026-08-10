@@ -1,0 +1,4 @@
+definitions:
+  - cmake/
+warn_about_unknown_commands: false
+indent: 2
