@@ -35,11 +35,18 @@ using ::coopsync_tbb::packaged_task;
 using ::coopsync_tbb::promise;
 using ::coopsync_tbb::shared_future;
 using ::coopsync_tbb::shared_mutex;
+#if defined(COOPSYNC_TBB_HAS_ATOMIC_FLAG) && COOPSYNC_TBB_HAS_ATOMIC_FLAG == 1
+using ::coopsync_tbb::atomic_flag;
+#endif  // COOPSYNC_TBB_HAS_ATOMIC_FLAG
+#if defined(COOPSYNC_TBB_HAS_ATOMIC_REF_CONDITION) && \
+    COOPSYNC_TBB_HAS_ATOMIC_REF_CONDITION == 1
+using ::coopsync_tbb::atomic_ref_condition;
+#endif  // COOPSYNC_TBB_HAS_ATOMIC_REF_CONDITION
 // aliases
 #ifndef COOPSYNC_TBB_DOXYGEN  // hide from doxygen to avoid duplication
 using ::coopsync_tbb::binary_semaphore;
 using ::coopsync_tbb::rw_mutex;
-#endif
+#endif  // COOPSYNC_TBB_DOXYGEN
 // free functions
 #ifndef COOPSYNC_TBB_DOXYGEN  // hide from doxygen to avoid duplication
 using ::coopsync_tbb::atomic_notify_all;
@@ -47,5 +54,17 @@ using ::coopsync_tbb::atomic_notify_one;
 using ::coopsync_tbb::atomic_wait;
 using ::coopsync_tbb::atomic_wait_explicit;
 using ::coopsync_tbb::swap;
-#endif
+#if defined(COOPSYNC_TBB_HAS_ATOMIC_FLAG) && COOPSYNC_TBB_HAS_ATOMIC_FLAG == 1
+using ::coopsync_tbb::atomic_flag_clear;
+using ::coopsync_tbb::atomic_flag_clear_explicit;
+using ::coopsync_tbb::atomic_flag_notify_all;
+using ::coopsync_tbb::atomic_flag_notify_one;
+using ::coopsync_tbb::atomic_flag_test;
+using ::coopsync_tbb::atomic_flag_test_and_set;
+using ::coopsync_tbb::atomic_flag_test_and_set_explicit;
+using ::coopsync_tbb::atomic_flag_test_explicit;
+using ::coopsync_tbb::atomic_flag_wait;
+using ::coopsync_tbb::atomic_flag_wait_explicit;
+#endif  // COOPSYNC_TBB_HAS_ATOMIC_FLAG
+#endif  // COOPSYNC_TBB_DOXYGEN
 }  // namespace coopsync_tbb

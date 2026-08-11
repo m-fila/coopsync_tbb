@@ -5,6 +5,7 @@
 #include <gtest/gtest.h>
 
 import coopsync_tbb;
+#include "coopsync_tbb/feature_test.hpp"
 
 TEST(ModuleImport, Classes) {
     static_assert(sizeof(coopsync_tbb::atomic_condition<int>) > 0);
@@ -27,6 +28,13 @@ TEST(ModuleImport, Classes) {
     static_assert(sizeof(coopsync_tbb::binary_semaphore) > 0);
     static_assert(sizeof(coopsync_tbb::shared_mutex) > 0);
     static_assert(sizeof(coopsync_tbb::rw_mutex) > 0);
+#if defined(COOPSYNC_TBB_HAS_ATOMIC_FLAG) && COOPSYNC_TBB_HAS_ATOMIC_FLAG == 1
+    static_assert(sizeof(coopsync_tbb::atomic_flag) > 0);
+#endif
+#if defined(COOPSYNC_TBB_HAS_ATOMIC_REF_CONDITION) && \
+    COOPSYNC_TBB_HAS_ATOMIC_REF_CONDITION == 1
+    static_assert(sizeof(coopsync_tbb::atomic_ref_condition<int>) > 0);
+#endif
 }
 
 TEST(ModuleImport, FreeFunctions) {
@@ -45,4 +53,40 @@ TEST(ModuleImport, FreeFunctions) {
     static_assert(requires(coopsync_tbb::atomic_condition<int>* c) {
         coopsync_tbb::atomic_notify_all<int>(c);
     });
+#if defined(COOPSYNC_TBB_HAS_ATOMIC_FLAG) && COOPSYNC_TBB_HAS_ATOMIC_FLAG == 1
+    static_assert(
+        requires(coopsync_tbb::atomic_flag* c, std::memory_order order) {
+            coopsync_tbb::atomic_flag_test_and_set_explicit(c, order);
+        });
+    static_assert(requires(coopsync_tbb::atomic_flag* c) {
+        coopsync_tbb::atomic_flag_test_and_set(c);
+    });
+    static_assert(
+        requires(coopsync_tbb::atomic_flag* c, std::memory_order order) {
+            coopsync_tbb::atomic_flag_test_explicit(c, order);
+        });
+    static_assert(requires(coopsync_tbb::atomic_flag* c) {
+        coopsync_tbb::atomic_flag_test(c);
+    });
+    static_assert(
+        requires(coopsync_tbb::atomic_flag* c, std::memory_order order) {
+            coopsync_tbb::atomic_flag_clear_explicit(c, order);
+        });
+    static_assert(requires(coopsync_tbb::atomic_flag* c) {
+        coopsync_tbb::atomic_flag_clear(c);
+    });
+    static_assert(requires(coopsync_tbb::atomic_flag* c) {
+        coopsync_tbb::atomic_flag_notify_one(c);
+    });
+    static_assert(requires(coopsync_tbb::atomic_flag* c) {
+        coopsync_tbb::atomic_flag_notify_all(c);
+    });
+    static_assert(requires(coopsync_tbb::atomic_flag* c, bool v,
+                           std::memory_order order) {
+        coopsync_tbb::atomic_flag_wait_explicit(c, v, order);
+    });
+    static_assert(requires(coopsync_tbb::atomic_flag* c, bool v) {
+        coopsync_tbb::atomic_flag_wait(c, v);
+    });
+#endif
 }
