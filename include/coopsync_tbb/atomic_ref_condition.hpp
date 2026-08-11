@@ -17,6 +17,13 @@
 
 namespace coopsync_tbb {
 
+/// @brief Wrapper around std::atomic_ref that provides atomic waiting which
+/// suspends the calling task instead of blocking it.
+/// @tparam T The type of the value contained in the atomic_ref_condition.
+///
+/// Available only if the standard library supports \c std::atomic_ref (C++20).
+/// Compliance can be checked with \ref COOPSYNC_TBB_HAS_ATOMIC_REF_CONDITION.
+///
 template <typename T>
 class atomic_ref_condition {
     static_assert(std::is_trivially_copyable<T>::value,
@@ -30,6 +37,11 @@ class atomic_ref_condition {
     /// type of the internal atomic_ref.
     using value_type = typename std::atomic_ref<T>::value_type;
 
+    /// @brief Constructs a new atomic_ref_condition that refers to the given
+    /// value.
+    /// @param value A reference to a value to construct the internal atomic_ref
+    /// from. The value must remain valid for the lifetime of the
+    /// atomic_ref_condition.
     explicit atomic_ref_condition(T& value);
 
     /// @brief The atomic_ref_condition is copy-constructible. The copy

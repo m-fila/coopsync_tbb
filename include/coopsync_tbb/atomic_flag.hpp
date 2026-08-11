@@ -16,11 +16,12 @@
 namespace coopsync_tbb {
 
 /// @brief Wrapper around std::atomic_flag that provides atomic waiting which
-/// suspends the calling task instead of blocking it as well as atomic test and
-/// set and clear operations.
-// Available only if the standard library supports \c std::atomic_flag::test and
-// \c std::atomic_flag::clear with memory order parameters (C++20). Compliance
-// can be checked with COOPSYNC_TBB_HAS_ATOMIC_FLAG.
+/// suspends the calling task instead of blocking it, as well as exposing atomic
+/// test, set and clear operations.
+///
+/// Available only if the standard library supports \c std::atomic_flag::test
+/// and \c std::atomic_flag::clear with memory order parameters (C++20).
+/// Compliance can be checked with \ref COOPSYNC_TBB_HAS_ATOMIC_FLAG.
 class atomic_flag {
 
     public:
