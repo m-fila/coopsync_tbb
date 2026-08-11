@@ -122,11 +122,11 @@ TEST(AtomicFlag, WaitFreeFunctions) {
 
     tbb::parallel_for(0, 2, [&](int i) {
         if (i == 0) {
-            coopsync_tbb::atomic_wait(&flag, false);
+            coopsync_tbb::atomic_flag_wait(&flag, false);
             done.store(1, std::memory_order_relaxed);
         } else {
             coopsync_tbb::atomic_flag_test_and_set(&flag);
-            coopsync_tbb::atomic_notify_one(&flag);
+            coopsync_tbb::atomic_flag_notify_one(&flag);
         }
     });
 
@@ -140,14 +140,14 @@ TEST(AtomicFlag, NotifyAllFreeFunctions) {
 
     tbb::parallel_for(0, 3, [&](int i) {
         if (i == 0) {
-            coopsync_tbb::atomic_wait(&flag, false);
+            coopsync_tbb::atomic_flag_wait(&flag, false);
             done.fetch_add(1, std::memory_order_relaxed);
         } else if (i == 1) {
-            coopsync_tbb::atomic_wait(&flag, false);
+            coopsync_tbb::atomic_flag_wait(&flag, false);
             done.fetch_add(1, std::memory_order_relaxed);
         } else {
             coopsync_tbb::atomic_flag_test_and_set(&flag);
-            coopsync_tbb::atomic_notify_all(&flag);
+            coopsync_tbb::atomic_flag_notify_all(&flag);
         }
     });
 
@@ -161,13 +161,13 @@ TEST(AtomicFlag, FreeFunctionsWaitExplicit) {
 
     tbb::parallel_for(0, 2, [&](int i) {
         if (i == 0) {
-            coopsync_tbb::atomic_wait_explicit(&flag, false,
-                                               std::memory_order_relaxed);
+            coopsync_tbb::atomic_flag_wait_explicit(&flag, false,
+                                                    std::memory_order_relaxed);
             done.store(1, std::memory_order_relaxed);
         } else {
             coopsync_tbb::atomic_flag_test_and_set_explicit(
                 &flag, std::memory_order_relaxed);
-            coopsync_tbb::atomic_notify_one(&flag);
+            coopsync_tbb::atomic_flag_notify_one(&flag);
         }
     });
 
