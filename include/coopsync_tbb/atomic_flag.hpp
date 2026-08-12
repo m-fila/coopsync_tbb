@@ -168,7 +168,7 @@ bool atomic_flag_test_explicit(atomic_flag* object,
 /// be suspended while the state is equal to old.
 /// @note Due to ABA problem, transitions from old to a different value and
 /// back to old may be missed.
-void atomic_wait(atomic_flag* object, bool old);
+void atomic_flag_wait(atomic_flag* object, bool old);
 
 /// @brief Suspends the calling task until the state is not equal to specified
 /// value. If the internal atomic the state is not equal to old, the function
@@ -182,19 +182,19 @@ void atomic_wait(atomic_flag* object, bool old);
 /// Must not be \c std::memory_order_release or \c std::memory_order_acq_rel.
 /// @note Due to ABA problem, transitions from old to a different value and
 /// back to old may be missed.
-void atomic_wait_explicit(atomic_flag* object, bool old,
-                          std::memory_order order);
+void atomic_flag_wait_explicit(atomic_flag* object, bool old,
+                               std::memory_order order);
 
 /// @brief Resumes one task suspended waiting on the atomic_flag, if there
 /// is any.
 /// Same as \c object.notify_one().
 /// @param object Pointer to the atomic_flag to notify on.
-void atomic_notify_one(atomic_flag* object);
+void atomic_flag_notify_one(atomic_flag* object);
 
 /// @brief Resumes all tasks suspended waiting on the atomic_flag.
 /// Same as \c object.notify_all().
 /// @param object Pointer to the atomic_flag to notify on.
-void atomic_notify_all(atomic_flag* object);
+void atomic_flag_notify_all(atomic_flag* object);
 
 }  // namespace coopsync_tbb
 

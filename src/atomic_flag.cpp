@@ -114,23 +114,23 @@ bool atomic_flag_test_explicit(atomic_flag* object,
     return object->test(order);
 }
 
-void atomic_wait(atomic_flag* object, bool old) {
+void atomic_flag_wait(atomic_flag* object, bool old) {
     assert(object != nullptr);  // LCOV_EXCL_LINE
     object->wait(old, std::memory_order_seq_cst);
 }
 
-void atomic_wait_explicit(atomic_flag* object, bool old,
-                          std::memory_order order) {
+void atomic_flag_wait_explicit(atomic_flag* object, bool old,
+                               std::memory_order order) {
     assert(object != nullptr);  // LCOV_EXCL_LINE
     object->wait(old, order);
 }
 
-void atomic_notify_one(atomic_flag* object) {
+void atomic_flag_notify_one(atomic_flag* object) {
     assert(object != nullptr);  // LCOV_EXCL_LINE
     object->notify_one();
 }
 
-void atomic_notify_all(atomic_flag* object) {
+void atomic_flag_notify_all(atomic_flag* object) {
     assert(object != nullptr);  // LCOV_EXCL_LINE
     object->notify_all();
 }
