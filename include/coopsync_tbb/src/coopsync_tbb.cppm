@@ -19,6 +19,17 @@ module;
 /// import coopsync_tbb;
 /// \endcode
 /// directive.
+///
+/// The module provides all the public APIs of the library except for the
+/// integrations with other libraries and compute accelerators (CUDA, HIP, etc.)
+/// which are available only through headers.
+///
+/// The module also provides optional classes and free functions when supported
+/// by the detected compiler, such as \ref coopsync_tbb::atomic_flag and
+/// \ref coopsync_tbb::atomic_ref_condition. Compiler support for these optional
+/// APIs can be checked using the feature-test macros defined in the \ref
+/// coopsync_tbb/feature_test.hpp header.
+///
 export module coopsync_tbb;
 
 export namespace coopsync_tbb {
