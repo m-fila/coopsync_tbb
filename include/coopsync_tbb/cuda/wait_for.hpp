@@ -35,7 +35,7 @@ namespace detail {
 
 /// @brief CUDA callback to resume a suspended TBB task.
 /// @param tag Pointer to the suspend point of the task to resume.
-static inline void resumption_callback(void* tag) {
+static inline void CUDART_CB resumption_callback(void* tag) {
     if (tag == nullptr) {
         return;
     }
@@ -63,7 +63,7 @@ struct all_true : std::is_same<bool_pack<Bs..., true>, bool_pack<true, Bs...>> {
 template <typename... Ts>
 struct all_cuda_stream : all_true<is_cuda_stream<Ts>::value...> {};
 
-static inline void wait_for_all_callback(void* context) {
+static inline void CUDART_CB wait_for_all_callback(void* context) {
     if (context == nullptr) {
         return;
     }
