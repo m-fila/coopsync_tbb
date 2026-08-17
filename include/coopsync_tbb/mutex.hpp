@@ -5,7 +5,6 @@
 #pragma once
 
 #include <atomic>
-#include <cassert>
 
 #include "coopsync_tbb/detail/macros.hpp"
 #include "coopsync_tbb/detail/wait_queue.hpp"
@@ -21,7 +20,7 @@ namespace coopsync_tbb {
 /// because it never blocks the calling thread, even though it exposes the same
 /// interface. Concurrent invocations of the member functions, except for
 /// destructor, are safe.
-class mutex {
+class COOPSYNC_TBB_EXPORT mutex {
     public:
     /// @brief Associated RAII wrapper type.
     class scoped_lock;
@@ -75,7 +74,7 @@ class mutex {
 
 /// @brief RAII wrapper for mutex that acquires the
 /// mutex on construction and releases it on destruction.
-class COOPSYNC_TBB_NODISCARD mutex::scoped_lock {
+class COOPSYNC_TBB_EXPORT COOPSYNC_TBB_NODISCARD mutex::scoped_lock {
     public:
     /// @brief Constructs a scoped_lock without acquiring a mutex.
     scoped_lock();

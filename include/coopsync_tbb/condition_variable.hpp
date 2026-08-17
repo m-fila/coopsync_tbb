@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "coopsync_tbb/detail/macros.hpp"
 #include "coopsync_tbb/detail/wait_queue.hpp"
 
 namespace coopsync_tbb {
@@ -11,7 +12,7 @@ namespace coopsync_tbb {
 /// @brief Condition variable used to synchronize tasks. The tasks can be
 /// suspended on this condition variable and then later notify to resume if
 /// given condition is met.
-class condition_variable {
+class COOPSYNC_TBB_EXPORT condition_variable {
     public:
     /// @brief Constructs a new condition variable.
     condition_variable() = default;

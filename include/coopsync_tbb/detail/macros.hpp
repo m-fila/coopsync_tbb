@@ -4,8 +4,9 @@
 
 #pragma once
 
-// nodiscard attribute if supported
+#include "coopsync_tbb/detail/export.hpp"
 
+// nodiscard attribute if supported
 // clang-format off
 #ifndef COOPSYNC_TBB_NODISCARD
   #if defined(__has_cpp_attribute)
