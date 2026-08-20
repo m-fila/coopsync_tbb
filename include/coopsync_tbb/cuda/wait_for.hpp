@@ -29,13 +29,13 @@
   #endif
 #endif
 
-// cudaStreamAddCallback is pending deprecation as of CUDA 10.0; the
-// replacement is cudaLaunchHostFunc().
+// cudaStreamAddCallback is pending deprecation as of CUDA 10.0;
+// the replacement is cudaLaunchHostFunc.
 #ifndef COOPSYNC_TBB_CUDA_HAS_HOST_FUNC_
     #if defined(CUDART_VERSION) && CUDART_VERSION >= 10000
-        #define COOPSYNC_TBB_CUDA_HAS_HOST_FUNC_ 1
+        #define COOPSYNC_TBB_CUDA_HAS_HOST_FUNC_ 1 // NOLINT(cppcoreguidelines-macro-to-enum,cppcoreguidelines-macro-usage)
     #else
-        #define COOPSYNC_TBB_CUDA_HAS_HOST_FUNC_ 0
+        #define COOPSYNC_TBB_CUDA_HAS_HOST_FUNC_ 0 // NOLINT(cppcoreguidelines-macro-to-enum,cppcoreguidelines-macro-usage)
     #endif
 #endif
 // clang-format on

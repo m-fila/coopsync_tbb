@@ -31,9 +31,9 @@
 
 #ifndef COOPSYNC_TBB_HIP_HAS_HOST_FUNC_
     #if defined(HIP_VERSION) && HIP_VERSION >= 50200000
-        #define COOPSYNC_TBB_HIP_HAS_HOST_FUNC_ 1
+        #define COOPSYNC_TBB_HIP_HAS_HOST_FUNC_ 1 // NOLINT(cppcoreguidelines-macro-to-enum,cppcoreguidelines-macro-usage)
     #else
-        #define COOPSYNC_TBB_HIP_HAS_HOST_FUNC_ 0
+        #define COOPSYNC_TBB_HIP_HAS_HOST_FUNC_ 0 // NOLINT(cppcoreguidelines-macro-to-enum,cppcoreguidelines-macro-usage)
     #endif
 #endif
 // clang-format on
