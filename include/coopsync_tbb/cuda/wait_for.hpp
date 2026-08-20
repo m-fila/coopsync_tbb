@@ -7,11 +7,13 @@
 #include <cuda_runtime_api.h>
 #include <oneapi/tbb/task.h>
 
+#include <algorithm>
 #include <array>
 #include <atomic>
 #include <cstddef>
 #include <iterator>
 #include <type_traits>
+#include <vector>
 
 // clang-format off
 #ifndef COOPSYNC_TBB_CUDA_NODISCARD
@@ -27,8 +29,10 @@
   #endif
 #endif
 
+// cudaStreamAddCallback is pending deprecation as of CUDA 10.0; the
+// replacement is cudaLaunchHostFunc().
 #ifndef COOPSYNC_TBB_CUDA_HAS_HOST_FUNC_
-    #if defined(CUDART_VERSION) && CUDART_VERSION >= 10'000
+    #if defined(CUDART_VERSION) && CUDART_VERSION >= 10000
         #define COOPSYNC_TBB_CUDA_HAS_HOST_FUNC_ 1
     #else
         #define COOPSYNC_TBB_CUDA_HAS_HOST_FUNC_ 0
@@ -40,32 +44,6 @@
 namespace coopsync_tbb::cuda {
 
 namespace detail {
-
-struct single_stream_context {
-    ::tbb::task::suspend_point suspend_point{};
-    ::cudaError_t err{::cudaSuccess};
-};
-
-#if COOPSYNC_TBB_CUDA_HAS_HOST_FUNC_
-static inline void CUDART_CB resumption_single_host_func(void* context) {
-    if (context == nullptr) {
-        return;
-    }
-    auto* single_context = static_cast<single_stream_context*>(context);
-    ::tbb::task::resume(single_context->suspend_point);
-}
-#else
-static inline void CUDART_CB resumption_single_callback(::cudaStream_t,
-                                                        ::cudaError_t err,
-                                                        void* context) {
-    if (context == nullptr) {
-        return;
-    }
-    auto* single_context = static_cast<single_stream_context*>(context);
-    single_context->err = err;
-    ::tbb::task::resume(single_context->suspend_point);
-}
-#endif
 
 template <typename T>
 struct is_cuda_stream
@@ -80,61 +58,64 @@ struct all_true : std::is_same<bool_pack<Bs..., true>, bool_pack<true, Bs...>> {
 
 template <typename... Ts>
 struct all_cuda_stream : all_true<is_cuda_stream<Ts>::value...> {};
-struct multiple_stream_context {
-    explicit multiple_stream_context(std::size_t pending_streams = 0)
-        : pending(pending_streams) {}
-    std::atomic<std::size_t> pending{0};
-    ::tbb::task::suspend_point suspend_point{};
-};
 
+template <typename Context>
+static void CUDART_CB resumption_host_func(void* self) {
+    static_cast<Context*>(self)->notify(::cudaSuccess);
+}
+
+template <typename Context>
+static void CUDART_CB resumption_callback(::cudaStream_t, ::cudaError_t status,
+                                          void* self) {
+    static_cast<Context*>(self)->notify(status);
+}
+
+template <typename Context>
+static inline void register_callback(::cudaStream_t stream, Context& context) {
 #if COOPSYNC_TBB_CUDA_HAS_HOST_FUNC_
-static inline void CUDART_CB resumption_multiple_host_func(void* context) {
-    if (context == nullptr) {
-        return;
-    }
-    auto* wait_context = static_cast<multiple_stream_context*>(context);
-    if (wait_context->pending.fetch_sub(1, std::memory_order_acq_rel) == 1) {
-        ::tbb::task::resume(wait_context->suspend_point);
+    const auto err =
+        ::cudaLaunchHostFunc(stream, &resumption_host_func<Context>, &context);
+#else
+    const auto err = ::cudaStreamAddCallback(
+        stream, &resumption_callback<Context>, &context, 0);
+#endif
+    if (err != ::cudaSuccess) {
+        context.notify(err);
     }
 }
-#else
-struct multiple_stream_payload {
-    multiple_stream_context* context{nullptr};
-    ::cudaError_t* out_status{nullptr};
+
+struct single_stream_context {
+    void notify(::cudaError_t status) {
+        err = status;
+        ::tbb::task::resume(suspend_point);
+    }
+
+    ::tbb::task::suspend_point suspend_point{};
+    ::cudaError_t err{::cudaSuccess};
 };
 
-static inline void CUDART_CB resumption_multiple_callback(::cudaStream_t,
-                                                          ::cudaError_t status,
-                                                          void* payload) {
-    if (payload == nullptr) {
-        return;
-    }
-    auto* stream_payload = static_cast<multiple_stream_payload*>(payload);
-    if (stream_payload->out_status != nullptr) {
-        *stream_payload->out_status = status;
-    }
-    if (stream_payload->context == nullptr) {
-        return;
-    }
-    if (stream_payload->context->pending.fetch_sub(
-            1, std::memory_order_acq_rel) == 1) {
-        ::tbb::task::resume(stream_payload->context->suspend_point);
-    }
-}
+struct multi_stream_context {
+    explicit multi_stream_context(std::size_t n) : pending(n) {}
 
-static inline void resumption_multiple_iter_callback(::cudaStream_t,
-                                                     ::cudaError_t,
-                                                     void* context) {
-    if (context == nullptr) {
-        return;
+    void notify_one() {
+        if (pending.fetch_sub(1, std::memory_order_acq_rel) == 1) {
+            ::tbb::task::resume(suspend_point);
+        }
     }
-    auto* wait_context = static_cast<multiple_stream_context*>(context);
-    if (wait_context->pending.fetch_sub(1, std::memory_order_acq_rel) == 1) {
-        ::tbb::task::resume(wait_context->suspend_point);
-    }
-}
 
-#endif
+    ::tbb::task::suspend_point suspend_point{};
+    std::atomic<std::size_t> pending;
+};
+
+struct multi_stream_item {
+    multi_stream_context* context{nullptr};
+    ::cudaError_t* out{nullptr};
+
+    void notify(::cudaError_t status) {
+        *out = status;
+        context->notify_one();
+    }
+};
 
 }  // namespace detail
 
@@ -147,29 +128,18 @@ static inline void resumption_multiple_iter_callback(::cudaStream_t,
 COOPSYNC_TBB_CUDA_NODISCARD static inline ::cudaError_t wait_for(
     ::cudaStream_t stream) {
     auto context = detail::single_stream_context{};
-    ::tbb::task::suspend([stream, &context](::tbb::task::suspend_point tag) {
+    ::tbb::task::suspend([&](::tbb::task::suspend_point tag) {
         context.suspend_point = tag;
-#if COOPSYNC_TBB_CUDA_HAS_HOST_FUNC_
-        context.err = ::cudaLaunchHostFunc(
-            stream, detail::resumption_single_host_func, &context);
-        if (context.err != ::cudaSuccess) {
-            detail::resumption_single_host_func(&context);
-        }
-#else
-        context.err = ::cudaStreamAddCallback(
-            stream, detail::resumption_single_callback, &context, 0);
-        if (context.err != ::cudaSuccess) {
-            detail::resumption_single_callback(stream, context.err, &context);
-        }
-#endif
+        detail::register_callback(stream, context);
     });
     return context.err;
 }
 
 /// @brief Suspends the current TBB task until all the work in all the provided
-/// CUDA streams completes.
+/// CUDA streams is completed.
 /// A CUDA host callback is enqueued into every stream. The calling task resumes
 /// once all callbacks that were successfully enqueued have executed.
+/// @param streams Variadic list of CUDA streams.
 /// @return Array of CUDA error codes. Element i corresponds to stream i.
 template <typename... StreamTs>
 COOPSYNC_TBB_CUDA_NODISCARD static inline std::array<::cudaError_t,
@@ -179,46 +149,23 @@ wait_for_all(StreamTs... streams) {
                   "wait_for_all(streams...) requires cudaStream_t arguments");
 
     const std::size_t N = sizeof...(StreamTs);
-    std::array<::cudaError_t, sizeof...(StreamTs)> errs = {{}};
+    auto errs = std::array<::cudaError_t, sizeof...(StreamTs)>{};
+    errs.fill(::cudaSuccess);
+
     if (N == 0) {
         return errs;
     }
 
     const auto stream_array =
         std::array<::cudaStream_t, sizeof...(StreamTs)>{{streams...}};
-
-    auto state = detail::multiple_stream_context(N);
-
-#if !COOPSYNC_TBB_CUDA_HAS_HOST_FUNC_
-    auto payloads =
-        std::array<detail::multiple_stream_payload, sizeof...(StreamTs)>{{}};
-#endif
+    auto context = detail::multi_stream_context(N);
+    auto items = std::array<detail::multi_stream_item, N>{};
 
     ::tbb::task::suspend([&](::tbb::task::suspend_point tag) {
-        state.suspend_point = tag;
+        context.suspend_point = tag;
         for (std::size_t i = 0; i < N; ++i) {
-#if COOPSYNC_TBB_CUDA_HAS_HOST_FUNC_
-            const auto launch_err = ::cudaLaunchHostFunc(
-                stream_array.at(i), detail::resumption_multiple_host_func,
-                &state);
-
-            if (launch_err != ::cudaSuccess) {
-                errs.at(i) = launch_err;
-                detail::resumption_multiple_host_func(&state);
-            }
-#else
-            auto& payload = payloads.at(i);
-            payload.context = &state;
-            payload.out_status = &errs.at(i);
-            const auto launch_err = ::cudaStreamAddCallback(
-                stream_array.at(i), detail::resumption_multiple_callback,
-                &payload, 0);
-
-            if (launch_err != ::cudaSuccess) {
-                detail::resumption_multiple_callback(stream_array.at(i),
-                                                     launch_err, &payload);
-            }
-#endif
+            items.at(i) = {&context, &errs.at(i)};
+            detail::register_callback(stream_array.at(i), items.at(i));
         }
     });
 
@@ -247,34 +194,21 @@ static inline OutputIt wait_for_all(ForwardIt first, ForwardIt last,
         return out;
     }
 
-    auto n = std::distance(first, last);
-
-    auto state = detail::multiple_stream_context(n);
+    const auto n = static_cast<std::size_t>(std::distance(first, last));
+    auto context = detail::multi_stream_context(n);
+    auto errs = std::vector<::cudaError_t>(n, ::cudaSuccess);
+    auto items = std::vector<detail::multi_stream_item>(n);
 
     ::tbb::task::suspend([&](::tbb::task::suspend_point tag) {
-        state.suspend_point = tag;
-        for (auto it = first; it != last; ++it) {
-#if COOPSYNC_TBB_CUDA_HAS_HOST_FUNC_
-            const auto launch_err = ::cudaLaunchHostFunc(
-                *it, detail::resumption_multiple_host_func, &state);
-#else
-            const auto launch_err = ::cudaStreamAddCallback(
-                *it, detail::resumption_multiple_iter_callback, &state, 0);
-#endif
-
-            if (launch_err != ::cudaSuccess) {
-#if COOPSYNC_TBB_CUDA_HAS_HOST_FUNC_
-                detail::resumption_multiple_host_func(&state);
-#else
-                detail::resumption_multiple_iter_callback(*it, launch_err,
-                                                          &state);
-#endif
-            }
-            *out = launch_err;
-            ++out;
+        context.suspend_point = tag;
+        std::size_t i = 0;
+        for (auto it = first; it != last; ++it, ++i) {
+            items[i] = {&context, &errs[i]};
+            detail::register_callback(*it, items[i]);
         }
     });
-    return out;
+
+    return std::copy(errs.begin(), errs.end(), out);
 }
 }  // namespace coopsync_tbb::cuda
 
