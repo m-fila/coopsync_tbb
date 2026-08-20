@@ -181,12 +181,12 @@ wait_for_all(StreamTs... streams) {
 /// LegacyOutputIterator.
 /// @return Iterator past the last written error code.
 template <typename ForwardIt, typename OutputIt>
-static inline OutputIt wait_for_all(ForwardIt first, ForwardIt last,
-                                    OutputIt out) {
+static inline OutputIt wait_for_range(ForwardIt first, ForwardIt last,
+                                      OutputIt out) {
     static_assert(
         detail::is_hip_stream<
             typename std::iterator_traits<ForwardIt>::value_type>::value,
-        "wait_for_all(first,last,out) requires hipStream_t values");
+        "wait_for_range(first,last,out) requires hipStream_t values");
 
     if (first == last) {
         return out;
