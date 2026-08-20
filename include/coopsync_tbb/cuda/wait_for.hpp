@@ -31,8 +31,12 @@
 
 // cudaStreamAddCallback is pending deprecation as of CUDA 10.0;
 // the replacement is cudaLaunchHostFunc.
+// Since CUDA 13.2, cudaLaunchHostFunc_v2 allows to configure
+// the behaviour of the callback thread.
 #ifndef COOPSYNC_TBB_CUDA_HAS_HOST_FUNC_
-    #if defined(CUDART_VERSION) && CUDART_VERSION >= 10000
+    #if defined(CUDART_VERSION) && CUDART_VERSION >= 13020
+        #define COOPSYNC_TBB_CUDA_HAS_HOST_FUNC_ 2 // NOLINT(cppcoreguidelines-macro-to-enum,cppcoreguidelines-macro-usage)
+    #elif defined(CUDART_VERSION) && CUDART_VERSION >= 10000
         #define COOPSYNC_TBB_CUDA_HAS_HOST_FUNC_ 1 // NOLINT(cppcoreguidelines-macro-to-enum,cppcoreguidelines-macro-usage)
     #else
         #define COOPSYNC_TBB_CUDA_HAS_HOST_FUNC_ 0 // NOLINT(cppcoreguidelines-macro-to-enum,cppcoreguidelines-macro-usage)
@@ -71,8 +75,12 @@ static void CUDART_CB resumption_callback(::cudaStream_t, ::cudaError_t status,
 }
 
 template <typename Context>
-static inline void register_callback(::cudaStream_t stream, Context& context) {
-#if COOPSYNC_TBB_CUDA_HAS_HOST_FUNC_
+static inline void register_callback(::cudaStream_t stream, Context& context,
+                                     unsigned int sync_mode) {
+#if COOPSYNC_TBB_CUDA_HAS_HOST_FUNC_ == 2
+    const auto err = ::cudaLaunchHostFunc_v2(
+        stream, &resumption_host_func<Context>, &context, sync_mode);
+#elif COOPSYNC_TBB_CUDA_HAS_HOST_FUNC_ == 1
     const auto err =
         ::cudaLaunchHostFunc(stream, &resumption_host_func<Context>, &context);
 #else
@@ -122,15 +130,19 @@ struct multi_stream_item {
 /// @brief Suspends the current TBB task until all the work in a CUDA stream
 /// completes. Internally a CUDA callback is used to resume the task.
 /// @param stream CUDA stream.
+/// @param sync_mode Flag controlling CUDA host callback registration, with
+/// semantics corresponding to the \c syncMode parameter of
+/// \c cudaLaunchHostFunc_v2 function. The sync_mode is only taken into account
+/// for CUDA 13.2 and later; for earlier CUDA versions, it has no effect.
 /// @return The CUDA error code.
 /// @note In case of error during callback setup, the task is resumed
 /// immediately.
 COOPSYNC_TBB_CUDA_NODISCARD static inline ::cudaError_t wait_for(
-    ::cudaStream_t stream) {
+    ::cudaStream_t stream, unsigned int sync_mode = 0u) {
     auto context = detail::single_stream_context{};
     ::tbb::task::suspend([&](::tbb::task::suspend_point tag) {
         context.suspend_point = tag;
-        detail::register_callback(stream, context);
+        detail::register_callback(stream, context, sync_mode);
     });
     return context.err;
 }
@@ -139,12 +151,18 @@ COOPSYNC_TBB_CUDA_NODISCARD static inline ::cudaError_t wait_for(
 /// CUDA streams is completed.
 /// A CUDA host callback is enqueued into every stream. The calling task resumes
 /// once all callbacks that were successfully enqueued have executed.
+/// @param sync_mode Flag controlling CUDA host callback registration, with
+/// semantics corresponding to the \c syncMode parameter of
+/// \c cudaLaunchHostFunc_v2 function. The sync_mode is only taken into account
+/// for CUDA 13.2 and later; for earlier CUDA versions, it has no effect.
 /// @param streams Variadic list of CUDA streams.
 /// @return Array of CUDA error codes. Element i corresponds to stream i.
+/// @note Note the potentially unintuitive order of arguments: the first
+/// argument is the sync_mode, followed by variadic number of streams.
 template <typename... StreamTs>
 COOPSYNC_TBB_CUDA_NODISCARD static inline std::array<::cudaError_t,
                                                      sizeof...(StreamTs)>
-wait_for_all(StreamTs... streams) {
+wait_for_all(unsigned int sync_mode, StreamTs... streams) {
     static_assert(detail::all_cuda_stream<StreamTs...>::value,
                   "wait_for_all(streams...) requires cudaStream_t arguments");
 
@@ -165,11 +183,25 @@ wait_for_all(StreamTs... streams) {
         context.suspend_point = tag;
         for (std::size_t i = 0; i < N; ++i) {
             items.at(i) = {&context, &errs.at(i)};
-            detail::register_callback(stream_array.at(i), items.at(i));
+            detail::register_callback(stream_array.at(i), items.at(i),
+                                      sync_mode);
         }
     });
 
     return errs;
+}
+
+/// @brief Suspends the current TBB task until all the work in all the provided
+/// CUDA streams is completed.
+/// A CUDA host callback is enqueued into every stream. The calling task resumes
+/// once all callbacks that were successfully enqueued have executed.
+/// @param streams Variadic list of CUDA streams.
+/// @return Array of CUDA error codes. Element i corresponds to stream i.
+template <typename... StreamTs>
+COOPSYNC_TBB_CUDA_NODISCARD static inline std::array<::cudaError_t,
+                                                     sizeof...(StreamTs)>
+wait_for_all(StreamTs... streams) {
+    return wait_for_all(0u, streams...);
 }
 
 /// @brief Suspends the current TBB task until all the work in all the provided
@@ -181,10 +213,15 @@ wait_for_all(StreamTs... streams) {
 /// LegacyForwardIterator.
 /// @param out Iterator receiving CUDA error codes in the same order. Must be a
 /// LegacyOutputIterator.
+/// @param sync_mode Flag controlling CUDA host callback registration, with
+/// semantics corresponding to the \c syncMode parameter of
+/// \c cudaLaunchHostFunc_v2 function. The sync_mode is only taken into account
+/// for CUDA 13.2 and later; for earlier CUDA versions, it has no effect.
 /// @return Iterator past the last written error code.
 template <typename ForwardIt, typename OutputIt>
 static inline OutputIt wait_for_range(ForwardIt first, ForwardIt last,
-                                      OutputIt out) {
+                                      OutputIt out,
+                                      unsigned int sync_mode = 0u) {
     static_assert(
         detail::is_cuda_stream<
             typename std::iterator_traits<ForwardIt>::value_type>::value,
@@ -204,7 +241,7 @@ static inline OutputIt wait_for_range(ForwardIt first, ForwardIt last,
         std::size_t i = 0;
         for (auto it = first; it != last; ++it, ++i) {
             items[i] = {&context, &errs[i]};
-            detail::register_callback(*it, items[i]);
+            detail::register_callback(*it, items[i], sync_mode);
         }
     });
 
