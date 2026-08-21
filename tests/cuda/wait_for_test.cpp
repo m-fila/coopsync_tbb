@@ -161,17 +161,17 @@ TEST(CUDAWaitFor, WaitForAllTwoStreams) {
     ASSERT_EQ(cudaStreamDestroy(s0), cudaSuccess);
 }
 
-TEST(CUDAWaitFor, WaitForAllIteratorZeroStreams) {
+TEST(CUDAWaitFor, WaitForRangeZeroStreams) {
     std::vector<cudaStream_t> streams;
     std::vector<cudaError_t> errs;
 
-    const auto out = coopsync_tbb::cuda::wait_for_all(
+    const auto out = coopsync_tbb::cuda::wait_for_range(
         streams.begin(), streams.end(), std::back_inserter(errs));
     (void)out;
     ASSERT_TRUE(errs.empty());
 }
 
-TEST(CUDAWaitFor, WaitForAllIteratorTwoStreams) {
+TEST(CUDAWaitFor, WaitForRangeTwoStreams) {
     ASSERT_EQ(cudaSetDevice(0), cudaSuccess);
 
     auto s0 = cudaStream_t{};
@@ -199,7 +199,7 @@ TEST(CUDAWaitFor, WaitForAllIteratorTwoStreams) {
     streams.push_back(s1);
     std::vector<cudaError_t> errs;
 
-    const auto out = coopsync_tbb::cuda::wait_for_all(
+    const auto out = coopsync_tbb::cuda::wait_for_range(
         streams.begin(), streams.end(), std::back_inserter(errs));
     (void)out;
 
