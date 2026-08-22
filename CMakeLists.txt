@@ -122,6 +122,7 @@ target_sources(
         # integrations
         include/coopsync_tbb/cuda/wait_for.hpp
         include/coopsync_tbb/hip/wait_for.hpp
+        include/coopsync_tbb/alpaka/wait_for.hpp
   PRIVATE # public API
     src/coopsync_tbb.cpp
     src/version.cpp

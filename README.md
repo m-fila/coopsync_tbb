@@ -46,6 +46,7 @@ The project also provides optional integrations for GPU and other libraries. The
 | CUDA                       | ✔️     |
 | HIP                        | ✔️     |
 | SYCL                       | ❌     |
+| alpaka                     | ✔️     |
 | ONNX                       | ❌     |
 | Triton                     | ❌     |
 
@@ -55,13 +56,14 @@ The project also provides optional integrations for GPU and other libraries. The
 
 Build requirements:
 
-- C++17 or later compiler
+- compiler supporting C++17 or later
 - oneTBB v2021.8 or later
 
 Optional dependencies (only required for integration headers):
 
 - CUDA
 - HIP v1.6 or later
+- alpaka v2.0.0 or later, compiler supporting C++20 or later
 
 The optional dependencies are not needed to build the core library. They are only required if you include headers that provide given integration, such as `coopsync/cuda/wait_for.hpp` for CUDA or the corresponding HIP headers.
 
