@@ -27,6 +27,15 @@ FetchContent_Declare(
 set(TBB_TEST FALSE CACHE BOOL "Turn off the TBB tests")
 set(TBB_STRICT FALSE CACHE BOOL "Do not throw errors on compiler warnings")
 
+if(NOT ${COOPSYNC_TBB_SANITIZER} STREQUAL "none")
+  set(
+    TBB_SANITIZE
+    ${COOPSYNC_TBB_SANITIZER}
+    CACHE STRING
+    "Sanitizer to use for TBB build"
+  )
+endif()
+
 # Make TBB work without warnings with modern CMake versions.
 set(CMAKE_POLICY_VERSION_MINIMUM "3.10")
 
