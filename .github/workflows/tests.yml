@@ -22,7 +22,7 @@ jobs:
       matrix:
         compiler: [gcc, clang]
         build_type: [Release, Debug]
-        cxx_standard: [17, 20]
+        cxx_standard: [11, 17, 20]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 

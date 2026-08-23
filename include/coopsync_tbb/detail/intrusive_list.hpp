@@ -7,7 +7,8 @@
 #include <cassert>
 #include <utility>
 
-namespace coopsync_tbb::detail {
+namespace coopsync_tbb {
+namespace detail {
 /// @brief A simple intrusive singly-linked list implementation. The list does
 /// not own the nodes, so it is the caller's responsibility to ensure that the
 /// nodes remain valid while they are in the list.
@@ -21,8 +22,11 @@ class intrusive_list {
     /// @brief Node of the intrusive list. The user is responsible for embedding
     /// this struct in their own data structures and managing its lifetime.
     struct node {
+        template <typename... Args>
+        explicit node(Args&&... args)
+            : value(std::forward<Args>(args)...), next(nullptr) {}
         T value;
-        node *next = nullptr;
+        node* next = nullptr;
     };
 
     /// @brief The type of the values stored in the list nodes.
@@ -32,15 +36,15 @@ class intrusive_list {
     intrusive_list() noexcept = default;
 
     /// @brief Copy constructor is not allowed.
-    intrusive_list(const intrusive_list &) = delete;
+    intrusive_list(const intrusive_list&) = delete;
 
     /// @brief Copy assignment operator is not allowed.
-    intrusive_list &operator=(const intrusive_list &) = delete;
+    intrusive_list& operator=(const intrusive_list&) = delete;
 
     /// @brief Move constructor. Transfers ownership of the list nodes from the
     /// source list to the new list. The source list is left in an empty state.
     /// @param other The source list to move from.
-    intrusive_list(intrusive_list &&other) noexcept
+    intrusive_list(intrusive_list&& other) noexcept
         : m_head(other.m_head), m_tail(other.m_tail) {
         assert_invariants();
         other.m_head = nullptr;
@@ -48,7 +52,7 @@ class intrusive_list {
     }
 
     /// @brief Move assignment operator is not allowed.
-    intrusive_list &operator=(intrusive_list &&) = delete;
+    intrusive_list& operator=(intrusive_list&&) = delete;
 
     /// @brief Destructor. Does not delete the nodes, as the list does not own
     /// them.
@@ -59,7 +63,7 @@ class intrusive_list {
     /// @param node The node to add to the list.
     /// @note The caller is responsible for ensuring that the node remains valid
     /// while it is in the list.
-    void push_back(node &node) noexcept {
+    void push_back(node& node) noexcept {
         assert_invariants();
         assert(node.next == nullptr);  // LCOV_EXCL_LINE
         if (m_tail) {
@@ -74,12 +78,12 @@ class intrusive_list {
     /// @brief Removes and returns the node at the front of the list.
     /// @return A pointer to the node at the front of the list, or nullptr if
     /// the list is empty.
-    node *pop_front() noexcept {
+    node* pop_front() noexcept {
         assert_invariants();
         if (!m_head) {
             return nullptr;
         }
-        auto *node = m_head;
+        auto* node = m_head;
         m_head = m_head->next;
         if (!m_head) {
             m_tail = nullptr;
@@ -96,16 +100,16 @@ class intrusive_list {
         return m_head == nullptr;
     }
 
-    void swap(intrusive_list &other) noexcept {
+    void swap(intrusive_list& other) noexcept {
         using std::swap;
         swap(m_head, other.m_head);
         swap(m_tail, other.m_tail);
     }
 
     private:
-    node *m_head = nullptr;  /// Pointer to the first node in the list, or
+    node* m_head = nullptr;  /// Pointer to the first node in the list, or
                              /// nullptr if the list is empty.
-    node *m_tail = nullptr;  /// Pointer to the last node in the list, or
+    node* m_tail = nullptr;  /// Pointer to the last node in the list, or
                              /// nullptr if the list is empty.
     inline void assert_invariants() const noexcept {
         assert((m_head == nullptr) == (m_tail == nullptr));  // LCOV_EXCL_LINE
@@ -114,8 +118,8 @@ class intrusive_list {
 };
 
 template <typename T>
-void swap(intrusive_list<T> &lhs, intrusive_list<T> &rhs) noexcept {
+void swap(intrusive_list<T>& lhs, intrusive_list<T>& rhs) noexcept {
     lhs.swap(rhs);
 }
-
-}  // namespace coopsync_tbb::detail
+}  // namespace detail
+}  // namespace coopsync_tbb
