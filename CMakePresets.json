@@ -45,7 +45,9 @@
       "inherits": "base",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "RelWithDebInfo",
-        "COOPSYNC_TBB_SANITIZER": "address"
+        "COOPSYNC_TBB_SANITIZER": "address",
+        "COOPSYNC_TBB_BUILD_CUDA_TESTING": "OFF",
+        "COOPSYNC_TBB_BUILD_HIP_TESTING": "OFF"
       },
       "environment": {
         "ASAN_OPTIONS": "protect_shadow_gap=0"
@@ -57,7 +59,8 @@
       "inherits": "base",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "RelWithDebInfo",
-        "COOPSYNC_TBB_SANITIZER": "undefined"
+        "COOPSYNC_TBB_SANITIZER": "undefined",
+        "COOPSYNC_TBB_BUILD_HIP_TESTING": "OFF"
       }
     },
     {
@@ -66,10 +69,8 @@
       "inherits": "base",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "RelWithDebInfo",
-        "COOPSYNC_TBB_SANITIZER": "thread"
-      },
-      "environment": {
-        "TSAN_OPTIONS": "suppressions=${sourceDir}/tsan.suppressions"
+        "COOPSYNC_TBB_SANITIZER": "thread",
+        "COOPSYNC_TBB_BUILD_HIP_TESTING": "OFF"
       }
     },
     {
