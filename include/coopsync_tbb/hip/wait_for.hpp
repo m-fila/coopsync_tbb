@@ -138,6 +138,8 @@ COOPSYNC_TBB_HIP_NODISCARD static inline ::hipError_t wait_for(
 /// HIP streams is completed.
 /// A HIP host callback is enqueued into every stream. The calling task resumes
 /// once all callbacks that were successfully enqueued have executed.
+/// In case of duplicate streams, the callback is enqueued multiple times, and
+/// the task will resume only after all callbacks have executed.
 /// @param streams Variadic list of HIP streams.
 /// @return Array of HIP error codes. Element i corresponds to stream i.
 template <typename... StreamTs>
@@ -174,7 +176,9 @@ wait_for_all(StreamTs... streams) {
 /// @brief Suspends the current TBB task until all the work in all the provided
 /// HIP streams completes.
 /// A HIP host callback is enqueued into every stream. The calling task resumes
-/// once all callbacks that were successfully enqueued have executed.
+/// once all callbacks that were successfully enqueued have executed. In case of
+/// duplicate streams, the callback is enqueued multiple times, and the task
+/// will resume only after all callbacks have executed.
 /// @param first Iterator to first HIP stream. Must be a LegacyForwardIterator.
 /// @param last Iterator past the last HIP stream. Must be a
 /// LegacyForwardIterator.

@@ -152,6 +152,8 @@ COOPSYNC_TBB_CUDA_NODISCARD static inline ::cudaError_t wait_for(
 /// CUDA streams is completed.
 /// A CUDA host callback is enqueued into every stream. The calling task resumes
 /// once all callbacks that were successfully enqueued have executed.
+/// In case of duplicate streams, the callback is enqueued multiple times, and
+/// the task will resume only after all callbacks have executed.
 /// @param sync_mode Flag controlling CUDA host callback registration, with
 /// semantics corresponding to the \c syncMode parameter of
 /// \c cudaLaunchHostFunc_v2 function. The sync_mode is only taken into account
@@ -208,7 +210,9 @@ wait_for_all(StreamTs... streams) {
 /// @brief Suspends the current TBB task until all the work in all the provided
 /// CUDA streams completes.
 /// A CUDA host callback is enqueued into every stream. The calling task resumes
-/// once all callbacks that were successfully enqueued have executed.
+/// once all callbacks that were successfully enqueued have executed. In case of
+/// duplicate streams, the callback is enqueued multiple times, and the task
+/// will resume only after all callbacks have executed.
 /// @param first Iterator to first CUDA stream. Must be a LegacyForwardIterator.
 /// @param last Iterator past the last CUDA stream. Must be a
 /// LegacyForwardIterator.
