@@ -12,7 +12,8 @@
 
 #include "coopsync_tbb/detail/intrusive_list.hpp"
 
-namespace coopsync_tbb::detail {
+namespace coopsync_tbb {
+namespace detail {
 class wait_queue {
     public:
     /// @brief Constructs an empty wait queue.
@@ -60,7 +61,7 @@ class wait_queue {
     /// function returns immediately. The predicate may be evaluated multiple
     /// times, it should not throw or perform any blocking operations.
     template <typename Pred>
-    void wait_if(Pred pred);
+    void wait_if(Pred&& pred);
 
     private:
     using waiter_t = ::tbb::task::suspend_point;
@@ -69,10 +70,15 @@ class wait_queue {
     intrusive_list<waiter_t> m_waiters;
 
     static void do_resume_all(intrusive_list<waiter_t>& waiters_to_resume);
+
+    template <typename T>
+    struct capture_helper {
+        T value;
+    };
 };
 
 template <typename Pred>
-void wait_queue::wait_if(Pred pred) {
+void wait_queue::wait_if(Pred&& pred) {
 
     // Fast path
     if (!pred()) {
@@ -81,25 +87,26 @@ void wait_queue::wait_if(Pred pred) {
 
     // Slow path
     auto node = typename detail::intrusive_list<waiter_t>::node{};
+    auto captured_pred = capture_helper<Pred>{std::forward<Pred>(pred)};
     // node must remain valid until the task is resumed. It's a local
     // variable on a stack of suspended task which is preserved during
     // suspension so it isn't an issue.
-    ::tbb::task::suspend([this, &node, pred = std::move(pred)](
-                             ::tbb::task::suspend_point sp) mutable {
-        {
-            // Re-check while holding the lock to avoid racing with a
-            // resume_* call.
-            ::tbb::spin_mutex::scoped_lock waiters_lock(m_waiters_mutex);
-            if (pred()) {
-                node.value = sp;
-                m_waiters.push_back(node);
-                return;
+    ::tbb::task::suspend(
+        [this, &node, &captured_pred](::tbb::task::suspend_point sp) mutable {
+            {
+                // Re-check while holding the lock to avoid racing with a
+                // resume_* call.
+                ::tbb::spin_mutex::scoped_lock waiters_lock(m_waiters_mutex);
+                if (captured_pred.value()) {
+                    node.value = sp;
+                    m_waiters.push_back(node);
+                    return;
+                }
             }
-        }
 
-        // Resume immediately in case the re-check succeeded.
-        ::tbb::task::resume(sp);
-    });
+            // Resume immediately in case the re-check succeeded.
+            ::tbb::task::resume(sp);
+        });
 }
-
-}  // namespace coopsync_tbb::detail
+}  // namespace detail
+}  // namespace coopsync_tbb

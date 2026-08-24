@@ -39,8 +39,9 @@
 // clang-format on
 
 /// @brief HIP integration.
-namespace coopsync_tbb::hip {
+namespace coopsync_tbb {
 
+namespace hip {
 namespace detail {
 
 template <typename T>
@@ -208,6 +209,7 @@ static inline OutputIt wait_for_range(ForwardIt first, ForwardIt last,
 
     return std::copy(errs.begin(), errs.end(), out);
 }
-}  // namespace coopsync_tbb::hip
+}  // namespace hip
+}  // namespace coopsync_tbb
 
 #undef COOPSYNC_TBB_HIP_NODISCARD

@@ -55,7 +55,7 @@ The project also provides optional integrations for GPU and other libraries. The
 
 Build requirements:
 
-- C++17 or later compiler
+- compiler supporting C++11 or later
 - oneTBB v2021.8 or later
 
 Optional dependencies (only required for integration headers):
