@@ -10,7 +10,7 @@
 #include <functional>
 #include <future>
 #include <memory>
-#include <optional>
+#include <new>
 #include <stdexcept>
 #include <system_error>
 #include <type_traits>
@@ -39,7 +39,8 @@ class future_error : public std::logic_error {
     std::error_code m_errc;
 };
 
-namespace detail::future {
+namespace detail {
+namespace future {
 
 /// @brief Enumeration encoding internal status of a shared state.
 enum class status : unsigned char {
@@ -106,7 +107,66 @@ struct shared_state_base {
 template <typename T>
 struct shared_state : public shared_state_base {
 
-    std::optional<T> value;
+    class optional_storage {
+        public:
+        optional_storage() noexcept = default;
+
+        optional_storage(const optional_storage&) = delete;
+        optional_storage& operator=(const optional_storage&) = delete;
+        optional_storage(optional_storage&&) = delete;
+        optional_storage& operator=(optional_storage&&) = delete;
+
+        ~optional_storage() {
+            if (m_has_value) {
+                destroy();
+            }
+        }
+
+        template <typename... Args>
+        void emplace(Args&&... args) {
+            if (m_has_value) {
+                destroy();
+            }
+
+            ::new (std::addressof(get())) T(std::forward<Args>(args)...);
+            m_has_value = true;
+        }
+
+        bool has_value() const noexcept { return m_has_value; }
+
+        T& get() noexcept {
+            return m_storage
+                .value;  // NOLINT(cppcoreguidelines-pro-type-union-access)
+        }
+        const T& get() const noexcept {
+            return m_storage
+                .value;  // NOLINT(cppcoreguidelines-pro-type-union-access)
+        }
+
+        T& operator*() noexcept { return get(); }
+        const T& operator*() const noexcept { return get(); }
+
+        private:
+        void destroy() noexcept {
+            get().~T();
+            m_has_value = false;
+        }
+
+        union storage_union {
+            storage_union() noexcept {}
+            ~storage_union() {}
+            storage_union(const storage_union&) = delete;
+            storage_union& operator=(const storage_union&) = delete;
+            storage_union(storage_union&&) = delete;
+            storage_union& operator=(storage_union&&) = delete;
+            T value;
+        };
+
+        storage_union m_storage = {};
+        bool m_has_value = false;
+    };
+
+    optional_storage value;
 
     template <typename R>
     void set_value(R&& v) {
@@ -203,21 +263,24 @@ class future_base {
     /// @brief Releases the reference to the shared state.
     void reset() noexcept { m_state.reset(); }
 
-    /// @brief Releases the shared state pointer and leaves this object invalid.
+    /// @brief Releases the shared state pointer and leaves this object
+    /// invalid.
     COOPSYNC_TBB_NODISCARD std::shared_ptr<shared_state<T>>
     release_state() noexcept {
-        return std::exchange(m_state, std::shared_ptr<shared_state<T>>{});
+        // Moved from m_state is left empty
+        return std::move(m_state);
     }
 
     public:
-    /// @brief Tests whether the future is valid and refers to a shared state.
+    /// @brief Tests whether the future is valid and refers to a shared
+    /// state.
     /// @return true if the future is valid, false otherwise.
     bool valid() const noexcept { return static_cast<bool>(m_state); }
 
     /// @brief Checks whether the shared state is ready without suspending.
     /// @return true if the shared state is ready, false otherwise.
-    /// @throws future_error with \c std::future_errc::no_state if the future is
-    /// not valid.
+    /// @throws future_error with \c std::future_errc::no_state if the
+    /// future is not valid.
     bool try_wait() const {
         ensure_valid();
         return m_state->ready();
@@ -226,8 +289,8 @@ class future_base {
     /// @brief Suspends the current task until the shared state is ready.
     ///
     /// If the shared state is ready this function returns immediately.
-    /// @throws future_error with \c std::future_errc::no_state if the future is
-    /// not valid.
+    /// @throws future_error with \c std::future_errc::no_state if the
+    /// future is not valid.
     void wait() const {
         ensure_valid();
         m_state->wait();
@@ -258,8 +321,9 @@ class promise_base {
     }
 
     /// @brief Marks that the future has been obtained.
-    /// @throws future_error with \c std::future_errc::future_already_retrieved
-    /// if the future was already retrieved.
+    /// @throws future_error with \c
+    /// std::future_errc::future_already_retrieved if the future was already
+    /// retrieved.
     void mark_future_obtained() {
         bool expected = false;
         if (!m_state->future_obtained.compare_exchange_strong(
@@ -289,15 +353,15 @@ class promise_base {
 
     /// @brief Stores an exception into the shared state and makes it ready.
     /// @param p The exception to store in the shared state.
-    /// @throws future_error with \c std::future_errc::no_state if the promise
-    /// is not valid.
+    /// @throws future_error with \c std::future_errc::no_state if the
+    /// promise is not valid.
     void set_exception(std::exception_ptr p) {
         ensure_valid();
         m_state->set_exception(std::move(p));
     }
 };
-
-}  // namespace detail::future
+}  // namespace future
+}  // namespace detail
 
 template <typename T>
 class future;
@@ -1146,16 +1210,7 @@ class packaged_task<R(Args...)> {
         }
 
         try {
-            if constexpr (std::is_void_v<R>) {
-                std::invoke(m_function, std::forward<Args>(args)...);
-                m_state->set_value();
-            } else if constexpr (std::is_reference_v<R>) {
-                auto& r = std::invoke(m_function, std::forward<Args>(args)...);
-                m_state->set_value(r);
-            } else {
-                m_state->set_value(
-                    std::invoke(m_function, std::forward<Args>(args)...));
-            }
+            invoke_and_set(std::forward<Args>(args)...);
         } catch (...) {
             m_state->set_exception(std::current_exception());
         }
@@ -1177,6 +1232,34 @@ class packaged_task<R(Args...)> {
     }
 
     private:
+    /// @brief Invokes the wrapped callable and sets the shared state for the
+    /// case where R is void.
+    template <typename U = R>
+    typename std::enable_if<std::is_void<U>::value>::type invoke_and_set(
+        Args&&... args) {
+        m_function(std::forward<Args>(args)...);
+        m_state->set_value();
+    }
+
+    /// @brief Invokes the wrapped callable and sets the shared state for the
+    /// case where R is a reference type.
+    template <typename U = R>
+    typename std::enable_if<!std::is_void<U>::value &&
+                            std::is_reference<U>::value>::type
+    invoke_and_set(Args&&... args) {
+        auto& r = m_function(std::forward<Args>(args)...);
+        m_state->set_value(r);
+    }
+
+    /// @brief Invokes the wrapped callable and sets the shared state for the
+    /// case where R is value type.
+    template <typename U = R>
+    typename std::enable_if<!std::is_void<U>::value &&
+                            !std::is_reference<U>::value>::type
+    invoke_and_set(Args&&... args) {
+        m_state->set_value(m_function(std::forward<Args>(args)...));
+    }
+
     std::function<R(Args...)> m_function;
     std::shared_ptr<detail::future::shared_state<R>> m_state;
 };

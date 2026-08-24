@@ -6,7 +6,8 @@
 
 #include <cassert>
 
-namespace coopsync_tbb::detail {
+namespace coopsync_tbb {
+namespace detail {
 
 wait_queue::~wait_queue() {
     assert(m_waiters.empty());  // LCOV_EXCL_LINE
@@ -67,5 +68,5 @@ void wait_queue::do_resume_all(intrusive_list<waiter_t>& waiters_to_resume) {
         ::tbb::task::resume(waiter->value);
     }
 }
-
-}  // namespace coopsync_tbb::detail
+}  // namespace detail
+}  // namespace coopsync_tbb

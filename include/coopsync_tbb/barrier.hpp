@@ -15,13 +15,15 @@
 
 namespace coopsync_tbb {
 
-namespace detail::barrier {
+namespace detail {
+namespace barrier {
 /// @brief An empty completion function that does nothing. Used as the default
 /// completion function for the barrier.
 inline void completion() noexcept {}
 
-using default_completion_t = void (*)() noexcept;
-}  // namespace detail::barrier
+using default_completion_t = void (*)();
+}  // namespace barrier
+}  // namespace detail
 
 /// @brief A barrier is a reusable synchronization primitive that allows tasks
 /// to suspend until a certain number of arrivals have occurred. The barrier is
@@ -29,6 +31,9 @@ using default_completion_t = void (*)() noexcept;
 /// and the completion function has been called, the barrier can be used again
 /// for the next phase. Concurrent invocations of the member functions. except
 /// for destructor, are safe.
+/// @tparam CompletionFunction The type of the completion function to be called
+/// when a phase completes. The completion function must be not throw and must
+/// be invocable without arguments.
 template <typename CompletionFunction = detail::barrier::default_completion_t>
 class barrier {
     public:
@@ -39,8 +44,8 @@ class barrier {
     /// @param expected The initial expected count for the barrier. Must be
     /// non-negative and not greater than max().
     /// @param completion The completion function to be called when a phase
-    /// completes.
-
+    /// completes. The default completion function does nothing. The completion
+    /// function must be not throw.
     explicit barrier(std::ptrdiff_t expected, CompletionFunction completion =
                                                   detail::barrier::completion);
 

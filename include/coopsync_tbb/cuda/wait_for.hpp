@@ -45,7 +45,8 @@
 // clang-format on
 
 /// @brief CUDA integration.
-namespace coopsync_tbb::cuda {
+namespace coopsync_tbb {
+namespace cuda {
 
 namespace detail {
 
@@ -247,6 +248,6 @@ static inline OutputIt wait_for_range(ForwardIt first, ForwardIt last,
 
     return std::copy(errs.begin(), errs.end(), out);
 }
-}  // namespace coopsync_tbb::cuda
-
+}  // namespace cuda
+}  // namespace coopsync_tbb
 #undef COOPSYNC_TBB_CUDA_NODISCARD
