@@ -164,6 +164,48 @@ TEST(HIPWaitFor, WaitForAllTwoStreams) {
     ASSERT_EQ(hipStreamDestroy(s0), hipSuccess);
 }
 
+TEST(HIPWaitFor, WaitForAllDuplicatedStreams) {
+    ASSERT_EQ(hipSetDevice(0), hipSuccess);
+
+    auto s0 = hipStream_t{};
+    auto s1 = hipStream_t{};
+    ASSERT_EQ(hipStreamCreate(&s0), hipSuccess);
+    ASSERT_EQ(hipStreamCreate(&s1), hipSuccess);
+
+    auto e0 = hipEvent_t{};
+    auto e1 = hipEvent_t{};
+    ASSERT_EQ(hipEventCreate(&e0), hipSuccess);
+    ASSERT_EQ(hipEventCreate(&e1), hipSuccess);
+
+    const auto ns1 = 1'000'000;
+    const auto ns2 = 100'000;
+    launch_nanospin(ns1, s0);
+    ASSERT_EQ(hipGetLastError(), hipSuccess);
+    launch_nanospin(ns2, s1);
+    ASSERT_EQ(hipGetLastError(), hipSuccess);
+
+    ASSERT_EQ(hipEventRecord(e0, s0), hipSuccess);
+    ASSERT_EQ(hipEventRecord(e1, s1), hipSuccess);
+
+    const auto errs = coopsync_tbb::hip::wait_for_all(s0, s1, s0, s1);
+    ASSERT_EQ(errs.size(), 4u);
+    ASSERT_EQ(errs[0], hipSuccess);
+    ASSERT_EQ(errs[1], hipSuccess);
+    ASSERT_EQ(errs[2], hipSuccess);
+    ASSERT_EQ(errs[3], hipSuccess);
+    ASSERT_EQ(hipEventQuery(e0), hipSuccess);
+    ASSERT_EQ(hipEventQuery(e1), hipSuccess);
+
+    ASSERT_EQ(hipStreamSynchronize(s0), hipSuccess);
+    ASSERT_EQ(hipStreamSynchronize(s1), hipSuccess);
+    ASSERT_EQ(hipGetLastError(), hipSuccess);
+
+    ASSERT_EQ(hipEventDestroy(e1), hipSuccess);
+    ASSERT_EQ(hipEventDestroy(e0), hipSuccess);
+    ASSERT_EQ(hipStreamDestroy(s1), hipSuccess);
+    ASSERT_EQ(hipStreamDestroy(s0), hipSuccess);
+}
+
 TEST(HIPWaitFor, WaitForRangeZeroStreams) {
     std::vector<hipStream_t> streams;
     std::vector<hipError_t> errs;
@@ -209,6 +251,58 @@ TEST(HIPWaitFor, WaitForRangeTwoStreams) {
     ASSERT_EQ(errs.size(), 2u);
     ASSERT_EQ(errs[0], hipSuccess);
     ASSERT_EQ(errs[1], hipSuccess);
+    ASSERT_EQ(hipEventQuery(e0), hipSuccess);
+    ASSERT_EQ(hipEventQuery(e1), hipSuccess);
+
+    ASSERT_EQ(hipStreamSynchronize(s0), hipSuccess);
+    ASSERT_EQ(hipStreamSynchronize(s1), hipSuccess);
+    ASSERT_EQ(hipGetLastError(), hipSuccess);
+
+    ASSERT_EQ(hipEventDestroy(e1), hipSuccess);
+    ASSERT_EQ(hipEventDestroy(e0), hipSuccess);
+    ASSERT_EQ(hipStreamDestroy(s1), hipSuccess);
+    ASSERT_EQ(hipStreamDestroy(s0), hipSuccess);
+}
+
+TEST(HIPWaitFor, WaitForRangeDuplicatedStreams) {
+    ASSERT_EQ(hipSetDevice(0), hipSuccess);
+
+    auto s0 = hipStream_t{};
+    auto s1 = hipStream_t{};
+    ASSERT_EQ(hipStreamCreate(&s0), hipSuccess);
+    ASSERT_EQ(hipStreamCreate(&s1), hipSuccess);
+
+    auto e0 = hipEvent_t{};
+    auto e1 = hipEvent_t{};
+    ASSERT_EQ(hipEventCreate(&e0), hipSuccess);
+    ASSERT_EQ(hipEventCreate(&e1), hipSuccess);
+
+    const auto ns1 = 1'000'000;
+    const auto ns2 = 100'000;
+    launch_nanospin(ns1, s0);
+    ASSERT_EQ(hipGetLastError(), hipSuccess);
+    launch_nanospin(ns2, s1);
+    ASSERT_EQ(hipGetLastError(), hipSuccess);
+
+    ASSERT_EQ(hipEventRecord(e0, s0), hipSuccess);
+    ASSERT_EQ(hipEventRecord(e1, s1), hipSuccess);
+
+    std::vector<hipStream_t> streams;
+    streams.push_back(s0);
+    streams.push_back(s1);
+    streams.push_back(s0);
+    streams.push_back(s1);
+    std::vector<hipError_t> errs;
+
+    const auto out = coopsync_tbb::hip::wait_for_range(
+        streams.begin(), streams.end(), std::back_inserter(errs));
+    (void)out;
+
+    ASSERT_EQ(errs.size(), 4u);
+    ASSERT_EQ(errs[0], hipSuccess);
+    ASSERT_EQ(errs[1], hipSuccess);
+    ASSERT_EQ(errs[2], hipSuccess);
+    ASSERT_EQ(errs[3], hipSuccess);
     ASSERT_EQ(hipEventQuery(e0), hipSuccess);
     ASSERT_EQ(hipEventQuery(e1), hipSuccess);
 
