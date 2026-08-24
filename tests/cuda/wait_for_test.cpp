@@ -312,4 +312,3 @@ TEST(CUDAWaitFor, WaitForRangeDuplicatedStreams) {
     ASSERT_EQ(cudaStreamDestroy(s1), cudaSuccess);
     ASSERT_EQ(cudaStreamDestroy(s0), cudaSuccess);
 }
-
