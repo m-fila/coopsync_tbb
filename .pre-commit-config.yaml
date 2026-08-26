@@ -1,13 +1,13 @@
 repos:
   - repo: https://github.com/pre-commit/mirrors-clang-format
-    rev: f4d7745e17a28aad7eed2f4874ca8d1568c11c4c # v22.1.8
+    rev: f4d7745e17a28aad7eed2f4874ca8d1568c11c4c # frozen: v22.1.8
     hooks:
       - id: clang-format
         types_or: [file]
         files: \.(c|h|cpp|hpp|ipp|cu|cuh|sycl|hip)$
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: 3e8a8703264a2f4a69428a0aa4dcb512790b2c8c # v6.0.0
+    rev: 3e8a8703264a2f4a69428a0aa4dcb512790b2c8c # frozen: v6.0.0
     hooks:
       - id: trailing-whitespace
       - id: end-of-file-fixer
@@ -28,11 +28,11 @@ repos:
         language: system
         exclude: (build|downstream)
   - repo: https://codeberg.org/fsfe/reuse-tool
-    rev: a1bb792acda6fd0724936b4ebbdbc8eceb9c0459 # v6.2.0
+    rev: a1bb792acda6fd0724936b4ebbdbc8eceb9c0459  # frozen: v6.2.0
     hooks:
       - id: reuse
   - repo: https://github.com/BlankSpruce/gersemi-pre-commit
-    rev: c1c636fef559eeef0dae280afcd44420f6126e63 # 0.28.1
+    rev: c1c636fef559eeef0dae280afcd44420f6126e63 # frozen: 0.28.1
     hooks:
     - id: gersemi
       args: ["-i"]
