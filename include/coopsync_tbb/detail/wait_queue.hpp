@@ -11,10 +11,11 @@
 #include <utility>
 
 #include "coopsync_tbb/detail/intrusive_list.hpp"
+#include "coopsync_tbb/detail/macros.hpp"
 
 namespace coopsync_tbb {
 namespace detail {
-class wait_queue {
+class COOPSYNC_TBB_EXPORT wait_queue {
     public:
     /// @brief Constructs an empty wait queue.
     wait_queue() = default;

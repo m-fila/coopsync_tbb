@@ -22,7 +22,7 @@
 namespace coopsync_tbb {
 
 /// @brief Exception type thrown by future and promise operations.
-class future_error : public std::logic_error {
+class COOPSYNC_TBB_EXPORT future_error : public std::logic_error {
     public:
     /// @brief Constructs a future_error with the given error code.
     /// @param errc The error code to associate with this future_error.
@@ -381,7 +381,7 @@ class shared_future;
 /// valid state and cannot be used again.
 /// @tparam T The type of the value that will be stored in the shared state.
 template <typename T>
-class future : private detail::future::future_base<T> {
+class COOPSYNC_TBB_EXPORT future : private detail::future::future_base<T> {
     public:
     /// @brief Constructs a new future. After construction the future has no
     /// shared state and is not valid.
@@ -460,7 +460,8 @@ class future : private detail::future::future_base<T> {
 
 /// @brief Specialization of \ref future for \c void type.
 template <>
-class future<void> : private detail::future::future_base<void> {
+class COOPSYNC_TBB_EXPORT
+    future<void> : private detail::future::future_base<void> {
     public:
     /// @brief Constructs a new future. After construction the future has no
     /// shared state and is not valid.
@@ -538,7 +539,7 @@ class future<void> : private detail::future::future_base<void> {
 /// @brief Specialization of \ref future for reference types.
 /// @tparam T The type of the value that will be stored in the shared state.
 template <typename T>
-class future<T&> : private detail::future::future_base<T&> {
+class COOPSYNC_TBB_EXPORT future<T&> : private detail::future::future_base<T&> {
     public:
     /// @brief Constructs a new future. After construction the future has no
     /// shared state and is not valid.
@@ -625,7 +626,8 @@ class future<T&> : private detail::future::future_base<T&> {
 ///
 /// @tparam T The type of the value stored in the shared state.
 template <typename T>
-class shared_future : private detail::future::future_base<T> {
+class COOPSYNC_TBB_EXPORT shared_future
+    : private detail::future::future_base<T> {
     public:
     /// @brief Constructs an invalid shared_future.
     shared_future() noexcept = default;
@@ -695,7 +697,8 @@ class shared_future : private detail::future::future_base<T> {
 
 /// @brief Specialization of \ref shared_future for \c void type.
 template <>
-class shared_future<void> : private detail::future::future_base<void> {
+class COOPSYNC_TBB_EXPORT
+    shared_future<void> : private detail::future::future_base<void> {
     public:
     /// @brief Constructs the shared_future in a not valid state.
     shared_future() noexcept = default;
@@ -770,7 +773,8 @@ class shared_future<void> : private detail::future::future_base<void> {
 
 /// @brief Specialization of \ref shared_future for reference types.
 template <typename T>
-class shared_future<T&> : private detail::future::future_base<T&> {
+class COOPSYNC_TBB_EXPORT
+    shared_future<T&> : private detail::future::future_base<T&> {
     public:
     /// @brief Constructs the shared_future in a not valid state.
     shared_future() noexcept = default;
@@ -869,7 +873,7 @@ shared_future<T&> future<T&>::share() {
 /// future sharing the same state.
 /// @tparam T The type of the value that will be stored in the shared state.
 template <typename T>
-class promise : private detail::future::promise_base<T> {
+class COOPSYNC_TBB_EXPORT promise : private detail::future::promise_base<T> {
     public:
     /// @brief Constructs a new promise with an empty shared state.
     promise() = default;
@@ -953,7 +957,8 @@ class promise : private detail::future::promise_base<T> {
 /// @brief Specialization of \ref promise for \c void type. The promise<void>
 /// does not store a value, but only the state of readiness and any exception.
 template <>
-class promise<void> : private detail::future::promise_base<void> {
+class COOPSYNC_TBB_EXPORT
+    promise<void> : private detail::future::promise_base<void> {
     public:
     /// @brief Constructs a new promise with an empty shared state.
     promise() = default;
@@ -1023,7 +1028,8 @@ class promise<void> : private detail::future::promise_base<void> {
 /// @brief Specialization of promise for reference types. The promise<T&> stores
 /// a reference to a value of type T in the shared state.
 template <typename T>
-class promise<T&> : private detail::future::promise_base<T&> {
+class COOPSYNC_TBB_EXPORT
+    promise<T&> : private detail::future::promise_base<T&> {
     public:
     /// @brief Constructs a new promise with an empty shared state.
     promise() = default;
@@ -1101,7 +1107,7 @@ class promise<T&> : private detail::future::promise_base<T&> {
 /// @tparam Args The types of the arguments that the wrapped callable will be
 /// invoked with.
 template <typename R, typename... Args>
-class packaged_task<R(Args...)> {
+class COOPSYNC_TBB_EXPORT packaged_task<R(Args...)> {
     public:
     /// @brief Constructs a new packaged_task with no callable and no shared
     /// state. After construction the packaged_task is not valid.
@@ -1268,8 +1274,8 @@ class packaged_task<R(Args...)> {
 /// @param lhs The first packaged_task to exchange state with.
 /// @param rhs The second packaged_task to exchange state with.
 template <typename R, typename... Args>
-void swap(packaged_task<R(Args...)>& lhs,
-          packaged_task<R(Args...)>& rhs) noexcept {
+COOPSYNC_TBB_EXPORT void swap(packaged_task<R(Args...)>& lhs,
+                              packaged_task<R(Args...)>& rhs) noexcept {
     lhs.swap(rhs);
 }
 
