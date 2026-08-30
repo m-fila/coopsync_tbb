@@ -28,6 +28,7 @@ The interfaces of the primitives are modelled after the C++ standard library whe
 | `barrier`              | ✔️     |
 | `buffered_channel`     | ❌     |
 | `unbuffered_channel`   | ❌     |
+| `unbounded_channel`    | ❌     |
 | `condition_variable`   | ✔️     |
 | `future`               | ✔️     |
 | `packaged_task`        | ✔️     |
@@ -46,8 +47,10 @@ The project also provides optional integrations for GPU and other libraries. The
 | CUDA                       | ✔️     |
 | HIP                        | ✔️     |
 | SYCL                       | ❌     |
+| OpenCL                     | ❌     |
+| alpaka                     | ❌     |
 | ONNX                       | ❌     |
-| Triton                     | ❌     |
+| gRPC                       | ❌     |
 
 ✔️: supported, ❌: not implemented
 
