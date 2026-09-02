@@ -27,7 +27,8 @@
 // clang-format on
 
 /// @brief ONNX Runtime integration.
-namespace coopsync_tbb::onnx {
+namespace coopsync_tbb {
+namespace onnx {
 
 namespace detail {
 
@@ -156,17 +157,13 @@ static inline void wait_for(
 
     ::tbb::task::suspend([&](::tbb::task::suspend_point tag) {
         ctx.suspend_point = tag;
-        try {
-            session.RunAsync(run_options, input_names, input_values,
-                             input_count, output_names, output_values,
-                             output_count, detail::resumption_callback, &ctx);
-        } catch (const ::Ort::Exception& e) {
-            // Callback won't run; resume immediately with submission error.
-            detail::resumption_callback(&ctx, nullptr, 0, ::Ort::Status(e));
-        }
+        session.RunAsync(run_options, input_names, input_values, input_count,
+                         output_names, output_values, output_count,
+                         detail::resumption_callback, &ctx);
     });
-    return ::Ort::ThrowOnError(ctx.status);
+    ::Ort::ThrowOnError(ctx.status);
 }
-}  // namespace coopsync_tbb::onnx
+}  // namespace onnx
+}  // namespace coopsync_tbb
 
 #undef COOPSYNC_TBB_ONNX_NODISCARD
