@@ -18,7 +18,7 @@
 // clang-format off
 #ifndef COOPSYNC_TBB_HIP_NODISCARD
   #if defined(__has_cpp_attribute)
-    #if __has_cpp_attribute(nodiscard)
+    #if __has_cpp_attribute(nodiscard) >= 201603L
       #define COOPSYNC_TBB_HIP_NODISCARD [[nodiscard]]
     #endif
   #elif defined(__cplusplus) && __cplusplus >= 201703L
