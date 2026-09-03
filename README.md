@@ -49,7 +49,7 @@ The project also provides optional integrations for GPU and other libraries. The
 | SYCL                       | ❌     |
 | OpenCL                     | ❌     |
 | alpaka                     | ❌     |
-| ONNX                       | ❌     |
+| ONNX Runtime               | ✔️     |
 | gRPC                       | ❌     |
 
 ✔️: supported, ❌: not implemented
@@ -65,6 +65,7 @@ Optional dependencies (only required for integration headers):
 
 - CUDA
 - HIP v1.6 or later
+- ONNX Runtime v1.16 or later
 
 The optional dependencies are not needed to build the core library. They are only required if you include headers that provide given integration, such as `coopsync/cuda/wait_for.hpp` for CUDA or the corresponding HIP headers.
 
