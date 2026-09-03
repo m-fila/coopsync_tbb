@@ -38,10 +38,10 @@
 #endif
 // clang-format on
 
-/// @brief HIP integration.
 namespace coopsync_tbb {
-
+/// @brief HIP integration.
 namespace hip {
+
 namespace detail {
 
 template <typename T>

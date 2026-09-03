@@ -44,8 +44,8 @@
 #endif
 // clang-format on
 
-/// @brief CUDA integration.
 namespace coopsync_tbb {
+/// @brief CUDA integration.
 namespace cuda {
 
 namespace detail {
