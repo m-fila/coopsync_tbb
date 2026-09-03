@@ -26,8 +26,8 @@
 #endif
 // clang-format on
 
-/// @brief ONNX Runtime integration.
 namespace coopsync_tbb {
+/// @brief ONNX Runtime integration.
 namespace onnx {
 
 namespace detail {
