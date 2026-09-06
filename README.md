@@ -27,7 +27,7 @@ The interfaces of the primitives are modelled after the C++ standard library whe
 | `atomic_flag`          | ✔️     |
 | `barrier`              | ✔️     |
 | `buffered_channel`     | ❌     |
-| `unbuffered_channel`   | ❌     |
+| `unbuffered_channel`   | ✔️     |
 | `unbounded_channel`    | ❌     |
 | `condition_variable`   | ✔️     |
 | `future`               | ✔️     |

@@ -21,6 +21,7 @@ add_executable(
   mutex_test.cpp
   shared_mutex_test.cpp
   semaphore_test.cpp
+  unbuffered_channel_test.cpp
 )
 
 target_link_libraries(coopsync_tbb_test PRIVATE GTest::gtest_main CoopSync_TBB)

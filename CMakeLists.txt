@@ -126,6 +126,7 @@ target_sources(
         include/coopsync_tbb/mutex.hpp
         include/coopsync_tbb/shared_mutex.hpp
         include/coopsync_tbb/semaphore.hpp
+        include/coopsync_tbb/unbuffered_channel.hpp
         # integrations
         include/coopsync_tbb/cuda/wait_for.hpp
         include/coopsync_tbb/hip/wait_for.hpp
@@ -149,6 +150,7 @@ target_sources(
     src/mutex.cpp
     src/semaphore.cpp
     src/shared_mutex.cpp
+    src/unbuffered_channel.cpp
 )
 
 set_target_properties(

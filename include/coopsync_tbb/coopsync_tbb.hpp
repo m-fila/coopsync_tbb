@@ -13,6 +13,7 @@
 #include "coopsync_tbb/mutex.hpp"
 #include "coopsync_tbb/semaphore.hpp"
 #include "coopsync_tbb/shared_mutex.hpp"
+#include "coopsync_tbb/unbuffered_channel.hpp"
 #include "coopsync_tbb/version.hpp"
 
 #if defined(COOPSYNC_TBB_HAS_ATOMIC_FLAG) && COOPSYNC_TBB_HAS_ATOMIC_FLAG == 1
