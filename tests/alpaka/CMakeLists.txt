@@ -37,6 +37,14 @@ if(
   endif()
 endif()
 
+# enable the sequential CPU backend, so there is always at least one backend available
+set(
+  alpaka_ACC_CPU_B_SEQ_T_SEQ_ENABLE
+  ON
+  CACHE BOOL
+  "Enable the alpaka sequential CPU backend"
+)
+
 option(
   COOPSYNC_TBB_SETUP_ALPAKA
   "Set up the alpaka target(s) explicitly"
