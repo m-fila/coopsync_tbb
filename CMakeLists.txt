@@ -96,7 +96,7 @@ include(GenerateExportHeader)
 generate_export_header(
   coopsync_tbb
   EXPORT_FILE_NAME
-    ${CMAKE_CURRENT_BINARY_DIR}/include/coopsync_tbb/detail/export.hpp
+    "${CMAKE_CURRENT_BINARY_DIR}/include/coopsync_tbb/detail/export.hpp"
 )
 coopsync_tbb_apply_sanitizer(coopsync_tbb)
 
@@ -111,7 +111,7 @@ target_sources(
         "${CMAKE_CURRENT_BINARY_DIR}/include/coopsync_tbb/version.hpp"
         include/coopsync_tbb/feature_test.hpp
         # details
-        ${CMAKE_CURRENT_BINARY_DIR}/include/coopsync_tbb/detail/export.hpp
+        "${CMAKE_CURRENT_BINARY_DIR}/include/coopsync_tbb/detail/export.hpp"
         include/coopsync_tbb/detail/intrusive_list.hpp
         include/coopsync_tbb/detail/macros.hpp
         include/coopsync_tbb/detail/wait_queue.hpp

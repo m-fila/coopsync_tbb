@@ -5,8 +5,8 @@
 message(STATUS "Adding ONNX Runtime tests")
 
 file(
-  COPY ${CMAKE_CURRENT_SOURCE_DIR}/identity_1x1.onnx
-  DESTINATION ${CMAKE_CURRENT_BINARY_DIR}
+  COPY "${CMAKE_CURRENT_SOURCE_DIR}/identity_1x1.onnx"
+  DESTINATION "${CMAKE_CURRENT_BINARY_DIR}"
 )
 
 add_executable(coopsync_tbb_onnx_wait_for_test wait_for_test.cpp)
