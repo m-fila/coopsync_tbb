@@ -54,6 +54,7 @@ jobs:
           cmake --build --preset downstream
           ctest --preset downstream
       - name: Test downstream with pkg-config
+        if: matrix.build_type == 'Release' #  TBBs pkg-config can not find the debug libs
         working-directory: cmake/downstream
         run: |
           ${CXX} -std=c++${{ matrix.cxx_standard }} -o pkg_test main.cpp $(pkg-config --cflags --libs coopsync_tbb)
