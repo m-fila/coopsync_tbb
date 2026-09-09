@@ -13,9 +13,9 @@ int main() {
     // This is just a smoke-test that headers link and run.
     std::cout << "CoopSync_TBB version: " << COOPSYNC_TBB_VERSION << "\n";
     // Limit the number of threads to 1
-    auto control =
-        tbb::global_control(tbb::global_control::max_allowed_parallelism, 1);
-    auto latch = coopsync_tbb::latch(1);
+    tbb::global_control control(tbb::global_control::max_allowed_parallelism,
+                                1);
+    coopsync_tbb::latch latch(1);
     auto task = coopsync_tbb::packaged_task<int()>([&]() {
         latch.count_down();
         return 42;
