@@ -17,7 +17,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 include(CTest)
 
-find_package(CoopSync_TBB CONFIGREQUIRED)
+find_package(CoopSync_TBB REQUIRED)
 
 add_executable(coopsync_tbb_downstream main.cpp)
 target_link_libraries(
