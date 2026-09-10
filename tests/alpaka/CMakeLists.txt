@@ -76,6 +76,6 @@ alpaka_add_executable(coopsync_tbb_alpaka_test wait_for_test.cpp)
 
 target_link_libraries(
   coopsync_tbb_alpaka_test
-  PRIVATE GTest::gtest_main CoopSync_TBB alpaka::alpaka
+  PRIVATE GTest::gtest_main coopsync_tbb alpaka::alpaka
 )
 gtest_discover_tests(coopsync_tbb_alpaka_test)

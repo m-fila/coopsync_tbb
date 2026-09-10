@@ -67,7 +67,8 @@ TYPED_TEST(AlpakaTest, MemoryOperations) {
     }
 
     alpaka::memcpy(queue, device, host);
-    alpaka::memset(queue, device, 0);
+    // set all bites from device buffer to zero
+    alpaka::memset(queue, device, 0);  // cppcheck-suppress memsetZeroBytes
     alpaka::memcpy(queue, host, device);
 
     auto event = alpaka::Event<Queue>(devAcc);
