@@ -7,6 +7,7 @@
 
 #pragma once
 
+// cppcheck-suppress syntsaxError
 #if defined(__has_include) && __has_include(<version>)
 #include <version>
 #endif
