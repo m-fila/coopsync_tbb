@@ -11,18 +11,20 @@ project(
   DESCRIPTION "Downstream example consuming CoopSync_TBB"
 )
 
-set(CMAKE_CXX_STANDARD 20)
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 11)
+endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 include(CTest)
 
-find_package(CoopSync_TBB CONFIG REQUIRED)
+find_package(CoopSync_TBB REQUIRED)
 
 add_executable(coopsync_tbb_downstream main.cpp)
 target_link_libraries(
   coopsync_tbb_downstream
-  PRIVATE CoopSync_TBB::CoopSync_TBB
+  PRIVATE CoopSync_TBB::coopsync_tbb
 )
 
 if(BUILD_TESTING)

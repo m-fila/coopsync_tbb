@@ -1,0 +1,15 @@
+// SPDX-FileCopyrightText: 2026 CERN
+//
+// SPDX-License-Identifier: Apache-2.0
+
+prefix="${pcfiledir}/../.."
+libdir="${prefix}/@CMAKE_INSTALL_LIBDIR@"
+includedir="${prefix}/include"
+
+Name: CoopSync_TBB
+Description: Cooperative synchronization primitives for TBB resumable tasks
+Version: @COOPSYNC_TBB_VERSION@
+
+Requires: tbb
+Libs: -L"${libdir}" -lcoopsync_tbb
+Cflags: -I"${includedir}"
