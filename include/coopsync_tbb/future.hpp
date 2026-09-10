@@ -846,6 +846,7 @@ class COOPSYNC_TBB_EXPORT
     private:
     template <typename U>
     friend class future;
+    // cppcheck-suppress functionStatic
     explicit shared_future(
         std::shared_ptr<detail::future::shared_state<T&>> state)
         : detail::future::future_base<T&>(std::move(state)) {}
