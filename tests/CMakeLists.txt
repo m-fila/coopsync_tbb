@@ -43,6 +43,13 @@ if(COOPSYNC_TBB_BUILD_HIP_TESTING)
   add_subdirectory(hip)
 endif()
 
+# alpaka
+
+option(COOPSYNC_TBB_BUILD_ALPAKA_TESTING "Enable alpaka tests" TRUE)
+if(COOPSYNC_TBB_BUILD_ALPAKA_TESTING)
+  add_subdirectory(alpaka)
+endif()
+
 # ONNX Runtime
 
 find_package(onnxruntime QUIET)
