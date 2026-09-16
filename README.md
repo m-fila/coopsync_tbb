@@ -61,9 +61,9 @@ Build requirements:
 - compiler supporting C++11 or later
 - oneTBB v2021.8 or later
 
-Additional requirements for module builds:
+Additional requirements for C++20 module builds:
 
-- C++20 compiler
+- compiler supporting C++20 modules
 - CMake v3.28 or later
 
 Optional dependencies (only required for integration headers):
@@ -101,7 +101,7 @@ find_package(CoopSync_TBB REQUIRED)
 target_link_libraries(your_target PUBLIC CoopSync_TBB::coopsync_tbb)
 ```
 
-`CoopSync_TBB::CoopSync_TBB` target also includes C++20 modules if the library was build with them enabled.
+`CoopSync_TBB::CoopSync_TBB` target also includes the C++20 modules if the library was build with them enabled.
 
 ## License
 
