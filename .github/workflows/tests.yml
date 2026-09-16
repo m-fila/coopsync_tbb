@@ -29,14 +29,16 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake gcc g++ clang pkg-config
+          sudo apt-get install -y cmake gcc g++ clang pkg-config ninja
 
       - name: Configure
         run: |
           cmake -S . -B build \
             -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
             -DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }} \
-            -DBUILD_TESTING=ON
+            -DBUILD_TESTING=ON \
+            -G=Ninja \
+            -DCOOPSYNC_TBB_BUILD_MODULES=${{ matrix.cxx_standard >= 20 && 'ON' || 'OFF' }}
 
       - name: Build
         run: cmake --build build
@@ -51,6 +53,13 @@ jobs:
         working-directory: cmake/downstream
         run: |
           cmake --preset downstream -DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }}
+          cmake --build --preset downstream
+          ctest --preset downstream
+      - name: Test downstream with modules
+        if: matrix.cxx_standard >= 20
+        working-directory: cmake/downstream
+        run: |
+          cmake --preset downstream -DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }} -DDOWNSTREAM_USE_MODULES=ON
           cmake --build --preset downstream
           ctest --preset downstream
       - name: Test downstream with pkg-config

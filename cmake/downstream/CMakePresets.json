@@ -13,8 +13,7 @@
       "binaryDir": "../../build/downstream",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
-        "CMAKE_PREFIX_PATH": "../../install",
-        "CMAKE_CXX_STANDARD": "20"
+        "CMAKE_PREFIX_PATH": "../../install"
       }
     }
   ],
