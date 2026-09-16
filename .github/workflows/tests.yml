@@ -29,7 +29,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake gcc g++ clang pkg-config ninja
+          sudo apt-get install -y cmake gcc g++ clang pkg-config ninja-build
 
       - name: Configure
         run: |
@@ -52,7 +52,7 @@ jobs:
       - name: Test downstream with cmake
         working-directory: cmake/downstream
         run: |
-          cmake --preset downstream -DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }}
+          cmake --preset downstream -DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }} -G Ninja
           cmake --build --preset downstream
           ctest --preset downstream
       - name: Test downstream with modules
