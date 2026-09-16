@@ -65,6 +65,7 @@ Additional requirements for C++20 module builds:
 
 - compiler supporting C++20 modules
 - CMake v3.28 or later
+- oneTBB v2023.0 or later
 
 Optional dependencies (only required for integration headers):
 
