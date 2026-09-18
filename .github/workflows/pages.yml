@@ -25,8 +25,8 @@ jobs:
         uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
       - name: Build Doxygen
         run: |
-          sudo apt-get install -y cmake doxygen
-          cmake -DCOOPSYNC_TBB_BUILD_DOCS=ON -S ${{ github.workspace }} -B build
+          sudo apt-get install -y cmake doxygen ninja-build
+          cmake -DCOOPSYNC_TBB_BUILD_DOCS=ON -DCOOPSYNC_TBB_BUILD_MODULES=ON -S ${{ github.workspace }} -B build -G Ninja
           cmake --build build --target coopsync_tbb_docs
       - name: Upload artifact
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
