@@ -6,8 +6,8 @@
 
 #include "coopsync_tbb/feature_test.hpp"
 
-#if defined(DOXYGEN) || (defined(COOPSYNC_TBB_HAS_ATOMIC_FLAG) && \
-                         COOPSYNC_TBB_HAS_ATOMIC_FLAG == 1)
+#if defined(COOPSYNC_TBB_DOXYGEN) || (defined(COOPSYNC_TBB_HAS_ATOMIC_FLAG) && \
+                                      COOPSYNC_TBB_HAS_ATOMIC_FLAG == 1)
 
 #include <atomic>
 

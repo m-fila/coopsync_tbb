@@ -11,7 +11,7 @@
 #include <version>
 #endif
 
-#ifdef DOXYGEN
+#ifdef COOPSYNC_TBB_DOXYGEN
 /// @brief Macro that indicates whether atomic_flag is supported on the current
 /// platform.
 #define COOPSYNC_TBB_HAS_ATOMIC_FLAG 1
@@ -23,7 +23,7 @@
 // clang-format on
 #endif
 
-#ifdef DOXYGEN
+#ifdef COOPSYNC_TBB_DOXYGEN
 /// @brief Macro that indicates whether atomic_ref_condition is supported on the
 /// current platform.
 #define COOPSYNC_TBB_HAS_ATOMIC_REF_CONDITION 1

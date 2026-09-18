@@ -4,7 +4,7 @@ repos:
     hooks:
       - id: clang-format
         types_or: [file]
-        files: \.(c|h|cpp|hpp|ipp|cu|cuh|sycl|hip)$
+        files: \.(c|h|cpp|hpp|ipp|cppm|cu|cuh|sycl|hip)$
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: 3e8a8703264a2f4a69428a0aa4dcb512790b2c8c # frozen: v6.0.0

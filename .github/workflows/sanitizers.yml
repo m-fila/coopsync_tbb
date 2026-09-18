@@ -28,10 +28,10 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake clang
+          sudo apt-get install -y cmake g++
 
       - name: Configure, build, test
         env:
-          CC: clang
-          CXX: clang++
+          CC: gcc
+          CXX: g++
         run: cmake --workflow --preset ${{ matrix.preset }}
