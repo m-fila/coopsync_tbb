@@ -12,7 +12,7 @@ message(STATUS "Building TBB as part of the CoopSync_TBB project")
 # Declare where to get TBB from.
 set(
   COOPSYNC_TBB_TBB_SOURCE
-  "URL;https://github.com/oneapi-src/oneTBB/archive/refs/tags/v2022.3.0.tar.gz;URL_MD5;2b242c465b194ac8e1451ea1354873ae"
+  "URL;https://github.com/oneapi-src/oneTBB/archive/refs/tags/v2023.0.0.tar.gz;URL_MD5;6671ae13b732cb9b433adb384ef03eb5"
   CACHE STRING
   "Source for TBB, when built as part of this project"
 )

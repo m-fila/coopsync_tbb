@@ -23,7 +23,15 @@ add_executable(
   semaphore_test.cpp
 )
 
-target_link_libraries(coopsync_tbb_test PRIVATE GTest::gtest_main CoopSync_TBB)
+if(COOPSYNC_TBB_BUILD_MODULES)
+  target_sources(coopsync_tbb_test PUBLIC module_test.cpp)
+  set_source_files_properties(
+    module_test.cpp
+    PROPERTIES CXX_SCAN_FOR_MODULES ON
+  )
+endif()
+
+target_link_libraries(coopsync_tbb_test PRIVATE GTest::gtest_main coopsync_tbb)
 
 gtest_discover_tests(coopsync_tbb_test)
 
@@ -41,6 +49,13 @@ find_package(hip QUIET)
 option(COOPSYNC_TBB_BUILD_HIP_TESTING "Enable HIP tests" ${hip_FOUND})
 if(COOPSYNC_TBB_BUILD_HIP_TESTING)
   add_subdirectory(hip)
+endif()
+
+# alpaka
+
+option(COOPSYNC_TBB_BUILD_ALPAKA_TESTING "Enable alpaka tests" TRUE)
+if(COOPSYNC_TBB_BUILD_ALPAKA_TESTING)
+  add_subdirectory(alpaka)
 endif()
 
 # ONNX Runtime

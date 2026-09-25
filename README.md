@@ -48,7 +48,7 @@ The project also provides optional integrations for GPU and other libraries. The
 | HIP                        | ✔️     |
 | SYCL                       | ❌     |
 | OpenCL                     | ❌     |
-| alpaka                     | ❌     |
+| alpaka                     | ✔️     |
 | ONNX Runtime               | ✔️     |
 | gRPC                       | ❌     |
 
@@ -61,10 +61,17 @@ Build requirements:
 - compiler supporting C++11 or later
 - oneTBB v2021.8 or later
 
+Additional requirements for C++20 module builds:
+
+- compiler supporting C++20 modules
+- CMake v3.28 or later
+- oneTBB v2023.0 or later
+
 Optional dependencies (only required for integration headers):
 
 - CUDA
 - HIP v1.6 or later
+- alpaka v2.0.0 or later, compiler supporting C++20 or later
 - ONNX Runtime v1.16 or later
 
 The optional dependencies are not needed to build the core library. They are only required if you include headers that provide given integration, such as `coopsync/cuda/wait_for.hpp` for CUDA or the corresponding HIP headers.
@@ -80,6 +87,11 @@ cmake --build --preset default
 
 By default the project will fetch the dependencies. To find and use the system dependencies instead, set the CMake `-DCOOPSYNC_TBB_USE_SYSTEM_LIBS=ON` flag during configuration.
 
+### Building with C++20 modules
+
+The project provides an optional `coopsync_tbb` C++20 module interface.
+To build and install the module interface, enable module builds with `-DCOOPSYNC_TBB_BUILD_MODULES=ON` and use at least C++20.
+
 ## Using in a CMake project
 
 This project installs a CMake configuration and exports a CMake target, making it easy to use in other projects. The library can be located with `find_package` and linked to other targets:
@@ -87,8 +99,10 @@ This project installs a CMake configuration and exports a CMake target, making i
 ```cmake
 find_package(CoopSync_TBB REQUIRED)
 
-target_link_libraries(your_target PUBLIC CoopSync_TBB::CoopSync_TBB)
+target_link_libraries(your_target PUBLIC CoopSync_TBB::coopsync_tbb)
 ```
+
+`CoopSync_TBB::CoopSync_TBB` target also includes the C++20 modules if the library was build with them enabled.
 
 ## License
 

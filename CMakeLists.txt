@@ -15,6 +15,7 @@ project(
 option(COOPSYNC_TBB_USE_SYSTEM_LIBS "Use system libraries be default" FALSE)
 option(COOPSYNC_TBB_BUILD_TESTING "Build the tests of CoopSync_TBB" TRUE)
 option(COOPSYNC_TBB_BUILD_DOCS "Build the documentation of CoopSync_TBB" OFF)
+option(COOPSYNC_TBB_BUILD_MODULES "Build CoopSync_TBB as a C++20 module" OFF)
 
 include(cmake/Sanitizers.cmake) # COOPSYNC_TBB_SANITIZER option
 
@@ -28,11 +29,19 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 if(CMAKE_CXX_STANDARD LESS 11)
   message(FATAL_ERROR "CoopsSync_TBB requires C++11 or higher.")
 endif()
+
+if(COOPSYNC_TBB_BUILD_MODULES AND CMAKE_CXX_STANDARD LESS 20)
+  message(
+    FATAL_ERROR
+    "CoopsSync_TBB requires C++20 or higher to build as a module."
+  )
+endif()
+
 include(GNUInstallDirs)
 
 configure_file(
   include/coopsync_tbb/version.hpp.in
-  ${CMAKE_CURRENT_BINARY_DIR}/include/coopsync_tbb/version.hpp
+  "${CMAKE_CURRENT_BINARY_DIR}/include/coopsync_tbb/version.hpp"
   @ONLY
 )
 
@@ -90,28 +99,28 @@ endif()
 
 # Library
 
-add_library(CoopSync_TBB SHARED)
+add_library(coopsync_tbb SHARED)
 
 include(GenerateExportHeader)
 generate_export_header(
-  CoopSync_TBB
+  coopsync_tbb
   EXPORT_FILE_NAME
-    ${CMAKE_CURRENT_BINARY_DIR}/include/coopsync_tbb/detail/export.hpp
+    "${CMAKE_CURRENT_BINARY_DIR}/include/coopsync_tbb/detail/export.hpp"
 )
-coopsync_tbb_apply_sanitizer(CoopSync_TBB)
+coopsync_tbb_apply_sanitizer(coopsync_tbb)
 
 target_sources(
-  CoopSync_TBB
+  coopsync_tbb
   PUBLIC
     FILE_SET HEADERS
-      BASE_DIRS include/ ${CMAKE_CURRENT_BINARY_DIR}/include
+      BASE_DIRS include/ "${CMAKE_CURRENT_BINARY_DIR}/include"
       FILES
         # public API
         include/coopsync_tbb/coopsync_tbb.hpp
-        ${CMAKE_CURRENT_BINARY_DIR}/include/coopsync_tbb/version.hpp
+        "${CMAKE_CURRENT_BINARY_DIR}/include/coopsync_tbb/version.hpp"
         include/coopsync_tbb/feature_test.hpp
         # details
-        ${CMAKE_CURRENT_BINARY_DIR}/include/coopsync_tbb/detail/export.hpp
+        "${CMAKE_CURRENT_BINARY_DIR}/include/coopsync_tbb/detail/export.hpp"
         include/coopsync_tbb/detail/intrusive_list.hpp
         include/coopsync_tbb/detail/macros.hpp
         include/coopsync_tbb/detail/wait_queue.hpp
@@ -129,6 +138,7 @@ target_sources(
         # integrations
         include/coopsync_tbb/cuda/wait_for.hpp
         include/coopsync_tbb/hip/wait_for.hpp
+        include/coopsync_tbb/alpaka/wait_for.hpp
         include/coopsync_tbb/onnx/wait_for.hpp
   PRIVATE # public API
     src/coopsync_tbb.cpp
@@ -152,12 +162,23 @@ target_sources(
 )
 
 set_target_properties(
-  CoopSync_TBB
+  coopsync_tbb
   PROPERTIES CXX_VISIBILITY_PRESET hidden VISIBILITY_INLINES_HIDDEN TRUE
 )
 
-add_library(CoopSync_TBB::CoopSync_TBB ALIAS CoopSync_TBB)
-target_link_libraries(CoopSync_TBB PUBLIC TBB::tbb)
+if(COOPSYNC_TBB_BUILD_MODULES)
+  target_sources(
+    coopsync_tbb
+    PUBLIC
+      FILE_SET CXX_MODULES
+        BASE_DIRS include/
+        FILES include/coopsync_tbb/src/coopsync_tbb.cppm
+  )
+  target_compile_features(coopsync_tbb PUBLIC cxx_std_20)
+endif()
+
+add_library(CoopSync_TBB::coopsync_tbb ALIAS coopsync_tbb)
+target_link_libraries(coopsync_tbb PUBLIC TBB::tbb)
 
 # Tests
 
@@ -174,24 +195,39 @@ endif()
 
 # Install
 
-install(TARGETS CoopSync_TBB EXPORT CoopSync_TBBTargets FILE_SET HEADERS)
+install(
+  TARGETS coopsync_tbb
+  EXPORT CoopSync_TBBTargets
+  FILE_SET HEADERS
+  FILE_SET CXX_MODULES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
 
 install(
   EXPORT CoopSync_TBBTargets
-  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/CoopSync_TBB
+  DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/CoopSync_TBB"
   NAMESPACE CoopSync_TBB::
 )
 
 include(CMakePackageConfigHelpers)
 
 write_basic_package_version_file(
-  ${CMAKE_CURRENT_BINARY_DIR}/CoopSync_TBBConfigVersion.cmake
+  "${CMAKE_CURRENT_BINARY_DIR}/CoopSync_TBBConfigVersion.cmake"
   COMPATIBILITY ExactVersion
 )
 
 install(
   FILES
     cmake/CoopSync_TBBConfig.cmake
-    ${CMAKE_CURRENT_BINARY_DIR}/CoopSync_TBBConfigVersion.cmake
-  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/CoopSync_TBB
+    "${CMAKE_CURRENT_BINARY_DIR}/CoopSync_TBBConfigVersion.cmake"
+  DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/CoopSync_TBB"
+)
+
+configure_file(
+  cmake/pkgconfig/coopsync_tbb.pc.in
+  "${CMAKE_CURRENT_BINARY_DIR}/coopsync_tbb.pc"
+  @ONLY
+)
+install(
+  FILES "${CMAKE_CURRENT_BINARY_DIR}/coopsync_tbb.pc"
+  DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig/"
 )

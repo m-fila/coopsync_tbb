@@ -15,6 +15,6 @@ add_executable(
 
 target_link_libraries(
   coopsync_tbb_hip_test
-  PRIVATE GTest::gtest_main CoopSync_TBB hip::host
+  PRIVATE GTest::gtest_main coopsync_tbb hip::host
 )
 gtest_discover_tests(coopsync_tbb_hip_test)
