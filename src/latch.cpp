@@ -4,6 +4,8 @@
 
 #include "coopsync_tbb/latch.hpp"
 
+#include <cassert>
+
 namespace coopsync_tbb {
 
 latch::~latch() {

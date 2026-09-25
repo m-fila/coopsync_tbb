@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include <oneapi/tbb/task.h>
-
 #include <atomic>
 
 #include "coopsync_tbb/detail/macros.hpp"
