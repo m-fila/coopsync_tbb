@@ -87,6 +87,10 @@ cmake --build --preset default
 
 By default the project will fetch the dependencies. To find and use the system dependencies instead, set the CMake `-DCOOPSYNC_TBB_USE_SYSTEM_LIBS=ON` flag during configuration.
 
+To disable building the tests, set the CMake `-DCOOPSYNC_TBB_BUILD_TESTING=OFF` flag during configuration.
+
+To disable installing the library, set the CMake `-DCOOPSYNC_TBB_INSTALL=OFF` flag during configuration.
+
 ### Building with C++20 modules
 
 The project provides an optional `coopsync_tbb` C++20 module interface.
