@@ -16,6 +16,7 @@ option(COOPSYNC_TBB_USE_SYSTEM_LIBS "Use system libraries be default" FALSE)
 option(COOPSYNC_TBB_BUILD_TESTING "Build the tests of CoopSync_TBB" TRUE)
 option(COOPSYNC_TBB_BUILD_DOCS "Build the documentation of CoopSync_TBB" OFF)
 option(COOPSYNC_TBB_BUILD_MODULES "Build CoopSync_TBB as a C++20 module" OFF)
+option(COOPSYNC_TBB_INSTALL "Install CoopSync_TBB" ON)
 
 include(cmake/Sanitizers.cmake) # COOPSYNC_TBB_SANITIZER option
 
@@ -194,40 +195,41 @@ if(COOPSYNC_TBB_BUILD_DOCS)
 endif()
 
 # Install
+if(COOPSYNC_TBB_INSTALL)
+  install(
+    TARGETS coopsync_tbb
+    EXPORT CoopSync_TBBTargets
+    FILE_SET HEADERS
+    FILE_SET CXX_MODULES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+  )
 
-install(
-  TARGETS coopsync_tbb
-  EXPORT CoopSync_TBBTargets
-  FILE_SET HEADERS
-  FILE_SET CXX_MODULES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-)
+  install(
+    EXPORT CoopSync_TBBTargets
+    DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/CoopSync_TBB"
+    NAMESPACE CoopSync_TBB::
+  )
 
-install(
-  EXPORT CoopSync_TBBTargets
-  DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/CoopSync_TBB"
-  NAMESPACE CoopSync_TBB::
-)
+  include(CMakePackageConfigHelpers)
 
-include(CMakePackageConfigHelpers)
-
-write_basic_package_version_file(
-  "${CMAKE_CURRENT_BINARY_DIR}/CoopSync_TBBConfigVersion.cmake"
-  COMPATIBILITY ExactVersion
-)
-
-install(
-  FILES
-    cmake/CoopSync_TBBConfig.cmake
+  write_basic_package_version_file(
     "${CMAKE_CURRENT_BINARY_DIR}/CoopSync_TBBConfigVersion.cmake"
-  DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/CoopSync_TBB"
-)
+    COMPATIBILITY ExactVersion
+  )
 
-configure_file(
-  cmake/pkgconfig/coopsync_tbb.pc.in
-  "${CMAKE_CURRENT_BINARY_DIR}/coopsync_tbb.pc"
-  @ONLY
-)
-install(
-  FILES "${CMAKE_CURRENT_BINARY_DIR}/coopsync_tbb.pc"
-  DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig/"
-)
+  install(
+    FILES
+      cmake/CoopSync_TBBConfig.cmake
+      "${CMAKE_CURRENT_BINARY_DIR}/CoopSync_TBBConfigVersion.cmake"
+    DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/CoopSync_TBB"
+  )
+
+  configure_file(
+    cmake/pkgconfig/coopsync_tbb.pc.in
+    "${CMAKE_CURRENT_BINARY_DIR}/coopsync_tbb.pc"
+    @ONLY
+  )
+  install(
+    FILES "${CMAKE_CURRENT_BINARY_DIR}/coopsync_tbb.pc"
+    DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig/"
+  )
+endif()

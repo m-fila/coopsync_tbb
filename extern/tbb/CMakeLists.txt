@@ -26,6 +26,7 @@ FetchContent_Declare(
 # Options used in the build of TBB.
 set(TBB_TEST FALSE CACHE BOOL "Turn off the TBB tests")
 set(TBB_STRICT FALSE CACHE BOOL "Do not throw errors on compiler warnings")
+set(TBB_INSTALL ${COOPSYNC_TBB_INSTALL} CACHE BOOL "Install TBB")
 
 if(NOT ${COOPSYNC_TBB_SANITIZER} STREQUAL "none")
   set(
