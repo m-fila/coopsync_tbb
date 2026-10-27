@@ -21,7 +21,11 @@ namespace alpaka {
 /// @note In case of error during enqueue, the task is resumed immediately and
 /// the exception is rethrown.
 template <typename Queue>
+#if ALPAKA_VERSION >= 200200000
+    requires ::alpaka::concepts::Queue<Queue>
+#else
     requires ::alpaka::isQueue<Queue>
+#endif
 inline static void wait_for(Queue& queue) {
     ::tbb::task::suspend([&queue](::tbb::task::suspend_point suspend_point) {
         ::alpaka::enqueue(
