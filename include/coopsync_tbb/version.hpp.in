@@ -18,6 +18,12 @@
 #define COOPSYNC_TBB_VERSION_PATCH @PROJECT_VERSION_PATCH@
 /// @brief Full CoopSync_TBB version string.
 #define COOPSYNC_TBB_VERSION "@PROJECT_VERSION@"
+/// @brief Full CoopSync_TBB version number.
+/// 9-digits version number in the form MMMmmmppp, where
+/// MMM is the major version,
+/// mmm is the minor version and
+/// ppp is the patch version.
+#define COOPSYNC_TBB_VERSION_NUMBER (COOPSYNC_TBB_VERSION_MAJOR * 1000000llu + COOPSYNC_TBB_VERSION_MINOR * 1000llu + COOPSYNC_TBB_VERSION_PATCH)
 
 //clang-format on
 // NOLINTEND(cppcoreguidelines-macro-to-enum, cppcoreguidelines-macro-usage)
