@@ -5,44 +5,19 @@
 message(STATUS "Adding alpaka tests")
 
 # Setup alpaka
-
-# Automatically enable the CUDA and HIP backends if they were already found.
-# If neither backend was explicitly selected, prefer CUDA when available,
-# otherwise use HIP when available. Explicit user settings are preserved.
-if(
-  NOT DEFINED alpaka_ACC_GPU_CUDA_ENABLE
-  AND NOT DEFINED alpaka_ACC_GPU_HIP_ENABLE
-)
-  if(${CUDAToolkit_FOUND})
-    set(
-      alpaka_ACC_GPU_CUDA_ENABLE
-      ON
-      CACHE BOOL
-      "Enable the alpaka CUDA backend"
-    )
-    set(
-      alpaka_ACC_GPU_HIP_ENABLE
-      OFF
-      CACHE BOOL
-      "Enable the alpaka HIP backend"
-    )
-  elseif(${HIP_FOUND})
-    set(
-      alpaka_ACC_GPU_CUDA_ENABLE
-      OFF
-      CACHE BOOL
-      "Enable the alpaka CUDA backend"
-    )
-    set(alpaka_ACC_GPU_HIP_ENABLE ON CACHE BOOL "Enable the alpaka HIP backend")
-  endif()
+set(alpaka_DEP_OMP OFF CACHE BOOL "Enable the alpaka OpenMP backend") # disable OpenMP backend to await clashes with HIP
+set(alpaka_DEP_TBB ON CACHE BOOL "Enable the alpaka TBB backend")
+if(${CUDAToolkit_FOUND})
+  set(alpaka_DEP_CUDA ON CACHE BOOL "Enable the alpaka CUDA backend")
 endif()
-
-# enable the sequential CPU backend, so there is always at least one backend available
+if(${HIP_FOUND})
+  set(alpaka_DEP_HIP ON CACHE BOOL "Enable the alpaka HIP backend")
+endif()
 set(
-  alpaka_ACC_CPU_B_SEQ_T_SEQ_ENABLE
+  alpaka_SUPPRESS_TARGET_WARNING
   ON
   CACHE BOOL
-  "Enable the alpaka sequential CPU backend"
+  "Suppress warning about target linking"
 )
 
 option(
@@ -72,10 +47,26 @@ if(COOPSYNC_TBB_SETUP_ALPAKA)
   endif()
 endif()
 
-alpaka_add_executable(coopsync_tbb_alpaka_test wait_for_test.cpp)
+function(add_coopsync_tbb_alpaka_test target)
+  add_executable(${target} wait_for_test.cpp)
+  target_link_libraries(
+    ${target}
+    PRIVATE GTest::gtest_main coopsync_tbb alpaka::alpaka ${ARGN}
+  )
+  alpaka_finalize(${target})
+  gtest_discover_tests(${target})
+endfunction()
 
-target_link_libraries(
-  coopsync_tbb_alpaka_test
-  PRIVATE GTest::gtest_main coopsync_tbb alpaka::alpaka
-)
-gtest_discover_tests(coopsync_tbb_alpaka_test)
+add_coopsync_tbb_alpaka_test(coopsync_tbb_alpaka_test)
+
+if(alpaka_DEP_CUDA)
+  add_coopsync_tbb_alpaka_test(
+    coopsync_tbb_alpaka_cuda_test alpaka::cuda
+  )
+endif()
+
+if(alpaka_DEP_HIP)
+  add_coopsync_tbb_alpaka_test(
+    coopsync_tbb_alpaka_hip_test alpaka::hip
+  )
+endif()

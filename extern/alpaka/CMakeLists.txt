@@ -12,7 +12,7 @@ message(STATUS "Building alpaka as part of the CoopSync_TBB project")
 # Declare where to get alpaka from.
 set(
   COOPSYNC_TBB_ALPAKA_SOURCE
-  "URL;https://github.com/alpaka-group/alpaka/archive/refs/tags/2.2.0.tar.gz;URL_MD5;c12ee1495974ec911c1a43e0ff4d8925"
+  "URL;https://github.com/alpaka-group/alpaka/archive/refs/tags/3.0.0.tar.gz;URL_MD5;35a799c8ee8e391d05504d83448c9bdc"
   CACHE STRING
   "Source for alpaka, when built as part of this project"
 )
