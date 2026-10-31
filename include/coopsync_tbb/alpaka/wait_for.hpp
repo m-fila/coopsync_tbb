@@ -14,12 +14,22 @@ namespace alpaka {
 
 /// @brief Suspends the current TBB task until all the work in a given alpaka
 /// queue is complete.
-/// @tparam Queue A type fulfilling the alpaka queue requirements.
 /// @param queue The alpaka queue to wait for.
 /// @throws std::exception Rethrows any exception thrown by the alpaka enqueue
 /// operation.
 /// @note In case of error during enqueue, the task is resumed immediately and
 /// the exception is rethrown.
+#if ALPAKA_VERSION >= 300000000
+/// @tparam Device A type fulfilling the alpaka device requirements.
+template <typename Device>
+inline static void wait_for(::alpaka::onHost::Queue<Device>& queue) {
+    ::tbb::task::suspend([&queue](::tbb::task::suspend_point suspend_point) {
+        queue.enqueueHostFnDeferred(
+            [suspend_point]() { ::tbb::task::resume(suspend_point); });
+    });
+}
+#else
+/// @tparam Queue A type fulfilling the alpaka queue requirements.
 template <typename Queue>
 #if ALPAKA_VERSION >= 200200000
     requires ::alpaka::concepts::Queue<Queue>
@@ -32,5 +42,6 @@ inline static void wait_for(Queue& queue) {
             queue, [suspend_point]() { ::tbb::task::resume(suspend_point); });
     });
 }
+#endif
 }  // namespace alpaka
 }  // namespace coopsync_tbb
