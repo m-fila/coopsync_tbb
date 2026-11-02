@@ -32,7 +32,7 @@ repos:
     hooks:
       - id: reuse
   - repo: https://github.com/BlankSpruce/gersemi-pre-commit
-    rev: f1c4833f8cf23c6d952673abc73525411a5719e8 # frozen: 0.29.1
+    rev: 28010ddd6016e1a0f7bd232acb6536ef996ae897 # frozen: 0.29.2
     hooks:
     - id: gersemi
       args: ["-i"]
