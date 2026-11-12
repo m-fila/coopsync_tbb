@@ -47,24 +47,19 @@ TEST(HIPWaitFor, MemoryOperations) {
     ASSERT_EQ(hipEventCreate(&event), hipSuccess);
 
     std::uint32_t* host = nullptr;
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
     ASSERT_EQ(
-        hipHostMalloc(
-            reinterpret_cast<  // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
-                void**>(&host),
-            size * sizeof(int)),
+        hipHostMalloc(reinterpret_cast<void**>(&host), size * sizeof(int)),
         hipSuccess);
 
     std::uint32_t* device = nullptr;
-    ASSERT_EQ(
-        hipMalloc(
-            reinterpret_cast<  // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
-                void**>(&device),
-            size * sizeof(int)),
-        hipSuccess);
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+    ASSERT_EQ(hipMalloc(reinterpret_cast<void**>(&device), size * sizeof(int)),
+              hipSuccess);
 
     for (std::size_t i = 0; i < size; ++i) {
-        host[i] =  // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-            static_cast<int>(i);
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+        host[i] = static_cast<int>(i);
     }
 
     ASSERT_EQ(hipMemcpyAsync(device, host, size * sizeof(int),
@@ -83,9 +78,8 @@ TEST(HIPWaitFor, MemoryOperations) {
               hipSuccess);  // Ensure all the errors are propagated
     ASSERT_EQ(hipGetLastError(), hipSuccess);
     for (std::size_t i = 0; i < size; ++i) {
-        ASSERT_EQ(
-            host[i],  // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-            0);
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+        ASSERT_EQ(host[i], 0);
     }
 
     ASSERT_EQ(hipFree(device), hipSuccess);

@@ -47,24 +47,19 @@ TEST(CUDAWaitFor, MemoryOperations) {
     ASSERT_EQ(cudaEventCreate(&event), cudaSuccess);
 
     int* host = nullptr;
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
     ASSERT_EQ(
-        cudaMallocHost(
-            reinterpret_cast<  // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
-                void**>(&host),
-            size * sizeof(int)),
+        cudaMallocHost(reinterpret_cast<void**>(&host), size * sizeof(int)),
         cudaSuccess);
 
     int* device = nullptr;
-    ASSERT_EQ(
-        cudaMalloc(
-            reinterpret_cast<  // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
-                void**>(&device),
-            size * sizeof(int)),
-        cudaSuccess);
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+    ASSERT_EQ(cudaMalloc(reinterpret_cast<void**>(&device), size * sizeof(int)),
+              cudaSuccess);
 
     for (std::size_t i = 0; i < size; ++i) {
-        host[i] =  // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-            static_cast<int>(i);
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+        host[i] = static_cast<int>(i);
     }
 
     ASSERT_EQ(cudaMemcpyAsync(device, host, size * sizeof(int),
@@ -81,9 +76,8 @@ TEST(CUDAWaitFor, MemoryOperations) {
     ASSERT_EQ(cudaStreamSynchronize(stream), cudaSuccess);
     ASSERT_EQ(cudaGetLastError(), cudaSuccess);
     for (std::size_t i = 0; i < size; ++i) {
-        ASSERT_EQ(
-            host[i],  // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-            0);
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+        ASSERT_EQ(host[i], 0);
     }
 
     ASSERT_EQ(cudaFree(device), cudaSuccess);
