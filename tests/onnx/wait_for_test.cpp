@@ -124,13 +124,10 @@ TEST(OnnxRuntimeTest, CWaitForIdentity1x1) {
 
     float* output_data = nullptr;
 
-    // clang-format off
-    ASSERT_EQ(
-        api->GetTensorMutableData(
-            outputs.at(0),
-            reinterpret_cast<void**>(&output_data)),  // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
-        nullptr);
-    // clang-format on
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+    ASSERT_EQ(api->GetTensorMutableData(outputs.at(0),
+                                        reinterpret_cast<void**>(&output_data)),
+              nullptr);
 
     ASSERT_NE(output_data, nullptr);
 
