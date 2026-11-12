@@ -32,7 +32,7 @@ jobs:
           lcov --capture --initial \
             --directory build \
             --base-directory . \
-            --ignore-errors mismatch,source \
+            --ignore-errors mismatch,source,inconsistent \
             --output-file baseline.info \
             --rc branch_coverage=1 \
             --exclude "*/_deps/*"
@@ -46,7 +46,7 @@ jobs:
           lcov --capture \
             --directory build \
             --base-directory . \
-            --ignore-errors mismatch,source \
+            --ignore-errors mismatch,source,inconsistent \
             --output-file test.info \
             --rc branch_coverage=1 \
             --exclude "*/_deps/*"
@@ -56,7 +56,7 @@ jobs:
           lcov --add-tracefile baseline.info \
                --add-tracefile test.info \
                --output-file coverage.info \
-               --ignore-errors mismatch \
+               --ignore-errors mismatch,inconsistent,corrupt \
                --rc branch_coverage=1
           lcov --remove coverage.info \
                '/usr/*' \
