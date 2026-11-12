@@ -7,30 +7,25 @@
 
 #pragma once
 
+// cppcheck-suppress syntaxError
 #if defined(__has_include) && __has_include(<version>)
 #include <version>
 #endif
 
-#ifdef COOPSYNC_TBB_DOXYGEN
+// NOLINTBEGIN(cppcoreguidelines-macro-to-enum, cppcoreguidelines-macro-usage)
+
+#if defined(COOPSYNC_TBB_DOXYGEN) || (defined(__cpp_lib_atomic_flag_test) && \
+                                      __cpp_lib_atomic_flag_test >= 201907L)
 /// @brief Macro that indicates whether atomic_flag is supported on the current
 /// platform.
 #define COOPSYNC_TBB_HAS_ATOMIC_FLAG 1
 #endif
 
-#if defined(__cpp_lib_atomic_flag_test) && __cpp_lib_atomic_flag_test >= 201907L
-// clang-format off
-#define COOPSYNC_TBB_HAS_ATOMIC_FLAG 1  // NOLINT(cppcoreguidelines-macro-to-enum,cppcoreguidelines-macro-usage)
-// clang-format on
-#endif
-
-#ifdef COOPSYNC_TBB_DOXYGEN
+#if defined(COOPSYNC_TBB_DOXYGEN) || \
+    (defined(__cpp_lib_atomic_ref) && __cpp_lib_atomic_ref >= 201806L)
 /// @brief Macro that indicates whether atomic_ref_condition is supported on the
 /// current platform.
 #define COOPSYNC_TBB_HAS_ATOMIC_REF_CONDITION 1
 #endif
 
-#if defined(__cpp_lib_atomic_ref) && __cpp_lib_atomic_ref >= 201806L
-// clang-format off
-#define COOPSYNC_TBB_HAS_ATOMIC_REF_CONDITION 1 // NOLINT(cppcoreguidelines-macro-to-enum,cppcoreguidelines-macro-usage)
-// clang-format on
-#endif
+// NOLINTEND(cppcoreguidelines-macro-to-enum, cppcoreguidelines-macro-usage)

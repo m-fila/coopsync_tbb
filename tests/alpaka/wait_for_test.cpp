@@ -63,6 +63,7 @@ TYPED_TEST(AlpakaTest, MemoryOperations) {
     auto device = alpaka::allocBuf<Data, Idx>(devAcc, extent);
 
     for (auto i = Idx(0); i < size; ++i) {
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
         host[i] = static_cast<Data>(i);
     }
 
@@ -77,6 +78,7 @@ TYPED_TEST(AlpakaTest, MemoryOperations) {
     ASSERT_TRUE(alpaka::isComplete(event));
 
     for (auto i = Idx(0); i < size; ++i) {
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
         ASSERT_EQ(host[i], 0);
     }
 }
