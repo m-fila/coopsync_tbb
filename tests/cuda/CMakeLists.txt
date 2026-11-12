@@ -4,8 +4,6 @@
 
 message(STATUS "Adding CUDA tests")
 
-enable_language(CUDA)
-
 add_executable(
   coopsync_tbb_cuda_test
   wait_for_test.cpp
