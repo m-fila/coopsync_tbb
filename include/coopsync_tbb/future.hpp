@@ -135,12 +135,12 @@ struct shared_state : public shared_state_base {
         bool has_value() const noexcept { return m_has_value; }
 
         T& get() noexcept {
-            return m_storage
-                .value;  // NOLINT(cppcoreguidelines-pro-type-union-access)
+            // NOLINTNEXTLINE(cppcoreguidelines-pro-type-union-access)
+            return m_storage.value;
         }
         const T& get() const noexcept {
-            return m_storage
-                .value;  // NOLINT(cppcoreguidelines-pro-type-union-access)
+            // NOLINTNEXTLINE(cppcoreguidelines-pro-type-union-access)
+            return m_storage.value;
         }
 
         T& operator*() noexcept { return get(); }
@@ -229,8 +229,8 @@ struct shared_state<T&> : public shared_state_base {
 template <typename T>
 class future_base {
     protected:
-    std::shared_ptr<shared_state<T>>
-        m_state;  // NOLINT(cppcoreguidelines-non-private-member-variables-in-classes)
+    // NOLINTNEXTLINE(cppcoreguidelines-non-private-member-variables-in-classes)
+    std::shared_ptr<shared_state<T>> m_state;
 
     future_base() noexcept = default;
     explicit future_base(std::shared_ptr<shared_state<T>> state)
@@ -300,8 +300,8 @@ class future_base {
 template <typename T>
 class promise_base {
     protected:
-    std::shared_ptr<shared_state<T>>
-        m_state;  // NOLINT(cppcoreguidelines-non-private-member-variables-in-classes)
+    // NOLINTNEXTLINE(cppcoreguidelines-non-private-member-variables-in-classes)
+    std::shared_ptr<shared_state<T>> m_state;
 
     /// @brief Constructs a new promise with an empty shared state.
     promise_base() : m_state(std::make_shared<shared_state<T>>()) {}
@@ -846,6 +846,7 @@ class COOPSYNC_TBB_EXPORT
     private:
     template <typename U>
     friend class future;
+    // cppcheck-suppress functionStatic
     explicit shared_future(
         std::shared_ptr<detail::future::shared_state<T&>> state)
         : detail::future::future_base<T&>(std::move(state)) {}
