@@ -12,7 +12,7 @@ message(STATUS "Building alpaka as part of the CoopSync_TBB project")
 # Declare where to get alpaka from.
 set(
   COOPSYNC_TBB_ALPAKA_SOURCE
-  "URL;https://github.com/alpaka-group/alpaka/archive/refs/tags/2.2.0.tar.gz;URL_MD5;c12ee1495974ec911c1a43e0ff4d8925"
+  "URL;https://github.com/alpaka-group/alpaka/archive/refs/tags/3.0.0.tar.gz;URL_MD5;35a799c8ee8e391d05504d83448c9bdc"
   CACHE STRING
   "Source for alpaka, when built as part of this project"
 )
@@ -25,8 +25,12 @@ FetchContent_Declare(
   EXCLUDE_FROM_ALL
 )
 
-# Turn off build testing.
-set(BUILD_TESTING FALSE)
+set(alpaka_TESTS OFF)
+set(alpaka_DOCS OFF)
+set(alpaka_BENCHMARKS OFF)
+set(alpaka_EXAMPLES OFF)
+set(alpaka_HEADERCHECKS OFF)
+set(alpaka_CLANG_TIDY OFF)
 
 # Get it into the current directory.
 FetchContent_MakeAvailable(alpaka)

@@ -29,9 +29,12 @@ jobs:
           key: ${{ runner.os }}-${{ hashFiles('.pre-commit-config.yaml') }}
       - name: Install dependencies
         run: |
-          sudo apt-get update && sudo apt-get install -y cppcheck clang-tidy cmake
+          sudo apt-get update && sudo apt-get install -y clang cppcheck clang-tidy cmake
           pip install pre-commit
       - name: Run pre-commit
+        env:
+          CC: clang
+          CXX: clang++
         run: |
           cmake -S . -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_CXX_STANDARD=20
           pre-commit run --all-files --show-diff-on-failure
